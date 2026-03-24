@@ -23,6 +23,8 @@
     "scripts/hx-entropy-scan.js",
     "scripts/hx-gate.js",
     "scripts/hx-init.js",
+    "scripts/hx-upgrade.js",
+    "scripts/hx-uninstall.js",
     "scripts/hx-new-doc.js",
     "scripts/hx-new-plan.js",
     "scripts/hx-review-checklist.js",

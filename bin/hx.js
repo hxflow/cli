@@ -26,8 +26,10 @@ const SCRIPTS_DIR = resolve(__dirname, '..', 'scripts')
 // ── 子命令映射 ──
 
 const COMMANDS = {
-  init:    'hx-init.js',
-  gate:    'hx-gate.js',
+  init:      'hx-init.js',
+  upgrade:   'hx-upgrade.js',
+  uninstall: 'hx-uninstall.js',
+  gate:      'hx-gate.js',
   doc:     'hx-new-doc.js',
   plan:    'hx-new-plan.js',
   run:     'hx-agent-run.js',
@@ -50,6 +52,8 @@ function printHelp() {
 
   命令:
     init      初始化项目（安装 .harness/ 和命令文件）
+    upgrade   升级命令文件和 CLAUDE.md 标记块（保留 .harness/ 数据）
+    uninstall 移除所有安装痕迹（.harness/、命令文件、CLAUDE.md 标记块）
     doc       创建需求文档 (Phase 01)
     plan      生成执行计划 (Phase 02)
     ctx       校验上下文完整性 (Phase 03)
