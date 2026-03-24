@@ -682,6 +682,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
     <a class="toc-item" href="#hooks"><div class="toc-num">附录 D</div><div class="toc-label">Git Hooks 配置</div><div class="toc-who"><span class="badge-all">全员</span></div></a>
     <a class="toc-item" href="#skills"><div class="toc-num">附录 E</div><div class="toc-label">Skill 编写规范</div><div class="toc-who"><span class="badge-all">全员</span></div></a>
     <a class="toc-item" href="#prompts"><div class="toc-num">附录 F</div><div class="toc-label">提示词最佳实践</div><div class="toc-who"><span class="badge-all">全员</span></div></a>
+    <a class="toc-item" href="#claude-code"><div class="toc-num">附录 G</div><div class="toc-label">Claude Code 使用指南</div><div class="toc-who"><span class="badge-all">全员</span></div></a>
   </div>
 
   <div class="dn">
@@ -3165,6 +3166,426 @@ git log --since="14 days ago" --format="" --name-only \
 ├──────────────┼──────────────────────────────────────────────┤
 │</span> <span class="cm">上下文 &gt;40%   │ 新开会话，把进度写进 docs/plans/*.json       │</span>
 <span class="cm">└─────────────────────────────────────────────────────────────┘</span></pre>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     附录 G · Claude Code 使用指南
+     ═══════════════════════════════════════════════════════ -->
+<section id="claude-code">
+<div class="wrap">
+  <div class="sh-tag">附录 G</div>
+  <h2 class="sh-title">Claude Code 使用指南</h2>
+  <p class="sh-desc">Claude Code 不是 IDE 插件，而是一个原生 Linux 命令行工具。它直接运行在终端中，像 git、npm 一样成为工程师工具链的一部分。这意味着它天然继承了 Unix 哲学：可组合、可脚本化、可自动化。</p>
+
+  <div class="dn">
+    <strong>为什么选择 Claude Code？</strong>它是目前唯一一个将 AI Agent 能力完整暴露为 CLI 接口的工具。不依赖 IDE、不需要 GUI、不锁定编辑器——你的 shell 就是你的 IDE。这让它在 CI/CD 集成、远程服务器操作、批量自动化场景中拥有其他 AI 代理无法企及的优势。
+  </div>
+
+  <!-- ── CLI 即 Agent ── -->
+  <div class="sh-tag" style="margin-top:48px">核心理念——CLI 即 Agent</div>
+  <p style="font-size:14px;color:var(--txt2);line-height:1.8;margin-bottom:20px;max-width:680px">
+    其他 AI 编程工具（Cursor、Copilot、Windsurf）本质是编辑器扩展，必须打开 GUI 才能使用。Claude Code 反其道而行——它是一个独立的命令行程序，可以在任何有终端的地方运行。
+  </p>
+
+  <div class="rgrid">
+    <div class="rcard">
+      <div class="rcard-tag gold">▸ 独立于编辑器</div>
+      <div class="rcard-title">不绑定任何 IDE</div>
+      <div class="rcard-body">不需要 VS Code、不需要 JetBrains。SSH 到远程服务器，打开终端就能用。这意味着在任何 Linux 服务器、Docker 容器、CI Runner 上都能直接调用 Agent 能力。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag gold">▸ 管道可组合</div>
+      <div class="rcard-title">Unix 管道天然集成</div>
+      <div class="rcard-body">Claude Code 支持 stdin/stdout，可以和任何命令行工具组合。<code>cat error.log | claude "分析这个错误"</code>、<code>git diff | claude "review 这段代码"</code>——管道就是你的 API。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag teal">▸ 脚本化调用</div>
+      <div class="rcard-title">Shell 脚本中直接嵌入 Agent</div>
+      <div class="rcard-body">在 bash 脚本中调用 <code>claude -p "..."</code> 就像调用任何 CLI 工具一样自然。批量处理、定时任务、CI pipeline 中都能无缝嵌入 AI 能力，不需要任何 SDK 封装。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag teal">▸ 多实例并行</div>
+      <div class="rcard-title">开多个终端就是多 Agent</div>
+      <div class="rcard-body">每个终端窗口就是一个独立 Agent 会话。用 tmux 开 4 个 pane，同时让 4 个 Agent 处理 4 个 TASK——无需任何编排框架，终端复用器就是你的多 Agent 调度器。</div>
+    </div>
+  </div>
+
+  <!-- ── Claude Code 独有命令用法 ── -->
+  <div class="sh-tag" style="margin-top:48px">命令行用法——像用 git 一样用 claude</div>
+
+  <div class="cmd-grid" style="margin-top:24px">
+    <div class="cmd-card w2">
+      <div class="cmd-header">
+        <span class="cmd-title">交互模式 vs 非交互模式</span>
+        <span class="cmd-tag all">核心概念</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># 交互模式——打开一个持续的对话会话</span>
+<span class="ck">claude</span>
+
+<span class="cm"># 非交互模式——执行单次任务后退出（适合脚本集成）</span>
+<span class="ck">claude -p</span> <span class="cs">"根据 TASK-FE-01 创建登录页面组件"</span>
+
+<span class="cm"># 从 stdin 读取输入（管道模式）</span>
+<span class="ck">git diff HEAD~1</span> | <span class="ck">claude -p</span> <span class="cs">"review 这段变更，检查是否违反黄金原则"</span>
+
+<span class="cm"># 恢复上次会话（保留完整上下文）</span>
+<span class="ck">claude</span> <span class="cv">--continue</span>
+
+<span class="cm"># 恢复特定会话</span>
+<span class="ck">claude</span> <span class="cv">--resume</span> <span class="cs">&lt;session-id&gt;</span></pre></div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">输出格式控制</span>
+        <span class="cmd-tag sys">自动化必备</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># JSON 输出——方便下游程序解析</span>
+<span class="ck">claude -p</span> <span class="cs">"列出所有 TODO"</span> <span class="cv">--output-format json</span>
+
+<span class="cm"># 纯文本流式输出（适合管道）</span>
+<span class="ck">claude -p</span> <span class="cs">"解释这段代码"</span> <span class="cv">--output-format stream-json</span>
+
+<span class="cm"># 指定系统提示词</span>
+<span class="ck">claude -p</span> <span class="cs">"分析架构"</span> <span class="cv">--system-prompt</span> <span class="cs">"你是架构师"</span></pre></div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">会话内 Slash 命令</span>
+        <span class="cmd-tag all">交互模式</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># 在交互会话中可用的内置命令</span>
+<span class="ck">/help</span>          <span class="cm">获取帮助</span>
+<span class="ck">/clear</span>         <span class="cm">清空当前上下文</span>
+<span class="ck">/compact</span>       <span class="cm">压缩上下文（节省 token）</span>
+<span class="ck">/cost</span>          <span class="cm">查看当前会话消耗</span>
+<span class="ck">/model</span>         <span class="cm">切换模型</span>
+<span class="ck">/permissions</span>   <span class="cm">管理工具权限</span>
+
+<span class="cm"># 自定义 Skill 命令</span>
+<span class="ck">/hx-go</span>         <span class="cm">全自动流水线</span>
+<span class="ck">/hx-run</span>        <span class="cm">执行单个 TASK</span>
+<span class="ck">/hx-review</span>     <span class="cm">代码审查</span></pre></div>
+    </div>
+  </div>
+
+  <!-- ── 实战管道组合 ── -->
+  <div class="sh-tag" style="margin-top:48px">实战——管道组合的威力</div>
+  <p style="font-size:14px;color:var(--txt2);line-height:1.8;margin-bottom:20px;max-width:680px">
+    Claude Code 作为 CLI 工具的真正威力在于：它可以成为任何 shell 管道的一环。以下是一些在日常工程中经过验证的高效组合。
+  </p>
+
+  <div class="cmd-grid">
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">错误日志智能分析</span>
+        <span class="cmd-tag all">运维场景</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># 从日志中提取错误并让 Claude 分析根因</span>
+<span class="ck">tail -n 100</span> /var/log/app/error.log \
+  | <span class="ck">claude -p</span> <span class="cs">"分析这些错误日志，
+    给出根因和修复建议"</span></pre></div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">批量代码审查</span>
+        <span class="cmd-tag sys">CI 集成</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># 在 CI 中对 MR 的所有变更做自动审查</span>
+<span class="ck">git diff origin/main...HEAD</span> \
+  | <span class="ck">claude -p</span> <span class="cs">"按照黄金原则 review，
+    输出 JSON 格式的问题列表"</span> \
+    <span class="cv">--output-format json</span></pre></div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">依赖安全扫描</span>
+        <span class="cmd-tag all">安全场景</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># 扫描依赖漏洞并生成修复方案</span>
+<span class="ck">npm audit</span> <span class="cv">--json</span> \
+  | <span class="ck">claude -p</span> <span class="cs">"分析这些安全漏洞，
+    按严重程度排序，给出修复命令"</span></pre></div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">数据库 Schema 生成</span>
+        <span class="cmd-tag be">后端场景</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># 从 TypeScript 类型自动生成 SQL 迁移</span>
+<span class="ck">cat</span> src/types/order.ts \
+  | <span class="ck">claude -p</span> <span class="cs">"根据这些 TypeScript
+    类型生成 PostgreSQL 建表 SQL"</span></pre></div>
+    </div>
+  </div>
+
+  <!-- ── Hooks 系统 ── -->
+  <div class="sh-tag" style="margin-top:48px">Hook 系统——Claude Code 的自动化引擎</div>
+  <p style="font-size:14px;color:var(--txt2);line-height:1.8;margin-bottom:20px;max-width:680px">
+    Hook 是 Claude Code 最独特的能力之一：你可以在 Agent 的特定动作前后自动执行 shell 命令。这不是 Git Hook，而是 <strong>Agent Hook</strong>——拦截 AI 的行为并注入你的工程规范。其他 AI 编程工具没有这种级别的行为控制能力。
+  </p>
+
+  <div class="dn">
+    <strong>Hook vs Git Hook：</strong>Git Hook 在 git 操作时触发；Claude Code Hook 在 Agent 操作时触发。例如，Agent 准备编辑文件时触发 <code>PreToolUse</code>，Agent 执行完 bash 命令后触发 <code>PostToolUse</code>。这让你能在 AI 写代码的过程中实时干预，而非写完才检查。
+  </div>
+
+  <div class="rgrid" style="margin-top:28px">
+    <div class="rcard" style="grid-column:1/-1">
+      <div class="rcard-tag gold">HOOK 事件类型</div>
+      <div class="rcard-title" style="margin-bottom:4px"></div>
+      <div class="rcard-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+        <span><code>PreToolUse</code> — Agent 调用工具之前触发，可阻断不合规操作</span>
+        <span><code>PostToolUse</code> — 工具执行完毕后触发，可注入补充信息</span>
+        <span><code>Notification</code> — Agent 空闲等待时触发，适合发送通知</span>
+        <span><code>Stop</code> — Agent 完成回合时触发，可做收尾动作</span>
+        <span><code>SubagentStop</code> — 子 Agent 完成时触发</span>
+      </div>
+    </div>
+    <div class="rcard" style="grid-column:1/-1">
+      <div class="rcard-tag teal">HOOK 匹配器（MATCHER）</div>
+      <div class="rcard-title" style="margin-bottom:4px"></div>
+      <div class="rcard-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+        <span><code>"tool_name": "Edit"</code> — 仅在编辑文件时触发</span>
+        <span><code>"tool_name": "Bash"</code> — 仅在执行命令时触发</span>
+        <span><code>"tool_name": "Write"</code> — 仅在创建文件时触发</span>
+        <span>不指定 matcher 则匹配所有工具调用</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hook 配置示例 -->
+  <div class="sh-tag" style="margin-top:40px">Hook 实战配置——settings.json</div>
+
+  <div class="cmd-grid" style="margin-top:20px">
+    <div class="cmd-card w2">
+      <div class="cmd-header">
+        <span class="cmd-title">禁止 Agent 编辑受保护文件</span>
+        <span class="cmd-tag sys">安全防线</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm">// ~/.claude/settings.json</span>
+{
+  <span class="cs">"hooks"</span>: {
+    <span class="cs">"PreToolUse"</span>: [
+      {
+        <span class="cs">"matcher"</span>: { <span class="cs">"tool_name"</span>: <span class="cs">"Edit"</span> },
+        <span class="cs">"hooks"</span>: [
+          {
+            <span class="cs">"type"</span>: <span class="cs">"command"</span>,
+            <span class="cs">"command"</span>: <span class="cs">"if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\"file_path\".*\\.env\\|credentials\\|secret'; then echo 'BLOCKED: 禁止编辑敏感文件' >&2; exit 2; fi"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</pre></div>
+    </div>
+
+    <div class="cmd-card w2">
+      <div class="cmd-header">
+        <span class="cmd-title">编辑后自动运行 lint</span>
+        <span class="cmd-tag all">质量保障</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm">// 每次 Agent 编辑文件后自动格式化 + lint 检查</span>
+{
+  <span class="cs">"hooks"</span>: {
+    <span class="cs">"PostToolUse"</span>: [
+      {
+        <span class="cs">"matcher"</span>: { <span class="cs">"tool_name"</span>: <span class="cs">"Edit"</span> },
+        <span class="cs">"hooks"</span>: [
+          {
+            <span class="cs">"type"</span>: <span class="cs">"command"</span>,
+            <span class="cs">"command"</span>: <span class="cs">"FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path') && npx prettier --write \"$FILE\" && npx eslint --fix \"$FILE\" 2>&1 | tail -5"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</pre></div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">Agent 完成后自动通知</span>
+        <span class="cmd-tag sys">团队协作</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm">// Agent 执行完毕后发送通知</span>
+{
+  <span class="cs">"hooks"</span>: {
+    <span class="cs">"Stop"</span>: [
+      {
+        <span class="cs">"hooks"</span>: [
+          {
+            <span class="cs">"type"</span>: <span class="cs">"command"</span>,
+            <span class="cs">"command"</span>: <span class="cs">"osascript -e 'display notification \"Agent 任务完成\" with title \"Claude Code\"'"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</pre></div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-header">
+        <span class="cmd-title">禁止安装未授权包</span>
+        <span class="cmd-tag sys">供应链安全</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm">// 拦截未经批准的 npm install</span>
+{
+  <span class="cs">"hooks"</span>: {
+    <span class="cs">"PreToolUse"</span>: [
+      {
+        <span class="cs">"matcher"</span>: { <span class="cs">"tool_name"</span>: <span class="cs">"Bash"</span> },
+        <span class="cs">"hooks"</span>: [
+          {
+            <span class="cs">"type"</span>: <span class="cs">"command"</span>,
+            <span class="cs">"command"</span>: <span class="cs">"if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'npm install|yarn add|pnpm add'; then echo 'BLOCKED: 需人工确认依赖安装' >&2; exit 2; fi"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</pre></div>
+    </div>
+  </div>
+
+  <!-- ── CLAUDE.md 配置系统 ── -->
+  <div class="sh-tag" style="margin-top:48px">CLAUDE.md——项目级持久化指令</div>
+  <p style="font-size:14px;color:var(--txt2);line-height:1.8;margin-bottom:20px;max-width:680px">
+    <code>CLAUDE.md</code> 文件是 Claude Code 的另一个独有能力：放在项目根目录的指令文件会在每次会话启动时自动加载。这相当于给 Agent 写了一份永久的「项目规章」，不需要每次都在提示词中重复。
+  </p>
+
+  <div class="cmd-grid" style="margin-top:20px">
+    <div class="cmd-card w2">
+      <div class="cmd-header">
+        <span class="cmd-title">CLAUDE.md 层级体系</span>
+        <span class="cmd-tag gold">自动加载</span>
+      </div>
+      <div class="cmd-body"><pre><span class="cm"># Claude Code 会按优先级自动加载以下文件：</span>
+
+<span class="ck">~/.claude/CLAUDE.md</span>              <span class="cm"># 全局指令（所有项目生效）</span>
+<span class="ck">项目根/CLAUDE.md</span>                 <span class="cm"># 项目级指令（团队共享，提交到 git）</span>
+<span class="ck">项目根/.claude/CLAUDE.md</span>         <span class="cm"># 项目级私有指令（.gitignore）</span>
+<span class="ck">当前目录/CLAUDE.md</span>               <span class="cm"># 目录级指令（模块级别定制）</span>
+
+<span class="cm"># 优先级：目录级 > 项目私有 > 项目级 > 全局</span>
+<span class="cm"># 高优先级指令会覆盖低优先级的冲突配置</span></pre></div>
+    </div>
+  </div>
+
+  <!-- ── 与其他 AI 工具对比 ── -->
+  <div class="sh-tag" style="margin-top:48px">对比——为什么 Claude Code 更适合工程团队</div>
+
+  <div class="split three" style="margin-top:24px">
+    <div class="split-col" style="border-top:2px solid var(--gold)">
+      <div class="split-head gold">Claude Code（CLI 原生）</div>
+      <ul class="cl">
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>终端直接运行，不依赖任何 IDE</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>Hook 系统实时拦截 Agent 行为</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>CLAUDE.md 持久化项目规范</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>Unix 管道原生集成</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>自定义 Skill 扩展命令体系</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>MCP Server 协议对接外部系统</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>多 Agent 子进程并行执行</li>
+        <li class="must"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>CI/CD 原生集成（无头模式）</li>
+      </ul>
+    </div>
+    <div class="split-col" style="border-top:2px solid var(--txt3)">
+      <div class="split-head" style="color:var(--txt3)">Cursor / Windsurf（IDE 插件）</div>
+      <ul class="cl">
+        <li class="rec"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>必须打开专用编辑器 GUI</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无 Agent 行为拦截机制</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>规则文件功能有限</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无法参与 shell 管道</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>扩展性依赖编辑器插件生态</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无标准化外部协议</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>单线程交互</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>CI 集成需要额外封装</li>
+      </ul>
+    </div>
+    <div class="split-col" style="border-top:2px solid var(--txt3)">
+      <div class="split-head" style="color:var(--txt3)">GitHub Copilot（补全型）</div>
+      <ul class="cl">
+        <li class="rec"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>依赖 VS Code / JetBrains</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无 Agent 行为控制</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无项目级指令系统</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无 CLI 管道能力</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>扩展能力有限</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无外部系统对接协议</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>补全为主，非 Agent 模式</li>
+        <li class="note"><span class="cl-icon"><svg viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" fill="none" stroke-width="1.5"/></svg></span>无自动化执行能力</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── 最佳实践 ── -->
+  <div class="sh-tag" style="margin-top:48px">最佳实践——高效搭配 Claude Code 特性</div>
+
+  <div class="rgrid" style="margin-top:24px">
+    <div class="rcard">
+      <div class="rcard-tag gold">▸ 实践 1</div>
+      <div class="rcard-title">Hook + CLAUDE.md 双保险</div>
+      <div class="rcard-body">CLAUDE.md 定义「应该怎么做」（编码规范、架构约束），Hook 定义「不许怎么做」（拦截违规操作）。指令是柔性引导，Hook 是硬性门控。两者搭配才能确保 Agent 产出始终合规。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag gold">▸ 实践 2</div>
+      <div class="rcard-title">非交互模式 + CI 集成</div>
+      <div class="rcard-body">在 GitLab CI / GitHub Actions 中用 <code>claude -p "..." --output-format json</code> 做自动化代码审查、变更分析、文档生成。Agent 的输出直接作为 CI 产物存档，或者用 <code>jq</code> 解析后驱动后续流程。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag teal">▸ 实践 3</div>
+      <div class="rcard-title">tmux + 多 TASK 并行</div>
+      <div class="rcard-body">用 tmux 开 4 个 pane，每个 pane 用 <code>claude -p</code> 执行一个独立的 TASK。每个会话有独立上下文，互不干扰。这比任何「多 Agent 框架」都更轻量、更可控——因为你能实时看到每个 Agent 在干什么。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag teal">▸ 实践 4</div>
+      <div class="rcard-title">Skill 封装团队工作流</div>
+      <div class="rcard-body">把团队反复执行的复杂流程封装为 Skill（如 <code>/hx-go</code>）。Skill 本质是一段预定义的提示词 + 执行逻辑，团队成员只需一条命令就能触发完整的标准化流程，不需要记住每个步骤。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag gold">▸ 实践 5</div>
+      <div class="rcard-title">MCP Server 打通外部系统</div>
+      <div class="rcard-body">通过 MCP（Model Context Protocol）Server 让 Claude Code 直接对接 DevOps 平台、数据库、消息系统。Agent 可以直接查询 Jira 任务、读写 GitLab API、查 Grafana 指标——不需要人工中转信息。</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-tag gold">▸ 实践 6</div>
+      <div class="rcard-title">会话恢复保上下文</div>
+      <div class="rcard-body">复杂任务执行到一半需要暂停？用 <code>claude --continue</code> 恢复上次会话，所有上下文完整保留。不需要重新描述背景、不需要重新读取文件——Agent 接着上次停下的地方继续。</div>
+    </div>
+  </div>
+
+  <!-- ── 快速上手速查 ── -->
+  <div class="sh-tag" style="margin-top:48px">速查卡——Claude Code 日常命令</div>
+  <div class="codeblock gold">
+    <pre><span class="cm">┌──────────────────────────────────────────────────────────────────────┐
+│                   Claude Code 速查卡  v1.0                          │
+├────────────────────┬─────────────────────────────────────────────────┤
+│</span> <span class="ck">claude</span>              <span class="cm">│ 进入交互模式                                    │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="ck">claude -p "..."</span>     <span class="cm">│ 非交互模式，执行单次任务                        │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="ck">claude --continue</span>   <span class="cm">│ 恢复上次会话                                    │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="ck">cat X | claude -p</span>  <span class="cm">│ 管道模式，stdin 传入上下文                      │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="ck">--output-format</span>    <span class="cm">│ json / stream-json / text                       │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="ck">/compact</span>           <span class="cm">│ 压缩上下文，释放 token 空间                     │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="ck">/cost</span>              <span class="cm">│ 查看当前会话 token 消耗                         │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="cv">Hook</span>               <span class="cm">│ settings.json → hooks → PreToolUse / PostToolUse│
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="cv">CLAUDE.md</span>          <span class="cm">│ 项目根目录放置，自动加载为持久指令              │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="cv">Skill</span>              <span class="cm">│ /skill-name 触发自定义工作流                    │
+├────────────────────┼─────────────────────────────────────────────────┤
+│</span> <span class="cv">MCP</span>                <span class="cm">│ 通过 MCP Server 对接外部工具和系统              │
+└────────────────────┴─────────────────────────────────────────────────┘</span></pre>
   </div>
 
 </div>
