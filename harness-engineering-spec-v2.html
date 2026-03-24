@@ -38,6 +38,63 @@
   --sans:     'Noto Sans SC', sans-serif;
   --mono:     'JetBrains Mono', monospace;
 }
+/* ── LIGHT THEME ── */
+html.light {
+  --bg:       #f5f3ef;
+  --bg2:      #eae7e1;
+  --bg3:      #ddd9d2;
+  --bgfe:     #edf4fb;
+  --bgbe:     #f0edf8;
+  --bdr:      rgba(0,0,0,0.08);
+  --bdr2:     rgba(0,0,0,0.15);
+  --gold:     #a07828;
+  --goldd:    rgba(160,120,40,0.12);
+  --goldt:    rgba(160,120,40,0.06);
+  --fe:       #2b7cc2;
+  --fed:      rgba(43,124,194,0.10);
+  --fet:      rgba(43,124,194,0.05);
+  --be:       #5c3fb0;
+  --bed:      rgba(92,63,176,0.10);
+  --bet:      rgba(92,63,176,0.05);
+  --mb:       #c06830;
+  --mbd:      rgba(192,104,48,0.10);
+  --mbt:      rgba(192,104,48,0.05);
+  --teal:     #258068;
+  --teald:    rgba(37,128,104,0.10);
+  --red:      #b04545;
+  --redd:     rgba(176,69,69,0.10);
+  --txt:      #1a1a18;
+  --txt2:     #5a5650;
+  --txt3:     #9a9590;
+}
+html.light .hero{background:linear-gradient(150deg,#f5f3ef 0%,#ede9e2 60%,#f5f3ef 100%)}
+html.light .hero-grid{background-image:linear-gradient(rgba(0,0,0,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.04) 1px,transparent 1px)}
+html.light .hero-glow{background:radial-gradient(circle,rgba(160,120,40,0.08) 0%,transparent 65%)}
+html.light .hero-glow2{background:radial-gradient(circle,rgba(43,124,194,0.06) 0%,transparent 65%)}
+html.light section+section{border-top-color:rgba(0,0,0,0.06)}
+html.light footer{border-top-color:rgba(0,0,0,0.08)}
+html.light code{background:var(--bg3);border-color:var(--bdr2);color:#8a6d20}
+html.light .alias-table tr:hover td{background:rgba(0,0,0,0.02)}
+html.light .cm{color:var(--txt3)}
+html.light .ck{color:#8a6d20}
+html.light .cv{color:var(--fe)}
+html.light .cs{color:var(--teal)}
+html.light .ce{color:var(--red)}
+html.light .cp{color:var(--be)}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle{
+  position:fixed;top:24px;right:24px;z-index:999;
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--bdr2);
+  background:var(--bg2);color:var(--txt2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.theme-toggle:hover{background:var(--bg3);color:var(--txt);border-color:var(--gold)}
+.theme-toggle svg{width:20px;height:20px;transition:transform .3s}
+.theme-toggle:hover svg{transform:rotate(30deg)}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html{font-size:15px;scroll-behavior:smooth}
 body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-weight:300;line-height:1.75;-webkit-font-smoothing:antialiased}
@@ -566,6 +623,12 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
 </style>
 </head>
 <body>
+
+<!-- THEME TOGGLE -->
+<button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+  <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
 
 <!-- HERO -->
 <header class="hero">
@@ -3595,7 +3658,7 @@ git log --since="14 days ago" --format="" --name-only \
 
 <footer>
   <p>HARNESS ENGINEERING SPEC · v2.0 · 前端 &amp; 后端 &amp; 移动端工程师操作手册</p>
-  <p>基于 OpenAI Codex Team 实践 · 持续演进</p>
+  <p><a href="https://gitlab.cdfsunrise.com/frontend/qybot/qiyuan-harness-guide" target="_blank" style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,151,58,.3);transition:border-color .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(200,151,58,.3)'">GitLab · frontend/qybot/qiyuan-harness-guide</a></p>
 </footer>
 
 <script>
@@ -3643,6 +3706,36 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
 }, { threshold: 0.12 });
 phases.forEach(p => { p.classList.remove('vis'); obs.observe(p); });
+
+// Theme toggle
+(function() {
+  var html = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  var iconMoon = document.getElementById('iconMoon');
+  var iconSun = document.getElementById('iconSun');
+  var saved = localStorage.getItem('theme');
+  if (saved === 'light') applyLight();
+
+  function applyLight() {
+    html.classList.add('light');
+    iconMoon.style.display = 'none';
+    iconSun.style.display = 'block';
+  }
+  function applyDark() {
+    html.classList.remove('light');
+    iconMoon.style.display = 'block';
+    iconSun.style.display = 'none';
+  }
+  btn.addEventListener('click', function() {
+    if (html.classList.contains('light')) {
+      applyDark();
+      localStorage.setItem('theme', 'dark');
+    } else {
+      applyLight();
+      localStorage.setItem('theme', 'light');
+    }
+  });
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,10 @@
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp harness-engineering-spec-v2.html public/index.html
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
