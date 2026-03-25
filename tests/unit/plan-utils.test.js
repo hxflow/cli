@@ -10,7 +10,7 @@ import {
   renderDependencyBlock,
   renderTaskBlock,
   updateAgentsActiveFeature
-} from '../../scripts/lib/plan-utils.js'
+} from '../../src/scripts/lib/plan-utils.js'
 
 const tempDirs = []
 

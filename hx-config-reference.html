@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HXFlow CLI · 配置参考</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hx-docs.css">
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+  <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="展开目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">HXFlow CLI<strong>配置参考</strong></div>
+  <div class="nav-group">文档导航</div>
+  <a data-page="hx-guide.html" href="hx-guide.html"><span class="nav-num">00</span><span>总览</span></a>
+  <a data-page="hx-onboarding.html" href="hx-onboarding.html"><span class="nav-num">01</span><span>入门</span></a>
+  <a data-page="hx-deep-dive.html" href="hx-deep-dive.html"><span class="nav-num">02</span><span>运行机制</span></a>
+  <a data-page="hx-command-index.html" href="hx-command-index.html"><span class="nav-num">03</span><span>命令索引</span></a>
+  <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
+  <div class="nav-group">本页目录</div>
+  <a href="#precedence"><span class="nav-num">E1</span><span>优先级与入口</span></a>
+  <a href="#schema"><span class="nav-num">E2</span><span>配置字段</span></a>
+  <a href="#paths"><span class="nav-num">E3</span><span>路径与 AGENTS</span></a>
+  <a href="#hooks"><span class="nav-num">E4</span><span>Hook 配置</span></a>
+  <a href="#profiles"><span class="nav-num">E5</span><span>自定义 Profile</span></a>
+  <a href="#compat"><span class="nav-num">E6</span><span>排错</span></a>
+  <div class="nav-group">链接</div>
+  <a href="harness-engineering-spec-v2.html"><span class="nav-num">←</span><span>返回规范文档</span></a>
+</nav>
+
+<div class="page-shell">
+  <header class="hero compact">
+    <div class="hero-inner">
+      <div class="hero-tag">HXFLOW CLI · CONFIGURATION</div>
+      <h1 class="hero-title">配置参考</h1>
+      <p class="hero-sub">说明配置入口、字段定义、合并策略、Hook 加载顺序和自定义 Profile 搜索路径。</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#schema">字段定义</a>
+        <a class="btn-ghost" href="hx-command-index.html">命令索引</a>
+      </div>
+      <div class="hero-stats">
+        <div class="metric"><div class="metric-value">2</div><div class="metric-label">配置文件入口</div></div>
+        <div class="metric"><div class="metric-value">4</div><div class="metric-label">核心字段</div></div>
+        <div class="metric"><div class="metric-value">1</div><div class="metric-label">浅合并策略</div></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="precedence">
+      <div class="wrap">
+        <div class="section-tag">Precedence</div>
+        <h2 class="section-title">配置入口与优先级</h2>
+        <p class="section-desc">CLI 会合并用户级与项目级配置。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">配置文件</div>
+            <h3 class="card-title">两个正式入口</h3>
+            <pre><code>~/.hx/config.json
+&lt;project&gt;/.hx/config.json</code></pre>
+            <p class="card-body">前者承载跨项目默认值，后者承载项目级覆盖。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">优先级</div>
+            <h3 class="card-title">合并顺序</h3>
+            <pre><code>内置默认值
+→ ~/.hx/config.json
+→ &lt;project&gt;/.hx/config.json</code></pre>
+            <p class="card-body">项目级覆盖用户级，用户级覆盖框架默认值。</p>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>合并策略：</strong>对象做一层浅合并，数组整体覆盖。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="schema">
+      <div class="wrap">
+        <div class="section-tag">Schema</div>
+        <h2 class="section-title"><code>.hx/config.json</code> 核心字段</h2>
+        <p class="section-desc">核心字段如下。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">string</div>
+            <h3 class="card-title"><code>defaultProfile</code></h3>
+            <p class="card-body">命令未显式传入 <code>--profile</code> 且无法自动推断时使用该值。</p>
+            <pre><code>{
+  <span class="ck">"defaultProfile"</span>: <span class="cs">"frontend"</span>
+}</code></pre>
+          </article>
+          <article class="card">
+            <div class="card-meta">object</div>
+            <h3 class="card-title"><code>paths</code></h3>
+            <p class="card-body">覆盖需求目录、计划目录、源码目录和 Agent 索引路径。</p>
+            <pre><code>{
+  <span class="ck">"paths"</span>: {
+    <span class="ck">"requirement"</span>: <span class="cs">"docs/requirement"</span>,
+    <span class="ck">"plans"</span>: <span class="cs">"docs/plans"</span>,
+    <span class="ck">"src"</span>: <span class="cs">"src"</span>,
+    <span class="ck">"agents"</span>: <span class="cs">"AGENTS.md"</span>
+  }
+}</code></pre>
+          </article>
+          <article class="card">
+            <div class="card-meta">string[]</div>
+            <h3 class="card-title"><code>pinnedCommands</code></h3>
+            <p class="card-body">保护本地改过的命令模板，避免 <code>hx upgrade</code> 覆盖它们。</p>
+            <pre><code>{
+  <span class="ck">"pinnedCommands"</span>: [<span class="cs">"hx-run"</span>, <span class="cs">"hx-review"</span>]
+}</code></pre>
+          </article>
+          <article class="card">
+            <div class="card-meta">object</div>
+            <h3 class="card-title"><code>hooks</code></h3>
+            <p class="card-body">显式声明要注入的 Hook 文件。</p>
+            <pre><code>{
+  <span class="ck">"hooks"</span>: {
+    <span class="ck">"run"</span>: {
+      <span class="ck">"pre"</span>: [<span class="cs">".hx/hooks/extra.md"</span>],
+      <span class="ck">"post"</span>: [<span class="cs">"~/.hx/skills/review.md"</span>]
+    }
+  }
+}</code></pre>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="paths">
+      <div class="wrap">
+        <div class="section-tag">Paths</div>
+        <h2 class="section-title">路径字段与 <code>AGENTS.md</code></h2>
+        <p class="section-desc">CLI 默认使用项目根目录的 <code>AGENTS.md</code>。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">默认值</div>
+            <h3 class="card-title"><code>paths</code> 的默认路径</h3>
+            <pre><code>requirement → docs/requirement
+plans       → docs/plans
+src         → src
+agents      → AGENTS.md</code></pre>
+            <p class="card-body">未显式覆盖时，默认读取项目根目录的 <code>AGENTS.md</code>。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">覆盖方式</div>
+            <h3 class="card-title">显式覆盖</h3>
+            <pre><code>{
+  <span class="ck">"paths"</span>: {
+    <span class="ck">"agents"</span>: <span class="cs">"AGENTS.md"</span>
+  }
+}</code></pre>
+            <p class="card-body">非默认路径需显式声明。</p>
+          </article>
+        </div>
+        <div class="callout warn">
+          <span class="icon">!</span>
+          <div><strong>约定：</strong><code>hx init</code> 创建项目根目录的 <code>AGENTS.md</code>。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hooks">
+      <div class="wrap">
+        <div class="section-tag">Hooks</div>
+        <h2 class="section-title">Hook 配置</h2>
+        <p class="section-desc">Hook 支持约定式和配置式两种定义方式。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">约定式</div>
+            <h3 class="card-title">文件存在即加载</h3>
+            <pre><code>~/.hx/hooks/run-pre.md
+~/.hx/hooks/run-post.md
+.hx/hooks/run-pre.md
+.hx/hooks/run-post.md</code></pre>
+            <p class="card-body">配置成本较低。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">配置式</div>
+            <h3 class="card-title">显式列出文件路径</h3>
+            <pre><code>{
+  <span class="ck">"hooks"</span>: {
+    <span class="ck">"doc"</span>: { <span class="ck">"pre"</span>: [<span class="cs">".hx/hooks/doc-pre.md"</span>] },
+    <span class="ck">"run"</span>: { <span class="ck">"post"</span>: [<span class="cs">"~/.hx/skills/style.md"</span>] }
+  }
+}</code></pre>
+            <p class="card-body">用于精确控制命令粒度。</p>
+          </article>
+        </div>
+        <pre><code>最终加载顺序:
+全局约定 Hook
+→ 项目约定 Hook
+→ hooks.&lt;command&gt;.&lt;phase&gt; 中声明的数组
+
+输出拼接方式:
+Pre Hook
+→ 主 Prompt
+→ Post Hook</code></pre>
+      </div>
+    </section>
+
+    <section id="profiles">
+      <div class="wrap">
+        <div class="section-tag">Profiles</div>
+        <h2 class="section-title">自定义 Profile</h2>
+        <p class="section-desc">CLI 会在多个根目录中按顺序查找同名 Profile。</p>
+        <pre><code>&lt;project&gt;/.hx/profiles/&lt;name&gt;/
+~/.hx/profiles/&lt;name&gt;/
+框架内置 profiles/&lt;name&gt;/</code></pre>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">项目级</div>
+            <h3 class="card-title">项目级</h3>
+            <p class="card-body">项目级覆盖。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">用户级</div>
+            <h3 class="card-title">用户级</h3>
+            <p class="card-body">用户级共享。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="compat">
+      <div class="wrap">
+        <div class="section-tag">Troubleshooting</div>
+        <h2 class="section-title">排错</h2>
+        <p class="section-desc">排查问题时优先检查配置优先级、Profile 搜索根和 Agent 索引。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">有效入口</div>
+            <h3 class="card-title">正式目录</h3>
+            <pre><code>.hx/config.json
+.hx/profiles/
+AGENTS.md</code></pre>
+            <p class="card-body">项目级配置、自定义 Profile 和 Agent 索引均应位于此处。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">Checklist</div>
+            <h3 class="card-title">检查项</h3>
+            <div class="note-list">
+              <p>最终生效的是用户级还是项目级配置。</p>
+              <p>Profile / Hook 文件是否真的在被查找的根目录中。</p>
+              <p><code>paths.agents</code>、<code>defaultProfile</code> 和项目实际目录是否一致。</p>
+            </div>
+          </article>
+        </div>
+        <div class="foot-nav">
+          <a class="btn-ghost" href="hx-command-index.html">查看命令索引</a>
+          <a class="btn-primary" href="hx-guide.html">查看总览</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>HXFLOW CLI · 配置参考 · 对齐 resolve-context</p>
+      <p><a href="hx-guide.html">查看总览</a></p>
+    </div>
+  </footer>
+</div>
+
+<script src="assets/hx-docs.js"></script>
+</body>
+</html>

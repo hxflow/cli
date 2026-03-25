@@ -187,6 +187,20 @@ h1.hero-title em{color:var(--gold);font-style:normal}
 .hero-roles{
   display:flex;gap:0;opacity:0;animation:fadeUp .6s ease forwards .55s;
 }
+.hero-actions{
+  display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;
+  opacity:0;animation:fadeUp .6s ease forwards .65s;
+}
+.hero-link{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:12px 18px;border:1px solid var(--bdr2);
+  background:var(--bg2);color:var(--txt);text-decoration:none;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  transition:all .2s;
+}
+.hero-link:hover{background:var(--bg3);border-color:var(--gold);color:var(--gold)}
+.hero-link.primary{background:var(--goldd);border-color:rgba(200,151,58,.28);color:var(--gold)}
+.hero-link.primary:hover{background:var(--goldt)}
 .role-badge{
   padding:12px 24px;font-size:13px;font-weight:400;
   display:flex;align-items:center;gap:10px;
@@ -713,6 +727,9 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
       <div class="role-badge be"><span class="dot"></span>Backend</div>
       <div class="role-badge mb"><span class="dot"></span>Mobile</div>
     </div>
+    <div class="hero-actions">
+      <a class="hero-link primary" href="hx-guide.html">进入 HXFlow CLI 文档</a>
+    </div>
   </div>
   <div class="hero-stats">
     <div class="hstat"><div class="hstat-n">8</div><div class="hstat-l">开发阶段</div></div>
@@ -780,7 +797,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
     <div class="install-method">
       <div class="im-step">执行引擎</div>
       <div class="im-title">Claude Code + Skills</div>
-      <div class="im-body">所有 Phase 通过 <code>/hx-*</code> 斜杠命令驱动，内置 Profile 系统适配团队差异。一键 <code>/hx-go</code> 可跑完 Phase 01→08 全流程。</div>
+      <div class="im-body">所有 Phase 通过 <code>/hx-*</code> 斜杠命令和终端中的 <code>hx</code> CLI 驱动，内置 Profile 系统适配团队差异。一键 <code>/hx-go</code> 可跑完 Phase 01→08 全流程。</div>
     </div>
     <div class="install-method">
       <div class="im-step">代码交付</div>
@@ -1779,25 +1796,25 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
         <div class="wf-snum">01</div>
         <div class="wf-stitle">写需求文档</div>
         <div class="wf-sbody">新建 <code>docs/requirement/[feat].md</code>，填写 AC、影响层级、边界约束</div>
-        <span class="wf-cmd">hx:doc [feat]</span>
+        <span class="wf-cmd">/hx-doc [feat]</span>
       </div>
       <div class="wf-step shared-s">
         <div class="wf-snum">02</div>
         <div class="wf-stitle">写执行计划</div>
         <div class="wf-sbody">新建 <code>docs/plans/[feat].md</code>，拆分为 TASK-XX 子任务</div>
-        <span class="wf-cmd">hx:plan [feat]</span>
+        <span class="wf-cmd">/hx-plan [feat]</span>
       </div>
       <div class="wf-step shared-s">
         <div class="wf-snum">03</div>
         <div class="wf-stitle">更新 AGENTS.md</div>
         <div class="wf-sbody">将新文档路径挂入 AGENTS.md，确认上下文完整</div>
-        <span class="wf-cmd">hx:ctx</span>
+        <span class="wf-cmd">/hx-ctx</span>
       </div>
       <div class="wf-step gate-s">
         <div class="wf-snum">✓</div>
         <div class="wf-stitle">上下文检查</div>
         <div class="wf-sbody">自动校验 AGENTS.md 行数 ≤100、所有 docs 链接有效、无破损引用</div>
-        <span class="wf-cmd">hx:check</span>
+        <span class="wf-cmd">hx ctx --profile [team]</span>
       </div>
     </div>
 
@@ -1827,7 +1844,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
         <div class="wf-snum">✓</div>
         <div class="wf-stitle">本地门控</div>
         <div class="wf-sbody">按 Profile 执行对应门控命令。失败则自动修复后重跑</div>
-        <span class="wf-cmd">/hx-gate --profile</span>
+        <span class="wf-cmd">/hx-gate --profile [team]</span>
       </div>
     </div>
 
@@ -1851,13 +1868,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
         <div class="wf-snum">06</div>
         <div class="wf-stitle">人工 Review</div>
         <div class="wf-sbody">按 Phase 05 清单检查架构合规性、AI 特征问题</div>
-        <span class="wf-cmd">hx:review</span>
+        <span class="wf-cmd">/hx-review</span>
       </div>
       <div class="wf-step block-s">
         <div class="wf-snum">✗</div>
         <div class="wf-stitle">Review 发现问题</div>
         <div class="wf-sbody">写入评论 → Agent 读取评论自动修复 → 重新触发门控</div>
-        <span class="wf-cmd">hx:fix</span>
+        <span class="wf-cmd">/hx-fix</span>
       </div>
     </div>
 
@@ -1869,13 +1886,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
         <div class="wf-snum">07</div>
         <div class="wf-stitle">更新进度文件</div>
         <div class="wf-sbody">标记 TASK-XX 状态为「完成」，同步 quality-grades</div>
-        <span class="wf-cmd">hx:done [task-id]</span>
+        <span class="wf-cmd">/hx-done [task-id]</span>
       </div>
       <div class="wf-step shared-s">
         <div class="wf-snum">08</div>
         <div class="wf-stitle">熵检查</div>
         <div class="wf-sbody">发现新规律 → 写入 golden-principles.md 或新增 Lint 规则</div>
-        <span class="wf-cmd">hx:entropy</span>
+        <span class="wf-cmd">/hx-entropy</span>
       </div>
     </div>
   </div>
@@ -1886,8 +1903,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
 <section id="commands">
 <div class="wrap">
   <div class="sh-tag">附录 C</div>
-  <h2 class="sh-title">命令速查 &amp; npm scripts</h2>
-  <p class="sh-desc">通过 Claude Code slash commands（<code>/hx-xxx</code>）驱动，所有命令支持 <code>--profile</code> 参数指定团队配置。同时提供 npm scripts 供 CI 和本地使用。</p>
+  <h2 class="sh-title">命令速查</h2>
+  <p class="sh-desc">Claude Code 中使用 <code>/hx-xxx</code>，终端中使用 <code>hx &lt;command&gt;</code>。仓库内的 npm scripts 仅作为 CI 或本地调试 wrapper，不再作为主要工作流入口。</p>
 
   <!-- SLASH COMMANDS TABLE -->
   <div style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.12em;margin-bottom:12px">▸ CLAUDE CODE SLASH COMMANDS</div>
@@ -1911,7 +1928,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
 
   <div class="dn" style="margin-top:16px;margin-bottom:32px">
     <strong>Profile 参数值：</strong><code>backend</code> · <code>frontend</code> · <code>mobile:ios</code> · <code>mobile:android</code> · <code>mobile:harmony</code><br>
-    配置文件位于 <code>harness-scaffold/profiles/</code>，包含团队架构层级、任务拆分规则、黄金原则、审查清单、需求模板和计划模板。
+    Slash command 由 <code>hx init</code> 安装到 <code>.claude/commands/</code>；对应终端等价入口为 <code>hx doc</code>、<code>hx plan</code>、<code>hx ctx</code>、<code>hx run</code>、<code>hx review</code>、<code>hx gate</code>、<code>hx fix</code>、<code>hx done</code>、<code>hx entropy</code>、<code>hx mr</code>。Profile 搜索根按 <code>&lt;project&gt;/.hx/profiles/ → ~/.hx/profiles/ → 框架内置 profiles/</code> 解析。
   </div>
 
   <!-- GATE COMMANDS TABLE -->
@@ -1923,84 +1940,76 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
     <tr><td>Lint</td><td>golangci-lint run ./...</td><td>eslint . --max-warnings 0</td><td>swiftlint lint --strict</td><td>./gradlew lintDebug</td><td>hvigorw lintHarDebug</td></tr>
     <tr><td>Build</td><td>go build ./...</td><td>tsc --noEmit</td><td>xcodebuild build</td><td>./gradlew assembleDebug</td><td>hvigorw assembleHap</td></tr>
     <tr><td>Test</td><td>go test ./... -v</td><td>vitest run --verbose</td><td>xcodebuild test</td><td>./gradlew testDebugUnitTest</td><td>hvigorw test</td></tr>
-    <tr><td>Arch</td><td>go vet ./...</td><td>node scripts/hx-arch-test.js</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Arch</td><td>go vet ./...</td><td>npm run hx:arch</td><td>—</td><td>—</td><td>—</td></tr>
   </table>
 
   <div class="dn" style="margin-top:12px;margin-bottom:24px">
-    <strong>门控配置位置：</strong>后端/前端在 <code>profiles/{team}/profile.yaml</code> 的 <code>gate_commands</code> 字段，移动端在 <code>profiles/mobile/platforms/{platform}.yaml</code> 的 <code>gate_commands</code> 字段。<code>/hx-gate</code> 命令会自动读取对应 profile 执行。
+    <strong>门控配置位置：</strong>项目级覆盖位于 <code>&lt;project&gt;/.hx/profiles/{team}/profile.yaml</code>，移动端平台覆盖位于 <code>&lt;project&gt;/.hx/profiles/mobile/platforms/{platform}.yaml</code>；用户级覆盖位于 <code>~/.hx/profiles/</code>；框架内置默认值位于 <code>profiles/</code>。<code>/hx-gate</code> 与 <code>hx gate</code> 按该顺序读取 <code>gate_commands</code>。
   </div>
 
   <!-- FRONTEND NPM SCRIPTS -->
-  <div style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.12em;margin-bottom:12px">▸ 前端 NPM SCRIPTS（仅前端项目使用）</div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.12em;margin-bottom:12px">▸ 仓库内 NPM SCRIPTS（CI / 本地调试，可选）</div>
   <table class="alias-table">
     <tr>
       <th>命令</th><th>实际执行</th><th>说明</th>
     </tr>
     <tr><td>hx:lint</td><td>eslint . --max-warnings 0</td><td>零容忍 lint，warnings 也视为错误</td></tr>
     <tr><td>hx:type</td><td>tsc --noEmit</td><td>TypeScript 类型检查</td></tr>
-    <tr><td>hx:test</td><td>node scripts/hx-vitest.cjs run --reporter=verbose</td><td>全量测试，输出详细结果（自动兜底 Node &gt;= 18）</td></tr>
-    <tr><td>hx:test:unit</td><td>node scripts/hx-vitest.cjs run tests/unit --reporter=verbose</td><td>仅运行单元测试</td></tr>
-    <tr><td>hx:test:integration</td><td>node scripts/hx-vitest.cjs run tests/integration --reporter=verbose</td><td>运行 CLI 集成测试</td></tr>
-    <tr><td>hx:gate</td><td>node scripts/hx-gate.js</td><td>按 profile 的 gate_commands 执行本地门控</td></tr>
-    <tr><td>hx:check</td><td>node scripts/hx-check.js</td><td>完整检查：ctx + gate</td></tr>
-    <tr><td>hx:arch</td><td>node scripts/hx-arch-test.js</td><td>架构合规测试</td></tr>
-    <tr><td>hx:ctx</td><td>node scripts/hx-ctx-check.js</td><td>校验 AGENTS.md、requirement、plans 与 profile 资源</td></tr>
-    <tr><td>hx:entropy</td><td>node scripts/hx-entropy-scan.js</td><td>AI Slop 模式扫描</td></tr>
-    <tr><td>hx:clean</td><td>node scripts/hx-doc-freshness.js</td><td>文档新鲜度检查</td></tr>
+    <tr><td>hx:test</td><td>node src/scripts/hx-vitest.cjs run --reporter=verbose</td><td>全量测试，输出详细结果</td></tr>
+    <tr><td>hx:test:unit</td><td>node src/scripts/hx-vitest.cjs run tests/unit --reporter=verbose</td><td>仅运行单元测试</td></tr>
+    <tr><td>hx:test:integration</td><td>node src/scripts/hx-vitest.cjs run tests/integration --reporter=verbose</td><td>运行 CLI 集成测试</td></tr>
+    <tr><td>hx:gate</td><td>hx gate --profile frontend</td><td>按 profile 的 <code>gate_commands</code> 执行门控</td></tr>
+    <tr><td>hx:check</td><td>hx check --profile frontend</td><td>完整检查：ctx + gate</td></tr>
+    <tr><td>hx:arch</td><td>node src/scripts/hx-arch-test.js</td><td>架构合规测试</td></tr>
+    <tr><td>hx:ctx</td><td>hx ctx --profile frontend</td><td>校验 AGENTS.md、requirement、plans 与 profile 资源</td></tr>
+    <tr><td>hx:entropy</td><td>hx entropy</td><td>AI Slop 模式扫描</td></tr>
+    <tr><td>hx:clean</td><td>node src/scripts/hx-doc-freshness.js</td><td>文档新鲜度检查</td></tr>
   </table>
 
   <!-- PACKAGE.JSON -->
   <div class="cmd-grid" style="margin-top:40px">
     <div class="cmd-card w2">
       <div class="cmd-header">
-        <span class="cmd-title">package.json — scripts 配置</span>
-        <span class="cmd-tag all">复制到根目录 package.json</span>
+        <span class="cmd-title">package.json — 可选 wrapper scripts</span>
+        <span class="cmd-tag all">以 hx CLI 为主入口</span>
       </div>
       <div class="cmd-body"><pre><span class="cm">"scripts": {</span>
-  <span class="cm">// ── 文档工具 ──</span>
-  <span class="ck">"hx:install"</span>:  <span class="cs">"node scripts/hx-install.cjs"</span>,
-  <span class="ck">"hx:doc"</span>:      <span class="cs">"node scripts/hx-new-doc.js"</span>,
-  <span class="ck">"hx:plan"</span>:     <span class="cs">"node scripts/hx-new-plan.js"</span>,
-  <span class="ck">"hx:ctx"</span>:      <span class="cs">"node scripts/hx-ctx-check.js"</span>,
+  <span class="cm">// ── HXFlow CLI wrapper ──</span>
+  <span class="ck">"hx:doc"</span>:      <span class="cs">"hx doc"</span>,
+  <span class="ck">"hx:plan"</span>:     <span class="cs">"hx plan"</span>,
+  <span class="ck">"hx:ctx"</span>:      <span class="cs">"hx ctx"</span>,
+  <span class="ck">"hx:run"</span>:      <span class="cs">"hx run"</span>,
+  <span class="ck">"hx:review"</span>:   <span class="cs">"hx review"</span>,
+  <span class="ck">"hx:gate"</span>:     <span class="cs">"hx gate"</span>,
+  <span class="ck">"hx:check"</span>:    <span class="cs">"hx check"</span>,
+  <span class="ck">"hx:fix"</span>:      <span class="cs">"hx fix"</span>,
+  <span class="ck">"hx:done"</span>:     <span class="cs">"hx done"</span>,
+  <span class="ck">"hx:entropy"</span>:  <span class="cs">"hx entropy"</span>,
+  <span class="ck">"hx:mr"</span>:       <span class="cs">"hx mr"</span>,
 
   <span class="cm">// ── 代码质量 ──</span>
   <span class="ck">"hx:lint"</span>:     <span class="cs">"eslint . --max-warnings 0"</span>,
   <span class="ck">"hx:lint:fix"</span>: <span class="cs">"eslint . --fix"</span>,
   <span class="ck">"hx:type"</span>:     <span class="cs">"tsc --noEmit"</span>,
-  <span class="ck">"hx:test"</span>:     <span class="cs">"node scripts/hx-vitest.cjs run --reporter=verbose"</span>,
-  <span class="ck">"hx:test:unit"</span>:<span class="cs">"node scripts/hx-vitest.cjs run tests/unit --reporter=verbose"</span>,
-  <span class="ck">"hx:test:integration"</span>: <span class="cs">"node scripts/hx-vitest.cjs run tests/integration --reporter=verbose"</span>,
-  <span class="ck">"hx:test:w"</span>:   <span class="cs">"node scripts/hx-vitest.cjs --watch"</span>,
-  <span class="ck">"hx:test:cov"</span>: <span class="cs">"node scripts/hx-vitest.cjs run --coverage"</span>,
-
-  <span class="cm">// ── 门控（顺序执行，任一失败即停）──</span>
-  <span class="ck">"hx:gate"</span>:     <span class="cs">"node scripts/hx-gate.js"</span>,
-  <span class="ck">"hx:check"</span>:    <span class="cs">"node scripts/hx-check.js"</span>,
-
-  <span class="cm">// ── Agent 执行 ──</span>
-  <span class="ck">"hx:run"</span>:      <span class="cs">"node scripts/hx-agent-run.js"</span>,
-  <span class="ck">"hx:fix"</span>:      <span class="cs">"node scripts/hx-agent-fix.js"</span>,
-
-  <span class="cm">// ── 工作流辅助 ──</span>
-  <span class="ck">"hx:review"</span>:   <span class="cs">"node scripts/hx-review-checklist.js"</span>,
-  <span class="ck">"hx:done"</span>:     <span class="cs">"node scripts/hx-task-done.js"</span>,
-
-  <span class="cm">// ── 熵管理 ──</span>
-  <span class="ck">"hx:entropy"</span>:  <span class="cs">"node scripts/hx-entropy-scan.js"</span>,
-  <span class="ck">"hx:clean"</span>:    <span class="cs">"node scripts/hx-doc-freshness.js"</span>,
+  <span class="ck">"hx:test"</span>:     <span class="cs">"node src/scripts/hx-vitest.cjs run --reporter=verbose"</span>,
+  <span class="ck">"hx:test:unit"</span>:<span class="cs">"node src/scripts/hx-vitest.cjs run tests/unit --reporter=verbose"</span>,
+  <span class="ck">"hx:test:integration"</span>: <span class="cs">"node src/scripts/hx-vitest.cjs run tests/integration --reporter=verbose"</span>,
+  <span class="ck">"hx:test:w"</span>:   <span class="cs">"node src/scripts/hx-vitest.cjs --watch"</span>,
+  <span class="ck">"hx:test:cov"</span>: <span class="cs">"node src/scripts/hx-vitest.cjs run --coverage"</span>,
 
   <span class="cm">// ── 架构合规测试（CI 专用）──</span>
-  <span class="ck">"hx:arch"</span>:     <span class="cs">"node scripts/hx-arch-test.js"</span>,
-  <span class="ck">"ci"</span>:          <span class="cs">"npm run hx:lint && npm run hx:type && npm run hx:test && npm run hx:arch && npm run hx:ctx"</span>
+  <span class="ck">"hx:clean"</span>:    <span class="cs">"node src/scripts/hx-doc-freshness.js"</span>,
+  <span class="ck">"hx:arch"</span>:     <span class="cs">"node src/scripts/hx-arch-test.js"</span>,
+  <span class="ck">"ci"</span>:          <span class="cs">"npm run hx:lint && npm run hx:type && npm run hx:test && npm run hx:arch && hx ctx --profile frontend"</span>
 <span class="cm">}</span></pre></div>
     </div>
 
     <div class="cmd-card">
       <div class="cmd-header">
         <span class="cmd-title">hx-ctx-check.js — 上下文校验脚本</span>
-        <span class="cmd-tag sys">scripts/</span>
+        <span class="cmd-tag sys">src/scripts/</span>
       </div>
-      <div class="cmd-body"><pre><span class="cm">// scripts/hx-ctx-check.js</span>
+      <div class="cmd-body"><pre><span class="cm">// src/scripts/hx-ctx-check.js</span>
 <span class="cv">import</span> { readFileSync, existsSync } <span class="cv">from</span> <span class="cs">'fs'</span>
 <span class="cv">import</span> { glob } <span class="cv">from</span> <span class="cs">'glob'</span>
 
@@ -2029,15 +2038,15 @@ console.log(<span class="cs">`✓ AGENTS.md 校验通过 (${lines} 行, ${refs.l
     <div class="cmd-card">
       <div class="cmd-header">
         <span class="cmd-title">hx-task-done.js — 标记任务完成</span>
-        <span class="cmd-tag sys">scripts/</span>
+        <span class="cmd-tag sys">src/scripts/</span>
       </div>
-      <div class="cmd-body"><pre><span class="cm">// scripts/hx-task-done.js</span>
-<span class="cm">// 用法: npm run hx:done TASK-BE-03</span>
+      <div class="cmd-body"><pre><span class="cm">// src/scripts/hx-task-done.js</span>
+<span class="cm">// 用法: hx done TASK-BE-03</span>
 <span class="cv">import</span> { readFileSync, writeFileSync } <span class="cv">from</span> <span class="cs">'fs'</span>
 <span class="cv">import</span> { glob } <span class="cv">from</span> <span class="cs">'glob'</span>
 
 <span class="ck">const</span> taskId = process.argv[2]
-<span class="cv">if</span> (!taskId) { console.error(<span class="ce">'用法: hx:done TASK-XX-NN'</span>); process.exit(1) }
+<span class="cv">if</span> (!taskId) { console.error(<span class="ce">'用法: hx done TASK-XX-NN'</span>); process.exit(1) }
 
 <span class="cm">// 扫描 docs/plans/*.json 找到对应任务</span>
 <span class="ck">const</span> plans = glob.sync(<span class="cs">'docs/plans/*.json'</span>)
@@ -2062,7 +2071,7 @@ console.log(<span class="cs">`✓ AGENTS.md 校验通过 (${lines} 行, ${refs.l
         <span class="cmd-title">hx-arch-test.js — 架构合规测试</span>
         <span class="cmd-tag sys">CI 专用</span>
       </div>
-      <div class="cmd-body"><pre><span class="cm">// scripts/hx-arch-test.js — 依赖层级结构测试</span>
+      <div class="cmd-body"><pre><span class="cm">// src/scripts/hx-arch-test.js — 依赖层级结构测试</span>
 <span class="cv">import</span> { glob } <span class="cv">from</span> <span class="cs">'glob'</span>
 <span class="cv">import</span> { readFileSync } <span class="cv">from</span> <span class="cs">'fs'</span>
 
@@ -2095,7 +2104,7 @@ console.log(<span class="cs">'✓ 架构合规检查通过'</span>)</pre></div>
         <span class="cmd-title">hx-entropy-scan.js — 熵扫描</span>
         <span class="cmd-tag sys">双周运行</span>
       </div>
-      <div class="cmd-body"><pre><span class="cm">// scripts/hx-entropy-scan.js</span>
+      <div class="cmd-body"><pre><span class="cm">// src/scripts/hx-entropy-scan.js</span>
 <span class="cm">// 扫描近期 PR 产出，标记常见 AI Slop 模式</span>
 <span class="cv">import</span> { execSync } <span class="cv">from</span> <span class="cs">'child_process'</span>
 <span class="cv">import</span> { glob } <span class="cv">from</span> <span class="cs">'glob'</span>
@@ -2128,7 +2137,7 @@ console.log(<span class="cs">`\n扫描完成，共 ${report.length} 个潜在问
         <span class="cmd-title">hx-doc-freshness.js — 文档新鲜度检查</span>
         <span class="cmd-tag sys">双周运行</span>
       </div>
-      <div class="cmd-body"><pre><span class="cm">// scripts/hx-doc-freshness.js</span>
+      <div class="cmd-body"><pre><span class="cm">// src/scripts/hx-doc-freshness.js</span>
 <span class="cm">// 找出文档中引用的类型/接口，检查是否与代码一致</span>
 <span class="cv">import</span> { execSync } <span class="cv">from</span> <span class="cs">'child_process'</span>
 <span class="cv">import</span> { glob } <span class="cv">from</span> <span class="cs">'glob'</span>
@@ -2398,33 +2407,42 @@ echo <span class="cs">"✓ pre-push 全部通过，正在推送..."</span></pre>
         <span class="cmd-tag all">onboarding</span>
       </div>
       <div class="cmd-body"><pre><span class="cm"># 1. 克隆仓库并安装依赖（自动触发 husky prepare，安装 Git Hooks）</span>
-git clone [repo-url] && cd [project] && npm install
+git clone [repo-url] && cd [project]
+npm install
 
-<span class="cm"># 2. 验证所有 hooks 已安装</span>
+<span class="cm"># 2. 安装 HXFlow CLI（当前命令入口）</span>
+npm install -g @harness-workflow/cli
+hx version
+
+<span class="cm"># 3. 初始化用户级资源（每台机器执行一次）</span>
+hx setup
+
+<span class="cm"># 4. 验证项目内 hooks 与工作流资源</span>
 ls .husky/
 <span class="cm"># 应看到: commit-msg  pre-commit  pre-push</span>
-
-<span class="cm"># 3. 验证命令可用</span>
-npm run hx:check
+hx check --profile backend
 <span class="cm"># 应输出: ✓ AGENTS.md 校验通过 ... ✓ 所有检查通过</span>
 
-<span class="cm"># 4. 阅读入口文档（必读）</span>
+<span class="cm"># 5. 阅读项目入口（必读）</span>
 cat AGENTS.md
-cat docs/golden-principles.md
+cat CLAUDE.md
+cat .hx/config.json
 ls .claude/commands
 ls -l .CLAUDE.md   <span class="cm"># 应指向 AGENTS.md</span>
 
-<span class="cm"># 5. 开始第一个任务</span>
-npm run hx:doc -- [feature-name] --profile backend   <span class="cm"># 从模板新建需求文档</span>
-npm run hx:plan -- [feature-name] --profile backend  <span class="cm"># 新建执行计划</span>
-npm run hx:run -- [feature-name] TASK-BE-01 --profile backend    <span class="cm"># 触发 Agent 执行</span></pre></div>
+<span class="cm"># 6. 如果当前仓库尚未接入 HXFlow，再执行项目初始化</span>
+hx init --profile backend
+<span class="cm"># 已包含 .hx/config.json / .claude/ / AGENTS.md 的仓库可跳过此步</span>
+
+<span class="cm"># 7. 开始第一个任务</span>
+hx doc [feature-name] --profile backend --task [task-id]   <span class="cm"># 新建需求文档</span>
+hx plan [feature-name] --profile backend                   <span class="cm"># 生成执行计划</span>
+hx run [feature-name] TASK-BE-01 --profile backend         <span class="cm"># 生成执行 Prompt</span></pre></div>
     </div>
   </div>
 
   <div class="dn" style="margin-top:8px">
-    <strong>Shell 别名（可选但推荐）：</strong>将以下内容加入 <code>~/.zshrc</code> 或 <code>~/.bashrc</code>，在任意目录快速调用。<br>
-    <code style="margin-top:8px;display:inline-block">alias hx='npm run hx'</code>
-    &nbsp;&nbsp;之后就可以直接输入 <code>hx:gate</code>，或运行 <code>npm run hx:run -- user-login TASK-FE-01 --profile frontend</code> 这类完整命令。
+    <strong>命令入口：</strong>当前统一使用全局命令 <code>hx</code>。不再配置 <code>alias hx='npm run hx'</code>；如需兼容 CI 或本地调试，可保留 <code>hx:gate</code> 一类 npm scripts wrapper，但不再作为主要入口。项目命令统一写成 <code>hx gate --profile backend</code>、<code>hx run user-login TASK-FE-01 --profile frontend</code>。
   </div>
 </div>
 </section>
@@ -2809,7 +2827,7 @@ description: |
 
 <span class="cv">### 第一步：运行自动化扫描</span>
 <span class="cm">```bash
-npm run hx:entropy   # AI Slop 模式扫描
+hx entropy           # AI Slop 模式扫描
 npm run hx:clean     # 文档新鲜度检查
 npm run hx:arch      # 架构合规检查
 ```</span>
@@ -2936,7 +2954,7 @@ git log --since="14 days ago" --format="" --name-only \
     </div>
     <div class="pa-row opt-row">
       <div class="pa-label ex">⑤ 验收动作</div>
-      <div class="pa-content">「完成后运行 <code>npm run hx:gate</code>，所有检查通过后开 PR，并更新进度文件中 TASK-BE-03 状态为完成」</div>
+      <div class="pa-content">「完成后运行 <code>hx gate --profile backend</code>，所有检查通过后开 PR，并更新进度文件中 TASK-BE-03 状态为完成」</div>
       <div class="pa-note">告诉 Agent 「完成」的标准是什么，以及完成后做什么。没有这一步，Agent 不知道何时停止。</div>
     </div>
     <div class="pa-row opt-row">
@@ -2980,7 +2998,7 @@ git log --since="14 days ago" --format="" --name-only \
 日志字段遵循 <span class="cv">docs/golden-principles.md</span> 中的 GP-002
 
 <span class="cm"># ⑥ 验收动作</span>
-完成后运行 <span class="ck">npm run hx:gate</span>，全部通过后开 PR
+完成后运行 <span class="ck">hx gate --profile {team}</span>，全部通过后开 PR
 并将 <span class="cv">{TASK-ID}</span> 在 <span class="cv">{进度文件路径}</span> 中标记为「done」</pre></div>
   </div>
 
@@ -3009,7 +3027,7 @@ git log --since="14 days ago" --format="" --name-only \
 <span class="ck">修复要求：</span>
 - 不改变 <span class="cv">{不能动的接口/类型}</span> 的签名
 - 修复后写一个能复现此 Bug 的回归测试
-- 运行 <span class="ck">npm run hx:gate</span> 确认测试通过后开 PR
+- 运行 <span class="ck">hx gate --profile {team}</span> 确认测试通过后开 PR
 
 <span class="cm"># 注意：不要写"我觉得问题是……"——让 Agent 自己读日志定位
 # 你的猜测可能是错的，会误导 Agent</span></pre></div>
@@ -3075,7 +3093,7 @@ git log --since="14 days ago" --format="" --name-only \
 
 <span class="ck">输出路径：</span><span class="cv">src/service/authService.test.ts</span>
 
-完成后运行 <span class="ck">npm run hx:test -- authService</span> 确认全部通过</pre></div>
+完成后运行 <span class="ck">npm run hx:test -- authService</span> 或 <span class="ck">npm run hx:test:unit</span> 确认全部通过</pre></div>
   </div>
 
   <!-- DOC -->
@@ -3164,7 +3182,7 @@ git log --since="14 days ago" --format="" --name-only \
     <div class="anti-item">
       <div class="anti-name"><span style="color:var(--red);flex-shrink:0">✗</span>没有验收动作</div>
       <div class="anti-bad"><div class="anti-label bad">避免</div>只描述「做什么」，不说「做完后做什么」——Agent 不知道何时停止，容易持续修改或重复执行</div>
-      <div class="anti-fix"><div class="anti-label fix">替换为</div>「完成后运行 <code>hx:gate</code>，全部通过后开 PR，并更新 TASK-XX 进度为 done」</div>
+      <div class="anti-fix"><div class="anti-label fix">替换为</div>「完成后运行 <code>hx gate --profile backend</code>，全部通过后开 PR，并更新 TASK-XX 进度为 done」</div>
     </div>
     <div class="anti-item">
       <div class="anti-name"><span style="color:var(--red);flex-shrink:0">✗</span>用猜测替代日志</div>
@@ -3241,7 +3259,7 @@ git log --since="14 days ago" --format="" --name-only \
     <div class="dd-col">
       <div class="dd-head do">✓ 会提升质量的写法</div>
       <div class="dd-body">
-<span class="ok">「按照 TASK-BE-03，完成后 hx:gate 通过」</span>
+<span class="ok">「按照 TASK-BE-03，完成后 hx gate --profile backend 通过」</span>
 <span class="cm">// 具体任务 + 具体验收，可复现</span>
 
 <span class="ok">「满足 AC-001、AC-002、AC-003」</span>
