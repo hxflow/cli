@@ -4,15 +4,21 @@
  * hx — Harness Workflow CLI 入口
  *
  * 用法:
+ *   hx setup [--dry-run]
  *   hx init [--profile <name>] [--target <dir>]
- *   hx gate [--profile <name>]
+ *   hx upgrade [--target <dir>] [--dry-run]
+ *   hx uninstall [--target <dir>] [--yes] [--dry-run]
  *   hx doc <feature> [--profile <name>]
  *   hx plan <feature> [--profile <name>]
+ *   hx ctx [--profile <name>]
  *   hx run <feature> <task-id> [--profile <name>]
+ *   hx gate [--profile <name>]
  *   hx review [--profile <name>]
- *   hx entropy [--profile <name>]
+ *   hx fix [--profile <name>]
  *   hx done <task-id>
- *   hx mr <feature>
+ *   hx entropy [--profile <name>]
+ *   hx mr <feature> [--project <path>] [--target <branch>]
+ *   hx check [--profile <name>]
  *   hx version
  */
 
@@ -21,11 +27,12 @@ import { fileURLToPath } from 'url'
 import { existsSync, readFileSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const SCRIPTS_DIR = resolve(__dirname, '..', 'scripts')
+const SCRIPTS_DIR = resolve(__dirname, '..', 'src', 'scripts')
 
 // ── 子命令映射 ──
 
 const COMMANDS = {
+  setup:     'hx-setup.js',
   init:      'hx-init.js',
   upgrade:   'hx-upgrade.js',
   uninstall: 'hx-uninstall.js',
@@ -51,9 +58,10 @@ function printHelp() {
   用法: hx <command> [options]
 
   命令:
-    init      初始化项目（安装 .harness/ 和命令文件）
-    upgrade   升级命令文件和 CLAUDE.md 标记块（保留 .harness/ 数据）
-    uninstall 移除所有安装痕迹（.harness/、命令文件、CLAUDE.md 标记块）
+    setup     全局安装框架文件到 ~/.hx/ 和 ~/.claude/（首次安装推荐）
+    init      初始化项目（创建 docs/、AGENTS.md、.hx/config.json 等）
+    upgrade   升级命令文件和 CLAUDE.md 标记块
+    uninstall 移除安装痕迹（配置、命令文件、CLAUDE.md 标记块）
     doc       创建需求文档 (Phase 01)
     plan      生成执行计划 (Phase 02)
     ctx       校验上下文完整性 (Phase 03)

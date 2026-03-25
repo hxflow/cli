@@ -13,7 +13,32 @@
       "Bash(agent-browser open:*)",
       "Bash(agent-browser snapshot:*)",
       "Bash(agent-browser:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(wc -l /Users/eleven/qiyuan-harness-guide/scripts/*.js /Users/eleven/qiyuan-harness-guide/scripts/lib/*.js)",
+      "Bash(node:*)",
+      "Bash(npm pack:*)",
+      "Bash(npm whoami:*)",
+      "Bash(npm publish:*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm ping:*)",
+      "Bash(npm config:*)",
+      "Bash(echo \"EXIT_CODE: $?\")",
+      "Read(//private/tmp/**)",
+      "Bash(mkdir -p hx-debug-test)",
+      "Bash(rm -rf /tmp/hx-ctx-test)",
+      "Bash(mkdir /tmp/hx-ctx-test)",
+      "Bash(rm -rf /tmp/hx-ctx-test2)",
+      "Bash(mkdir /tmp/hx-ctx-test2)",
+      "Read(//tmp/**)",
+      "Bash(npm test:*)",
+      "Bash(for f:*)",
+      "Bash(do sed:*)",
+      "Bash(done)",
+      "Bash(do)",
+      "Bash(sed -i '' 's|import { resolveContext, FRAMEWORK_ROOT } from \"\"./lib/resolve-context.js\"\";|import { resolveContext, FRAMEWORK_ROOT, buildProfileSearchRoots } from \"\"./lib/resolve-context.js\"\";|' \"$f\")",
+      "Bash(sed -i '' 's|profile = loadProfile\\(FRAMEWORK_ROOT, profileName\\);|profile = loadProfile\\(FRAMEWORK_ROOT, profileName, { searchRoots: buildProfileSearchRoots\\(ctx.projectRoot\\) }\\);|' \"$f\")",
+      "Bash(echo \"fixed: $f\")"
     ]
   }
 }

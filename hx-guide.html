@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HXFlow CLI · 总览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hx-docs.css">
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+  <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="展开目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">HXFlow CLI<strong>总览</strong></div>
+  <div class="nav-group">文档导航</div>
+  <a data-page="hx-guide.html" href="hx-guide.html"><span class="nav-num">00</span><span>总览</span></a>
+  <a data-page="hx-onboarding.html" href="hx-onboarding.html"><span class="nav-num">01</span><span>入门</span></a>
+  <a data-page="hx-deep-dive.html" href="hx-deep-dive.html"><span class="nav-num">02</span><span>运行机制</span></a>
+  <a data-page="hx-command-index.html" href="hx-command-index.html"><span class="nav-num">03</span><span>命令索引</span></a>
+  <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
+  <div class="nav-group">本页目录</div>
+  <a href="#positioning"><span class="nav-num">A1</span><span>产品定位</span></a>
+  <a href="#reading-path"><span class="nav-num">A2</span><span>核心链路</span></a>
+  <a href="#modules"><span class="nav-num">A3</span><span>文档模块</span></a>
+  <a href="#maintenance"><span class="nav-num">A4</span><span>关键约束</span></a>
+  <div class="nav-group">链接</div>
+  <a href="harness-engineering-spec-v2.html"><span class="nav-num">←</span><span>返回规范文档</span></a>
+</nav>
+
+<div class="page-shell">
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-tag">HXFLOW CLI · OVERVIEW</div>
+      <h1 class="hero-title"><em>HXFlow</em> CLI 总览</h1>
+      <p class="hero-sub">HXFlow CLI 统一需求文档、执行计划、Profile 规则和质量门控。产品名为 <code>HXFlow</code>，命令入口为 <code>hx</code>，npm 包名为 <code>@harness-workflow/cli</code>。</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="hx-onboarding.html">入门</a>
+        <a class="btn-ghost" href="hx-command-index.html">命令索引</a>
+        <a class="btn-subtle" href="harness-engineering-spec-v2.html">返回规范文档</a>
+      </div>
+      <div class="hero-stats">
+        <div class="metric"><div class="metric-value">16</div><div class="metric-label">CLI 子命令</div></div>
+        <div class="metric"><div class="metric-value">4</div><div class="metric-label">核心能力模块</div></div>
+        <div class="metric"><div class="metric-value">3</div><div class="metric-label">运行层级</div></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="positioning">
+      <div class="wrap">
+        <div class="section-tag">Positioning</div>
+        <h2 class="section-title">产品定位</h2>
+        <p class="section-desc">HXFlow CLI 是工程输入、团队规则与质量门控的统一入口。</p>
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="card-meta">输入治理</div>
+            <h3 class="card-title">结构化工程输入</h3>
+            <p class="card-body">通过 <code>doc → plan → ctx</code> 固化需求、任务边界和上下文。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">团队治理</div>
+            <h3 class="card-title">统一团队差异</h3>
+            <p class="card-body">通过 Profile 管理团队的架构层级、模板与门控命令。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">质量闭环</div>
+            <h3 class="card-title">形成质量闭环</h3>
+            <p class="card-body"><code>gate</code>、<code>review</code>、<code>fix</code>、<code>entropy</code> 与 <code>mr</code> 负责校验、修复和交付。</p>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div>
+            <strong>命名：</strong>产品名为 <code>HXFlow</code>，命令为 <code>hx</code>。仓库与 npm 仍保留部分 <code>Harness Workflow</code> 历史命名。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="reading-path">
+      <div class="wrap">
+        <div class="section-tag">Workflow</div>
+        <h2 class="section-title">核心链路</h2>
+        <p class="section-desc">标准链路为“准备输入 → 执行任务 → 校验与沉淀”。</p>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-step">01</div>
+            <div>
+              <div class="timeline-title">需求与计划</div>
+              <div class="timeline-body"><code>hx doc</code> 创建需求文档，<code>hx plan</code> 生成任务拆分和 progress JSON。</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-step">02</div>
+            <div>
+              <div class="timeline-title">上下文校验</div>
+              <div class="timeline-body"><code>hx ctx</code> 先确认 <code>AGENTS.md</code>、需求文档、计划文件和 Profile 资源都处在一致状态。</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-step">03</div>
+            <div>
+              <div class="timeline-title">任务执行</div>
+              <div class="timeline-body"><code>hx run</code> 读取任务与上下文，生成执行 Prompt。</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-step">04</div>
+            <div>
+              <div class="timeline-title">质量收口</div>
+              <div class="timeline-body"><code>hx gate</code> 执行门控，<code>hx review</code> / <code>hx fix</code> 负责复核与修复。</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-step">05</div>
+            <div>
+              <div class="timeline-title">状态回写与交付</div>
+              <div class="timeline-body"><code>hx done</code> 更新任务状态，<code>hx entropy</code> 沉淀问题模式，<code>hx mr</code> 汇总 MR 上下文。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="modules">
+      <div class="wrap">
+        <div class="section-tag">Capabilities</div>
+        <h2 class="section-title">文档模块</h2>
+        <p class="section-desc">文档分为入门、运行机制、命令索引和配置参考四个模块。</p>
+        <div class="grid grid-2">
+          <a class="card link-card" href="hx-onboarding.html">
+            <div class="card-meta">Getting Started</div>
+            <h3 class="card-title">入门</h3>
+            <p class="card-body">覆盖安装、初始化、执行链路和常见问题。</p>
+            <div class="link-line">查看 →</div>
+          </a>
+          <a class="card link-card" href="hx-deep-dive.html">
+            <div class="card-meta">Runtime</div>
+            <h3 class="card-title">运行机制</h3>
+            <p class="card-body">说明路径模型、Profile 解析、上下文装配、Hook 与质量控制。</p>
+            <div class="link-line">查看 →</div>
+          </a>
+          <a class="card link-card" href="hx-command-index.html">
+            <div class="card-meta">命令使用</div>
+            <h3 class="card-title">命令索引</h3>
+            <p class="card-body">列出全部子命令、语法、参数和执行边界。</p>
+            <div class="link-line">查看 →</div>
+          </a>
+          <a class="card link-card" href="hx-config-reference.html">
+            <div class="card-meta">Configuration</div>
+            <h3 class="card-title">配置参考</h3>
+            <p class="card-body">说明配置字段、优先级、路径覆盖、Hook 与自定义 Profile。</p>
+            <div class="link-line">查看 →</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="maintenance">
+      <div class="wrap">
+        <div class="section-tag">Constraints</div>
+        <h2 class="section-title">关键约束</h2>
+        <p class="section-desc">以下约束决定 CLI 的实际行为。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">命令真源</div>
+            <h3 class="card-title">入口和分发以 <code>bin/hx.js</code> 为准</h3>
+            <p class="card-body">命令数量、帮助信息和分发关系由 CLI 入口定义，具体行为在 <code>src/scripts/hx-*.js</code> 中实现。</p>
+            <div class="path-strip">
+              <span class="pill">bin/hx.js</span>
+              <span class="pill">src/scripts/</span>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">配置真源</div>
+            <h3 class="card-title">路径、Profile 和 Hook 有固定解析顺序</h3>
+            <p class="card-body">优先级、默认路径和 Hook 行为由 <code>resolve-context.js</code>、<code>profile-utils.js</code> 与 <code>hooks-utils.js</code> 定义。</p>
+            <div class="path-strip">
+              <span class="pill">resolve-context.js</span>
+              <span class="pill">profile-utils.js</span>
+              <span class="pill">hooks-utils.js</span>
+            </div>
+          </article>
+        </div>
+        <div class="foot-nav">
+          <a class="btn-primary" href="hx-onboarding.html">查看入门</a>
+          <a class="btn-ghost" href="hx-command-index.html">查看命令索引</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>HXFLOW CLI · 总览</p>
+      <p><a href="harness-engineering-spec-v2.html">返回规范文档</a></p>
+    </div>
+  </footer>
+</div>
+
+<script src="assets/hx-docs.js"></script>
+</body>
+</html>

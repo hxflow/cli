@@ -5,16 +5,22 @@ import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 import {
+  createTemplateReplacements,
   extractRequirementInfo,
+  filterProgressByProfile,
+  findProgressByTask,
   getDefaultProfile,
   guessProfileFromTaskId,
+  inferProfileFromProgress,
   inferProfileFromRequirementDoc,
+  isTaskId,
+  isValidFeatureName,
   loadProfile,
   parseArgs,
   parseProfileSpecifier,
-  readHarnessConfig,
+  readHxConfig,
   renderTemplate
-} from '../../scripts/lib/profile-utils.js'
+} from '../../src/scripts/lib/profile-utils.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const tempDirs = []
@@ -50,7 +56,7 @@ describe('profile-utils', () => {
   })
 
   it('loads concrete profile data from repository files', () => {
-    const profile = loadProfile(ROOT, 'mobile:ios')
+    const profile = loadProfile(resolve(ROOT, 'src'), 'mobile:ios')
 
     expect(profile.profile).toBe('mobile:ios')
     expect(profile.platformLabel).toBe('iOS')
@@ -59,18 +65,26 @@ describe('profile-utils', () => {
     expect(profile.architecture.layers.length).toBeGreaterThan(0)
   })
 
-  it('reads configured default profile from harness.config.json', () => {
+  it('reads configured default profile from .hx/config.json', () => {
     const tempRoot = makeTempDir('profile-config-')
-    writeFileSync(resolve(tempRoot, 'harness.config.json'), JSON.stringify({ defaultProfile: 'backend' }), 'utf8')
+    writeConfig(tempRoot, { defaultProfile: 'backend' })
 
-    expect(readHarnessConfig(tempRoot)).toEqual({ defaultProfile: 'backend' })
+    expect(readHxConfig(tempRoot)).toEqual({ defaultProfile: 'backend' })
     expect(getDefaultProfile(tempRoot)).toBe('backend')
   })
 
   it('falls back to frontend when config is invalid', () => {
     const tempRoot = makeTempDir('profile-config-invalid-')
-    writeFileSync(resolve(tempRoot, 'harness.config.json'), '{"defaultProfile":"unknown"}', 'utf8')
+    writeConfig(tempRoot, { defaultProfile: 'unknown' })
 
+    expect(getDefaultProfile(tempRoot)).toBe('frontend')
+  })
+
+  it('ignores harness.config.json entirely', () => {
+    const tempRoot = makeTempDir('profile-config-legacy-')
+    writeFileSync(resolve(tempRoot, 'harness.config.json'), JSON.stringify({ defaultProfile: 'backend' }), 'utf8')
+
+    expect(readHxConfig(tempRoot)).toEqual({})
     expect(getDefaultProfile(tempRoot)).toBe('frontend')
   })
 
@@ -117,10 +131,82 @@ describe('profile-utils', () => {
     expect(guessProfileFromTaskId('TASK-IOS-02')).toBe('mobile:ios')
     expect(guessProfileFromTaskId('TASK-XX-01')).toBeNull()
   })
+
+  it('finds progress entries by task and filters them by profile', () => {
+    const tempRoot = makeTempDir('profile-progress-')
+    const plansDir = resolve(tempRoot, 'docs/plans')
+
+    mkdirSync(plansDir, { recursive: true })
+    writeFileSync(
+      resolve(plansDir, 'order-search-progress.json'),
+      JSON.stringify({
+        feature: 'order-search',
+        profile: 'backend',
+        tasks: [{ id: 'TASK-BE-01', name: 'Repo', status: 'pending' }]
+      }),
+      'utf8'
+    )
+    writeFileSync(
+      resolve(plansDir, 'mobile-login-progress.json'),
+      JSON.stringify({
+        feature: 'mobile-login',
+        team: 'mobile',
+        platform: 'ios',
+        tasks: [{ id: 'TASK-IOS-01', name: 'UI', status: 'pending' }]
+      }),
+      'utf8'
+    )
+
+    const progressEntry = findProgressByTask(tempRoot, 'TASK-IOS-01', null, { plansDir })
+    const filteredEntries = filterProgressByProfile(
+      [
+        { data: { profile: 'backend' } },
+        { data: { team: 'mobile', platform: 'ios' } },
+        { data: { team: 'mobile', platform: 'android' } }
+      ],
+      'mobile:ios'
+    )
+
+    expect(progressEntry?.data.feature).toBe('mobile-login')
+    expect(inferProfileFromProgress(progressEntry?.data)).toBe('mobile:ios')
+    expect(filteredEntries).toHaveLength(1)
+  })
+
+  it('builds template replacements and validates feature/task identifiers', () => {
+    const replacements = createTemplateReplacements('order-detail', {
+      label: '前端',
+      platform: null,
+      platformLabel: null,
+      taskPrefix: 'TASK-FE',
+      paths: {
+        platform_src: 'apps/web/src',
+        platform_test: 'apps/web/test'
+      }
+    })
+
+    expect(replacements).toMatchObject({
+      feature: 'order-detail',
+      Feature: 'OrderDetail',
+      PageName: 'OrderDetailPage',
+      domain: 'order',
+      platform_src: 'apps/web/src',
+      PREFIX: 'TASK-FE'
+    })
+    expect(isValidFeatureName('order-detail-2')).toBe(true)
+    expect(isValidFeatureName('OrderDetail')).toBe(false)
+    expect(isTaskId('TASK-FE-09')).toBe(true)
+    expect(isTaskId('TASK-fe-09')).toBe(false)
+  })
 })
 
 function makeTempDir(prefix) {
   const dir = mkdtempSync(resolve(tmpdir(), prefix))
   tempDirs.push(dir)
   return dir
+}
+
+function writeConfig(root, config) {
+  const hxDir = resolve(root, '.hx')
+  mkdirSync(hxDir, { recursive: true })
+  writeFileSync(resolve(hxDir, 'config.json'), JSON.stringify(config), 'utf8')
 }

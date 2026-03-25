@@ -12,7 +12,7 @@ import {
   ensureClaudeEntrypointLink,
   findConfiguredKey,
   isPathEqualOrInside
-} from '../../scripts/lib/install-utils.js'
+} from '../../src/scripts/lib/install-utils.js'
 
 const tempDirs = []
 const originalEnv = {
