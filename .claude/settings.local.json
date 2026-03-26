@@ -52,7 +52,11 @@
       "Bash(bash .claude/hooks/test-on-stop.sh)",
       "Bash(node --input-type=module --eval \":*)",
       "Bash(open:*)",
-      "Bash(screencapture -x /tmp/guide-screenshot.png)"
+      "Bash(screencapture -x /tmp/guide-screenshot.png)",
+      "Bash(npm version:*)",
+      "Bash(git tag:*)",
+      "Bash(brew list:*)",
+      "Bash(brew uninstall:*)"
     ]
   },
   "hooks": {
