@@ -74,7 +74,7 @@ EOF
         elif [ -d "$item" ]; then
             local dirname=$(basename "$item")
             # 排除特定目录
-            if [ "$dirname" != "node_modules" ] && [ "$dirname" != ".git" ] && [ "$dirname" != ".trae" ] && [ "$dirname" != "tests" ] && [ "$dirname" != "scripts" ]; then
+            if [ "$dirname" != "node_modules" ] && [ "$dirname" != ".git" ] && [ "$dirname" != ".trae" ] && [ "$dirname" != "tests" ] && [ "$dirname" != "scripts" ] && [ "$dirname" != "coverage" ]; then
                 scan_dir "$item"
             fi
         fi

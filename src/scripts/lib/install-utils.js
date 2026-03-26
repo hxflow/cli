@@ -76,9 +76,30 @@ export function generateForwarderFiles(sourceDir, targetDir, frameworkRoot, user
   }
 }
 
+const FORWARDER_DESCRIPTIONS = {
+  'hx-go':      '全自动流水线，从需求到交付（Phase 01→08）',
+  'hx-doc':     'Phase 01 · 创建需求文档',
+  'hx-plan':    'Phase 02 · 生成执行计划，拆分 TASK',
+  'hx-ctx':     'Phase 03 · 校验上下文与 Profile 文件完整性',
+  'hx-run':     'Phase 04 · 按 TASK-ID 驱动 Agent 执行',
+  'hx-review':  'Phase 05 · 按团队清单审查代码',
+  'hx-fix':     'Phase 05 · 按 Review 意见修复代码',
+  'hx-gate':    'Phase 06 · 运行团队质量门控检查',
+  'hx-entropy': 'Phase 07 · 代码熵扫描',
+  'hx-mr':      'Phase 08 · 输出 Merge Request 创建上下文',
+  'hx-run-all': '批量执行所有 pending TASK + 审查 + 门控',
+  'hx-done':    '标记任务完成，更新进度',
+  'hx-init':    '初始化项目，分析结构，写入 .hx/config.yaml',
+  'hx-status':  '查看当前项目任务执行进度',
+}
+
 function buildForwarderContent(commandName, frameworkRoot, userHxDir) {
   const systemPath = resolve(frameworkRoot, 'agents', 'commands', `${commandName}.md`)
-  return `<!-- hx-forwarder: ${commandName} — 由 hx setup 自动生成，请勿手动修改 -->
+  const description = FORWARDER_DESCRIPTIONS[commandName] ?? commandName
+  return `---
+description: ${description}
+---
+<!-- hx-forwarder: ${commandName} — 由 hx setup 自动生成，请勿手动修改 -->
 
 按以下优先级找到第一个存在的文件，读取其完整内容作为指令执行（$ARGUMENTS 原样透传）：
 

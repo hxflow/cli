@@ -7,24 +7,17 @@
   }
 ,
   {
-    "name": "TODO",
-    "path": "TODO.md",
+    "name": "README",
+    "path": "README.md",
     "type": "md",
     "category": "根目录"
   }
 ,
   {
-    "name": "hx.js",
-    "path": "coverage/bin/hx.js.html",
-    "type": "html",
-    "category": "coverage/bin"
-  }
-,
-  {
-    "name": "hx.js",
-    "path": "coverage/lcov-report/bin/hx.js.html",
-    "type": "html",
-    "category": "coverage/lcov-report/bin"
+    "name": "TODO",
+    "path": "TODO.md",
+    "type": "md",
+    "category": "根目录"
   }
 ,
   {
@@ -140,13 +133,6 @@
   }
 ,
   {
-    "name": "hx-status",
-    "path": "src/agents/commands/hx-status.md",
-    "type": "md",
-    "category": "src/agents/commands"
-  }
-,
-  {
     "name": "hx-mr",
     "path": "src/agents/commands/hx-mr.md",
     "type": "md",
@@ -179,6 +165,20 @@
     "path": "src/agents/commands/hx-run.md",
     "type": "md",
     "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-status",
+    "path": "src/agents/commands/hx-status.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "SKILL",
+    "path": "src/agents/skills/api-docs/SKILL.md",
+    "type": "md",
+    "category": "src/agents/skills/api-docs"
   }
 ,
   {
