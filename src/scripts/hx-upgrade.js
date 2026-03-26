@@ -4,25 +4,31 @@
  * hx upgrade — 升级已安装的 Harness Workflow
  *
  * 行为：
- *   1. 用框架最新版本覆盖 agent 命令文件
- *   2. 更新 CLAUDE.md 中的 harness 标记块
- *   3. 保留项目文档与源码，不覆盖业务文件
+ *   1. git pull 更新系统层（框架 repo 自身）
+ *   2. 重新生成 ~/.claude/commands/ 转发器（pick up 新增命令）
+ *   3. 更新当前项目 CLAUDE.md 中的 harness 标记块（如在项目中运行）
+ *
+ * 三层架构升级原则：
+ *   系统层  git pull（本命令负责）
+ *   用户层  ~/.hx/commands/ 用户自己维护，upgrade 不动
+ *   项目层  .hx/commands/ 项目自己维护，upgrade 不动
  *
  * 幂等设计：重复运行安全。
  */
 
+import { execSync } from 'child_process'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { homedir } from 'os'
 import { resolve } from 'path'
 
-import { FRAMEWORK_ROOT, findProjectRoot } from './lib/resolve-context.js'
-import { parseArgs, readJsonFile } from './lib/profile-utils.js'
+import { FRAMEWORK_ROOT, USER_HX_DIR, findProjectRoot } from './lib/resolve-context.js'
+import { parseArgs } from './lib/profile-utils.js'
 import {
   HARNESS_MARKER_START,
   HARNESS_MARKER_END,
   buildHarnessBlock,
   escapeRegExp,
-  syncCommandFiles,
-  syncSkillDirs
+  generateForwarderFiles,
 } from './lib/install-utils.js'
 
 // ── CLI 参数 ──
@@ -31,61 +37,65 @@ const { options } = parseArgs(process.argv.slice(2))
 
 if (options.help) {
   console.log(`
-  用法: hx upgrade [-t <dir>] [--dry-run]
+  用法: hx upgrade [--dry-run]
+
+  更新框架到最新版：
+    1. git pull 更新系统层（框架 repo）
+    2. 重新生成 ~/.claude/commands/ 转发器
+    3. 更新当前项目 CLAUDE.md 中的 harness 标记块
+
+  用户层 (~/.hx/commands/) 和项目层 (.hx/commands/) 不会被修改。
 
   选项:
-    -t, --target <dir>  目标项目目录（默认当前目录）
         --dry-run       仅显示将要更新的内容，不实际写入
     -h, --help          显示帮助
-
-  自定义命令:
-    在 .hx/config.json 中添加 "pinnedCommands" 可阻止指定命令被升级覆盖：
-      { "pinnedCommands": ["hx-run", "hx-review"] }
-
-    在 .claude/commands/ 中新增的 hx-*.md 文件（非框架内置）不受升级影响。
   `)
   process.exit(0)
 }
 
-const targetDir = options.target ? resolve(options.target) : process.cwd()
 const dryRun = options['dry-run'] === true
-
-const projectRoot = findProjectRoot(targetDir)
+const userClaudeDir = resolve(homedir(), '.claude')
 const summary = { updated: [], skipped: [], warnings: [] }
 
-// 读取用户固定的命令列表（仅 .hx/config.json）
-const newConfigPath = resolve(projectRoot, '.hx', 'config.json')
-const config = existsSync(newConfigPath) ? (readJsonFile(newConfigPath) ?? {}) : {}
-const pinnedCommands = new Set(Array.isArray(config.pinnedCommands) ? config.pinnedCommands : [])
-
 console.log(`\n  Harness Workflow · upgrade${dryRun ? ' (dry-run)' : ''}`)
-console.log(`  目标: ${projectRoot}\n`)
+console.log(`  系统层: ${FRAMEWORK_ROOT}\n`)
 
-// ── Step 1: 升级命令文件 ──
+// ── Step 1: git pull 更新系统层 ──
 
-syncCommandFiles(
+console.log('  Step 1: 更新系统层 (git pull)...')
+try {
+  if (!dryRun) {
+    const output = execSync('git pull', { cwd: FRAMEWORK_ROOT, encoding: 'utf8' })
+    const line = output.trim().split('\n').pop()
+    summary.updated.push(`系统层 (${line})`)
+  } else {
+    summary.updated.push('系统层 (dry-run，跳过 git pull)')
+  }
+} catch (err) {
+  summary.warnings.push(`git pull 失败: ${err.message.split('\n')[0]}`)
+}
+
+// ── Step 2: 重新生成转发器 ──
+
+console.log('  Step 2: 重新生成转发器...')
+generateForwarderFiles(
   resolve(FRAMEWORK_ROOT, 'agents', 'commands'),
-  resolve(projectRoot, '.claude', 'commands'),
+  resolve(userClaudeDir, 'commands'),
+  FRAMEWORK_ROOT,
+  USER_HX_DIR,
   summary,
-  { overwrite: true, dryRun, pinnedCommands }
+  { dryRun }
 )
 
-// ── Step 1b: 升级 skills ──
+// ── Step 3: 更新 CLAUDE.md 标记块（如在项目中运行）──
 
-syncSkillDirs(
-  resolve(FRAMEWORK_ROOT, 'agents', 'skills'),
-  resolve(projectRoot, '.claude', 'skills'),
-  summary,
-  { overwrite: true, dryRun }
-)
-
-// ── Step 2: 更新 CLAUDE.md 标记块 ──
-
+console.log('  Step 3: 更新 CLAUDE.md 标记块...')
+const projectRoot = findProjectRoot(process.cwd())
 upgradeCLAUDEmd(projectRoot, summary)
 
 // ── 输出报告 ──
 
-console.log('  ── 升级报告 ──\n')
+console.log('\n  ── 升级报告 ──\n')
 
 if (summary.updated.length) {
   console.log('  更新:')
@@ -110,7 +120,7 @@ function upgradeCLAUDEmd(projectRoot, summary) {
   const claudePath = resolve(projectRoot, 'CLAUDE.md')
 
   if (!existsSync(claudePath)) {
-    summary.warnings.push('CLAUDE.md 不存在，跳过标记块更新')
+    summary.skipped.push('CLAUDE.md (不在项目中，跳过)')
     return
   }
 
@@ -121,7 +131,6 @@ function upgradeCLAUDEmd(projectRoot, summary) {
     return
   }
 
-  // 读取当前 profile 从标记块中提取
   const profileMatch = content.match(/Profile: `([^`]+)`/)
   const profile = profileMatch?.[1] || 'backend'
 

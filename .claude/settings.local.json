@@ -38,7 +38,35 @@
       "Bash(do)",
       "Bash(sed -i '' 's|import { resolveContext, FRAMEWORK_ROOT } from \"\"./lib/resolve-context.js\"\";|import { resolveContext, FRAMEWORK_ROOT, buildProfileSearchRoots } from \"\"./lib/resolve-context.js\"\";|' \"$f\")",
       "Bash(sed -i '' 's|profile = loadProfile\\(FRAMEWORK_ROOT, profileName\\);|profile = loadProfile\\(FRAMEWORK_ROOT, profileName, { searchRoots: buildProfileSearchRoots\\(ctx.projectRoot\\) }\\);|' \"$f\")",
-      "Bash(echo \"fixed: $f\")"
+      "Bash(echo \"fixed: $f\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(mkdir -p /tmp/hx-test/.hx/commands)",
+      "Bash(cat EOF name: review steps: - shell: \"echo ''[hook] pre-review''\" - command: _builtin_review forward_args: true - shell: \"echo ''[hook] post-review''\" EOF node bin/hx.js review --profile backend)",
+      "Bash(node -e \":*)",
+      "Read(//Users/eleven/qiyuan-harness-workflow/**)",
+      "Bash(echo \"  ✗ $f — NO next-step\")",
+      "Bash(echo \"=== $f \\(last 15 lines\\) ===\")",
+      "Bash(echo \"✓ $f\")",
+      "Bash(echo \"✗ $f\")",
+      "Skill(update-config)",
+      "Bash(bash .claude/hooks/test-on-stop.sh)",
+      "Bash(node --input-type=module --eval \":*)",
+      "Bash(open:*)",
+      "Bash(screencapture -x /tmp/guide-screenshot.png)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/eleven/qiyuan-harness-workflow/.claude/hooks/test-on-stop.sh",
+            "statusMessage": "检查文件改动并运行测试…",
+            "async": true
+          }
+        ]
+      }
     ]
   }
 }

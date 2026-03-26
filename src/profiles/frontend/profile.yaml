@@ -91,11 +91,13 @@ review_focus:
     - 响应式检查：375px ~ 1440px 布局无破损
 
 # ── 门控命令 ──
+# 框架只负责按顺序执行这里的命令并汇报结果
+# 命令由项目决定，在 .hx/profiles/frontend/profile.yaml 中覆盖
 gate_commands:
-  lint: "npm run hx:lint"
-  type: "npm run hx:type"
-  test: "npm run hx:test"
-  arch: "npm run hx:arch"
+  lint: ""    # 示例: "npx eslint . --max-warnings 0" 或 "npm run lint"
+  type: ""    # 示例: "npx tsc --noEmit"
+  test: ""    # 示例: "npx vitest run" 或 "npm test"
+  arch: ""    # 示例: "node bin/hx.js arch" 或留空跳过
 
 # ── QA 验收要求 ──
 qa:

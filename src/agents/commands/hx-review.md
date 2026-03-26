@@ -1,38 +1,25 @@
-# Phase 05 · 输出审查清单
+# Phase 05 · 代码审查
 
 参数: `$ARGUMENTS`（可选: `--profile <team[:platform]>`）
 
-## 当前实现
+## 执行步骤
 
-`hx:review` 当前不会自动审查 diff，而是直接打印对应 profile 的 review checklist，供人工或 Agent 复核时使用。
+1. 解析 Profile：优先 `--profile`，否则读 `.hx/config.yaml` 的 `defaultProfile`
+2. 加载前置 Hook（`review-pre.md`，存在则作为额外审查维度注入）
+3. 获取当前变更 diff：运行 `git diff HEAD`（若无暂存则 `git diff`）
+4. 读取 profile 的 `review-checklist.md`，若有平台附加检查追加 `reviewExtra` 内容
+5. 逐项对照 checklist 审查 diff：
+   - 架构层级依赖是否合规
+   - 错误处理是否遵循 golden-rules
+   - 禁止项（console.log、裸 throw、any 类型等）
+   - 测试覆盖率是否足够
+   - 其他 checklist 条目
+6. 输出每项审查结果（✓ / ✗ / ⚠ 警告）
+7. 汇总：通过项数 / 总项数，列出需修复的问题
+8. 加载后置 Hook 并执行（`review-post.md`）
 
-profile 解析顺序：
+## Hook 路径
 
-1. `--profile`
-2. `.hx/config.json.defaultProfile`
-3. CLI 默认值
-
-输出内容来自：
-
-- 当前 Profile 对应的 `review-checklist.md`
-- 如有平台附加检查，再追加 `reviewExtra`
-
-## Hook 注入
-
-在输出审查清单前后，检查以下 hook 文件（存在则读取内容并注入）：
-
-**前置 Hook（pre）**——在审查前注入额外检查维度或约束：
-- `~/.hx/hooks/review-pre.md`（用户全局）
-- `.hx/hooks/review-pre.md`（项目级）
-
-**后置 Hook（post）**——审查完成后执行额外指令（如自动提交、通知等）：
-- `~/.hx/hooks/review-post.md`（用户全局）
-- `.hx/hooks/review-post.md`（项目级）
-
-也可在 `.hx/config.json` 的 `hooks.review.pre` / `hooks.review.post` 数组中声明额外路径。
-
-## 典型用法
-
-```bash
-npm run hx:review -- --profile backend
-```
+- `~/.hx/hooks/review-pre.md` / `.hx/hooks/review-pre.md`
+- `~/.hx/hooks/review-post.md` / `.hx/hooks/review-post.md`
+- `.hx/config.yaml` 的 `hooks.review.pre` / `hooks.review.post` 列表

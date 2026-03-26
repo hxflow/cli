@@ -4,10 +4,15 @@
  * hx setup — 全局安装框架文件到用户目录
  *
  * 安装内容：
- *   1. profiles/ → ~/.hx/profiles/（内置 profiles，供所有项目共享）
- *   2. agents/commands/hx-*.md → ~/.claude/commands/（全局 Claude 命令）
- *   3. agents/skills/ → ~/.claude/skills/（全局 Claude skills）
- *   4. 创建 ~/.hx/config.json（如不存在，写入空配置）
+ *   1. ~/.hx/ 目录结构（commands/、profiles/、skills/、pipelines/）
+ *   2. ~/.hx/config.yaml（写入 frameworkRoot，如不存在）
+ *   3. ~/.claude/commands/ — 转发器文件（不含命令逻辑，运行时按三层优先级路由）
+ *   4. ~/.claude/skills/ — skills 文件（直接拷贝，结构特殊不走转发）
+ *
+ * 三层架构：
+ *   系统层  <frameworkRoot>/src/agents/commands/   命令实体（git pull 升级）
+ *   用户层  ~/.hx/commands/                        用户自定义覆盖
+ *   项目层  <project>/.hx/commands/                项目专属覆盖
  *
  * 幂等设计：重复运行安全。
  *
@@ -16,17 +21,14 @@
  *   --user-claude-dir <dir>  覆盖 ~/.claude/ 路径
  */
 
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { parseSimpleYaml } from './lib/profile-utils.js'
 import { homedir } from 'os'
 import { resolve } from 'path'
 
 import { FRAMEWORK_ROOT } from './lib/resolve-context.js'
 import { parseArgs } from './lib/profile-utils.js'
-import {
-  syncCommandFiles,
-  syncSkillDirs,
-  syncProfilesToUserDir
-} from './lib/install-utils.js'
+import { generateForwarderFiles, syncSkillDirs } from './lib/install-utils.js'
 
 // ── CLI 参数 ──
 
@@ -41,12 +43,12 @@ if (options.help) {
     -h, --help          显示帮助
 
   将框架文件安装到用户全局目录：
-    ~/.hx/profiles/       内置 profiles（所有项目共享）
-    ~/.claude/commands/   hx-*.md 命令文件（Claude Code 全局命令）
-    ~/.claude/skills/     hx skill 文件（Claude Code 全局 skills）
-    ~/.hx/config.json     用户全局配置（如不存在则创建空配置）
+    ~/.hx/              目录结构（commands/、profiles/、skills/、pipelines/）
+    ~/.hx/config.yaml   用户全局配置（记录 frameworkRoot）
+    ~/.claude/commands/ 转发器文件（运行时按三层优先级路由到实体命令）
+    ~/.claude/skills/   框架 skills
 
-  安装后，在任意项目中运行 hx init 即可使用框架，无需再拷贝 profiles。
+  安装后，在任意项目中运行 hx init 初始化项目。
   `)
   process.exit(0)
 }
@@ -65,42 +67,53 @@ console.log(`\n  Harness Workflow · setup${dryRun ? ' (dry-run)' : ''}`)
 console.log(`  ~/.hx/      → ${userHxDir}`)
 console.log(`  ~/.claude/  → ${userClaudeDir}\n`)
 
-// ── Step 1: 确保 ~/.hx/ 目录存在 ──
+// ── Step 1: 创建 ~/.hx/ 目录结构 ──
 
-if (!existsSync(userHxDir)) {
-  if (!dryRun) mkdirSync(userHxDir, { recursive: true })
-  summary.created.push('~/.hx/')
+for (const sub of ['', 'commands', 'profiles', 'skills', 'pipelines']) {
+  const dir = sub ? resolve(userHxDir, sub) : userHxDir
+  if (!existsSync(dir)) {
+    if (!dryRun) mkdirSync(dir, { recursive: true })
+    summary.created.push(`~/.hx/${sub || ''}`.replace(/\/$/, '') + '/')
+  }
 }
 
-// ── Step 2: 创建 ~/.hx/config.json（如不存在）──
+// ── Step 2: 创建 ~/.hx/config.yaml（写入 frameworkRoot）──
 
-const userConfigPath = resolve(userHxDir, 'config.json')
+const userConfigPath = resolve(userHxDir, 'config.yaml')
 if (!existsSync(userConfigPath)) {
-  if (!dryRun) writeFileSync(userConfigPath, '{}\n', 'utf8')
-  summary.created.push('~/.hx/config.json')
+  if (!dryRun) writeFileSync(userConfigPath, `# Harness Workflow 用户全局配置\nframeworkRoot: ${FRAMEWORK_ROOT}\n`, 'utf8')
+  summary.created.push('~/.hx/config.yaml')
 } else {
-  summary.skipped.push('~/.hx/config.json (已存在)')
+  // 确保 frameworkRoot 字段是最新的
+  try {
+    const existing = parseSimpleYaml(readFileSync(userConfigPath, 'utf8'))
+    if (existing.frameworkRoot !== FRAMEWORK_ROOT) {
+      const updated = readFileSync(userConfigPath, 'utf8').replace(
+        /^frameworkRoot:.*$/m,
+        `frameworkRoot: ${FRAMEWORK_ROOT}`
+      )
+      if (!dryRun) writeFileSync(userConfigPath, updated, 'utf8')
+      summary.updated.push('~/.hx/config.yaml (frameworkRoot)')
+    } else {
+      summary.skipped.push('~/.hx/config.yaml (已存在)')
+    }
+  } catch {
+    summary.warnings.push('~/.hx/config.yaml 解析失败，跳过 frameworkRoot 写入')
+  }
 }
 
-// ── Step 3: 同步 profiles → ~/.hx/profiles/ ──
+// ── Step 3: 生成转发器 → ~/.claude/commands/ ──
 
-syncProfilesToUserDir(
-  resolve(FRAMEWORK_ROOT, 'profiles'),
-  resolve(userHxDir, 'profiles'),
-  summary,
-  { dryRun }
-)
-
-// ── Step 4: 同步命令文件 → ~/.claude/commands/ ──
-
-syncCommandFiles(
+generateForwarderFiles(
   resolve(FRAMEWORK_ROOT, 'agents', 'commands'),
   resolve(userClaudeDir, 'commands'),
+  FRAMEWORK_ROOT,
+  userHxDir,
   summary,
   { createDir: true, dryRun }
 )
 
-// ── Step 5: 同步 skills → ~/.claude/skills/ ──
+// ── Step 4: 同步 skills → ~/.claude/skills/ ──
 
 syncSkillDirs(
   resolve(FRAMEWORK_ROOT, 'agents', 'skills'),

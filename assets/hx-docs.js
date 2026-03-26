@@ -9,15 +9,20 @@
     html.classList.add("light");
     if (iconMoon) iconMoon.style.display = "none";
     if (iconSun) iconSun.style.display = "block";
+    if (themeToggle) themeToggle.setAttribute("aria-label", "切换深色模式");
   }
 
   function applyDark() {
     html.classList.remove("light");
     if (iconMoon) iconMoon.style.display = "block";
     if (iconSun) iconSun.style.display = "none";
+    if (themeToggle) themeToggle.setAttribute("aria-label", "切换浅色模式");
   }
 
+  // 优先 localStorage，其次跟随系统偏好
   if (savedTheme === "light") {
+    applyLight();
+  } else if (!savedTheme && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
     applyLight();
   } else {
     applyDark();
@@ -53,6 +58,10 @@
     if (!sidebar) return;
     sidebar.classList.toggle("open", open);
     if (backdrop) backdrop.classList.toggle("open", open);
+    if (sidebarToggle) {
+      sidebarToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      sidebarToggle.setAttribute("aria-label", open ? "收起目录" : "展开目录");
+    }
     localStorage.setItem("hx-docs-sidebar", open ? "open" : "closed");
   }
 
@@ -71,6 +80,13 @@
       setSidebar(false);
     });
   }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && sidebar && sidebar.classList.contains("open")) {
+      setSidebar(false);
+      if (sidebarToggle) sidebarToggle.focus();
+    }
+  });
 
   document.querySelectorAll('.sidebar a[href^="#"]').forEach(function (link) {
     link.addEventListener("click", function () {

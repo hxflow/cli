@@ -1,0 +1,64 @@
+# Harness Workflow 默认流水线
+#
+# 自定义方式：在 <project>/.hx/pipelines/default.yaml 或
+# ~/.hx/pipelines/default.yaml 中创建同名文件进行覆盖。
+#
+# 步骤字段：
+#   id       — 唯一标识，--from <id> 用于从该步骤开始
+#   phase    — 展示用阶段标签
+#   name     — 展示用名称
+#   command  — 对应的 hx-* 命令名（不含 .md）
+#   checkpoint.message — 若存在，执行后暂停等待用户确认
+#   on_fail  — stop：失败时终止流水线（默认继续）
+
+name: 全自动流水线（从需求到交付）
+
+steps:
+  - id: doc
+    phase: Phase 01
+    name: 需求文档
+    command: hx-doc
+    checkpoint:
+      message: 展示生成的需求文档，等待用户确认内容正确后继续
+
+  - id: plan
+    phase: Phase 02
+    name: 执行计划
+    command: hx-plan
+    checkpoint:
+      message: 展示任务列表（TASK 数量、名称、层级），等待用户确认后继续
+
+  - id: ctx
+    phase: Phase 03
+    name: 上下文校验
+    command: hx-ctx
+    on_fail: stop
+
+  - id: run
+    phase: Phase 04
+    name: 逐任务执行
+    command: hx-run-all
+
+  - id: review
+    phase: Phase 05
+    name: 代码审查
+    command: hx-review
+    checkpoint:
+      message: 展示审查报告，等待用户确认（或修复后确认）再继续
+
+  - id: gate
+    phase: Phase 06
+    name: 最终门控
+    command: hx-gate
+
+  - id: entropy
+    phase: Phase 07
+    name: 熵扫描
+    command: hx-entropy
+    checkpoint:
+      message: 展示熵扫描报告，等待用户确认再继续
+
+  - id: mr
+    phase: Phase 08
+    name: MR 描述
+    command: hx-mr

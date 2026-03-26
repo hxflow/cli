@@ -2,42 +2,31 @@
 
 参数: `$ARGUMENTS`（格式: `<feature-name> [--task <task-id>] [--profile <team[:platform]>]`）
 
-## 当前实现
+## 执行步骤
 
-`hx:doc` 是一个基于 profile 模板的文档生成命令，不会自动调用 DevOps。
+1. 解析参数：提取 `feature-name`（强制 kebab-case），`--task`（可选），`--profile`（可选）
+2. 解析路径：读取 `.hx/config.yaml`（项目层）和 `~/.hx/config.yaml`（用户层）合并后的 `paths` 字段，以下字段缺失时使用默认值，将 `{feature}` 替换为实际值：
 
-执行逻辑：
+   | 字段 | 默认值 |
+   |------|--------|
+   | `paths.requirementDoc` | `docs/requirement/{feature}.md` |
 
-1. 解析 `feature-name`，要求为 kebab-case
-2. 解析 profile：
-   - 优先 `--profile`
-   - 否则读取 `.hx/config.json` 中的 `defaultProfile`
-   - 仍无则回退到 CLI 默认值
-3. 加载当前 Profile 对应的 `requirement-template.md`
-4. 在 `docs/requirement/<feature-name>.md` 生成文档
-5. 自动写入日期、团队/平台信息
-6. 如果传入 `--task`，在文档头部补充 `来源任务：DevOps #<task-id>`
+3. 解析 Profile：
+   - 优先 `--profile`；否则读 `.hx/config.yaml` 的 `defaultProfile`
+   - 按顺序查找：`.hx/profiles/<team>/` → `~/.hx/profiles/<team>/` → 框架内置 `profiles/<team>/`
+   - 读取 `profile.yaml`，处理 `extends:` 继承链
+4. 加载前置 Hook（存在则作为额外约束）：
+   - `~/.hx/hooks/doc-pre.md`、`.hx/hooks/doc-pre.md`
+   - `.hx/config.yaml` 的 `hooks.doc.pre` 路径列表
+5. 从 profile 目录读取 `requirement-template.md`
+6. 基于模板创建 `requirementDoc`：
+   - 自动填入当前日期、team/platform 信息
+   - 若提供 `--task`，在文档头部写入 `来源任务：DevOps #<task-id>`
+7. 加载后置 Hook 并执行额外指令（`doc-post.md`）
+8. 输出：`✓ 需求文档已创建: <requirementDoc 路径>`，提示下一步 `/hx-plan`
 
-## Hook 注入
+## 约束
 
-在生成需求文档前后，检查以下 hook 文件（存在则读取内容并注入）：
-
-**前置 Hook（pre）**——在文档生成前读取，作为额外上下文或约束：
-- `~/.hx/hooks/doc-pre.md`（用户全局）
-- `.hx/hooks/doc-pre.md`（项目级）
-
-**后置 Hook（post）**——文档生成完成后执行额外指令：
-- `~/.hx/hooks/doc-post.md`（用户全局）
-- `.hx/hooks/doc-post.md`（项目级）
-
-也可在 `.hx/config.json` 的 `hooks.doc.pre` / `hooks.doc.post` 数组中声明额外路径。
-
-## 输出示例
-
-```text
-✓ 需求文档已创建: docs/requirement/user-login.md
-  团队: 服务端
-  来源任务: DevOps #12345
-
-下一步: hx plan user-login --profile backend
-```
+- `requirementDoc` 所在目录不存在则自动创建
+- 不修改已存在的同名文档（提示用户确认后再覆盖）
+- feature-name 必须是 kebab-case，否则报错

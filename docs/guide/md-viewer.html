@@ -857,7 +857,9 @@
         document.title = `${filePath.split("/").pop()} - 文档预览`;
 
         try {
-          const response = await fetch(filePath);
+          const response = await fetch(
+            new URL(`../../${filePath}`, window.location.href),
+          );
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }

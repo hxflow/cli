@@ -4,7 +4,7 @@
  * hx uninstall — 干净移除 Harness Workflow 安装痕迹
  *
  * 移除内容：
- *   1. .hx/config.json
+ *   1. .hx/config.yaml
  *   2. .CLAUDE.md（若是指向 AGENTS.md 的入口链接）
  *   3. .claude/commands/hx-*.md
  *   4. CLAUDE.md 中的 harness 标记块
@@ -120,10 +120,10 @@ function runUninstall(projectRoot, items) {
 function collectRemoveList(projectRoot) {
   const items = []
 
-  const hxConfigPath = resolve(projectRoot, '.hx', 'config.json')
+  const hxConfigPath = resolve(projectRoot, '.hx', 'config.yaml')
   if (existsSync(hxConfigPath)) {
     items.push({
-      display: '.hx/config.json',
+      display: '.hx/config.yaml',
       action: () => rmSync(hxConfigPath, { force: true })
     })
   }

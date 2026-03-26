@@ -1,46 +1,46 @@
-# Phase 04 · 生成 Agent Prompt
+# Phase 04 · 执行任务
 
 参数: `$ARGUMENTS`（格式: `<feature-name> <task-id> [--profile <team[:platform]>]`）
 
-## 当前实现
+## 执行步骤
 
-`hx:run` 当前不会直接执行代码任务，而是读取上下文后输出一段可复制给 Claude / Codex 的 Prompt。
+1. 解析参数：`feature-name`、`task-id`、`--profile`
+2. 解析 Profile：优先 `--profile`，否则读 `.hx/config.yaml` 的 `defaultProfile`
+   - 按顺序查找：`.hx/profiles/<team>/` → `~/.hx/profiles/<team>/` → 框架内置 `profiles/<team>/`
+   - 处理 `extends:` 继承，合并架构层级与门控配置
+3. 解析路径：读取 `.hx/config.yaml`（项目层）和 `~/.hx/config.yaml`（用户层）合并后的 `paths` 字段，以下字段缺失时使用默认值，将 `{feature}` 和 `{taskId}` 替换为实际值：
 
-执行逻辑：
+   | 字段 | 默认值 |
+   |------|--------|
+   | `paths.requirementDoc` | `docs/requirement/{feature}.md` |
+   | `paths.planDoc` | `docs/plans/{feature}.md` |
+   | `paths.progressFile` | `docs/plans/{feature}-progress.json` |
+   | `paths.taskDoc` | （空，不使用）|
 
-1. 根据 `feature-name + task-id` 或单独 `task-id` 查找 `docs/plans/*-progress.json`
-2. 解析 profile：
-   - 优先 `--profile`
-   - 否则取 progress 中的 `profile`
-   - 再回退到 `.hx/config.json.defaultProfile`
-3. 读取并引用以下上下文：
-   - `AGENTS.md`
+4. 读取上下文（按顺序）：
+   - `AGENTS.md`（或 `paths.agents`）
    - `docs/golden-principles.md`
-   - 当前 Profile 对应的 `golden-rules.md`
-   - 当前 Profile 对应的 `profile.yaml`
-   - `docs/plans/<feature>.md`
-   - `docs/requirement/<feature>.md`
-4. 如果任务已是 `done`，直接提示，不再生成执行 Prompt
+   - profile 的 `golden-rules.md`
+   - `requirementDoc`（需求文档）
+   - `planDoc`（定位目标 task 条目）
+   - `progressFile`（确认任务状态为 `pending`）
+   - 若 `taskDoc` 已配置且文件存在，额外读取（作为补充执行上下文）
+5. 加载前置 Hook（`run-pre.md`，存在则注入为额外约束）
+6. 按任务的验收标准、架构层级约束直接执行（编写代码）
+7. 执行完成后更新进度文件：
+   - `progressFile` 中目标任务 `status → done`，写入 `completedAt`
+8. 加载后置 Hook（`run-post.md`，存在则执行额外指令）
 
-## Hook 注入
+## 执行约束
 
-在输出 Agent Prompt 前后，检查以下 hook 文件（存在则读取内容并注入到 prompt 对应位置）：
+- 任务状态不是 `pending` 时拒绝执行，提示当前状态
+- 严格遵守 profile 定义的架构层级（只能导入内层）
+- 不修改其他任务的代码（当前 task 范围内作业）
+- 错误使用 `AppError` 类，禁止裸 `throw new Error`
+- 禁止 `console.log` 进入 `src/`，使用结构化 logger
 
-**前置 Hook（pre）**——注入到 prompt 开头：
-- `~/.hx/hooks/run-pre.md`（用户全局）
-- `.hx/hooks/run-pre.md`（项目级，优先级更高）
+## Hook 路径
 
-**后置 Hook（post）**——追加到 prompt 末尾：
-- `~/.hx/hooks/run-post.md`（用户全局）
-- `.hx/hooks/run-post.md`（项目级，优先级更高）
-
-也可在 `.hx/config.json` 的 `hooks.run.pre` / `hooks.run.post` 数组中声明额外文件路径。
-
-## 输出示例
-
-```text
-════════════════════════════════════════════════════════════
-  Agent Prompt — TASK-BE-03 (服务端)
-  复制下方内容，粘贴给 Claude/Codex 执行
-════════════════════════════════════════════════════════════
-```
+- `~/.hx/hooks/run-pre.md` / `.hx/hooks/run-pre.md`
+- `~/.hx/hooks/run-post.md` / `.hx/hooks/run-post.md`
+- `.hx/config.yaml` 的 `hooks.run.pre` / `hooks.run.post` 列表

@@ -64,22 +64,12 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top right, rgba(94, 167, 231, 0.08), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(200, 154, 66, 0.08), transparent 30%),
-    linear-gradient(155deg, var(--bg) 0%, #0d121a 48%, var(--bg) 100%);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
   font-weight: 300;
-  line-height: 1.8;
+  line-height: 1.75;
   -webkit-font-smoothing: antialiased;
-}
-
-html.light body {
-  background:
-    radial-gradient(circle at top right, rgba(45, 125, 194, 0.08), transparent 30%),
-    radial-gradient(circle at bottom left, rgba(159, 120, 38, 0.08), transparent 30%),
-    linear-gradient(155deg, var(--bg) 0%, #efeae2 55%, var(--bg) 100%);
 }
 
 a {
@@ -233,7 +223,7 @@ pre code {
 .sidebar a {
   display: flex;
   gap: 10px;
-  align-items: flex-start;
+  align-items: center;
   padding: 10px 20px;
   border-left: 2px solid transparent;
   color: var(--text-faint);
@@ -266,30 +256,56 @@ pre code {
   position: relative;
   padding: 110px 72px 78px;
   overflow: hidden;
+  background: linear-gradient(150deg, var(--bg) 0%, var(--bg2) 60%, var(--bg) 100%);
 }
 
-.hero::before,
-.hero::after {
-  content: "";
+html.light .hero {
+  background: linear-gradient(150deg, var(--bg) 0%, var(--bg2) 60%, var(--bg) 100%);
+}
+
+.hero-grid {
   position: absolute;
-  pointer-events: none;
-}
-
-.hero::before {
   inset: 0;
+  pointer-events: none;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px);
   background-size: 74px 74px;
-  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.62), transparent 85%);
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 80%);
 }
 
-.hero::after {
-  top: -220px;
-  right: -220px;
-  width: 720px;
-  height: 720px;
-  background: radial-gradient(circle, rgba(94, 167, 231, 0.1) 0%, transparent 62%);
+html.light .hero-grid {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+}
+
+.hero-glow {
+  position: absolute;
+  top: -180px;
+  right: -180px;
+  width: 680px;
+  height: 680px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(200, 154, 66, 0.1) 0%, transparent 65%);
+}
+
+.hero-glow2 {
+  position: absolute;
+  bottom: -120px;
+  left: -120px;
+  width: 560px;
+  height: 560px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(94, 167, 231, 0.08) 0%, transparent 65%);
+}
+
+html.light .hero-glow {
+  background: radial-gradient(circle, rgba(159, 120, 38, 0.08) 0%, transparent 65%);
+}
+
+html.light .hero-glow2 {
+  background: radial-gradient(circle, rgba(45, 125, 194, 0.06) 0%, transparent 65%);
 }
 
 .hero.compact {
@@ -401,32 +417,39 @@ pre code {
   color: var(--text);
 }
 
+.btn-primary:active,
+.btn-ghost:active,
+.btn-subtle:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .hero-stats,
 .metric-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 14px;
+  display: flex;
+  gap: 40px;
   margin-top: 40px;
+  flex-wrap: wrap;
 }
 
 .metric {
-  padding: 18px 18px 16px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
+  text-align: left;
 }
 
 .metric-value {
-  font-family: var(--mono);
+  font-family: var(--serif);
   font-size: 28px;
-  color: var(--text);
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
 }
 
 .metric-label {
+  font-family: var(--mono);
+  font-size: 10px;
   color: var(--text-faint);
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
+  margin-top: 4px;
+  text-transform: uppercase;
 }
 
 main {
@@ -451,10 +474,35 @@ section + section {
 }
 
 .section-desc {
-  max-width: 760px;
-  margin-bottom: 34px;
+  max-width: 640px;
+  margin-bottom: 48px;
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+/* ── Note box (.dn) — matches spec style ───────────────────────────── */
+
+.dn {
+  margin: 24px 0;
+  padding: 18px 22px;
+  border: 1px solid rgba(200, 154, 66, 0.15);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 12px 12px 0;
+  background: rgba(200, 154, 66, 0.06);
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+html.light .dn {
+  background: rgba(159, 120, 38, 0.06);
+  border-color: rgba(159, 120, 38, 0.2);
+  border-left-color: var(--gold);
+}
+
+.dn strong {
+  color: var(--text);
 }
 
 .grid {
@@ -624,6 +672,7 @@ section + section {
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   gap: 14px;
+  align-items: center;
   padding: 18px 20px;
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -659,11 +708,12 @@ section + section {
 table {
   width: 100%;
   border-collapse: collapse;
+  margin: 20px 0;
 }
 
 th,
 td {
-  padding: 14px 16px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
   text-align: left;
@@ -674,16 +724,32 @@ tr:last-child td {
 }
 
 th {
-  color: var(--gold);
+  color: var(--text-faint);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
 }
 
 td {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
+}
+
+td:first-child {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+html.light tr:hover td {
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .command-name {
@@ -785,6 +851,191 @@ footer {
   text-decoration: none;
 }
 
+/* ── Focus ─────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.btn-primary:focus-visible,
+.btn-ghost:focus-visible,
+.btn-subtle:focus-visible {
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+.theme-toggle:focus-visible,
+.sidebar-toggle:focus-visible {
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* ── Spec-style grid cards (rgrid / rcard) ───────────────────────────── */
+
+.rgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 32px 0;
+}
+
+.rgrid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.rcard {
+  background: var(--bg);
+  padding: 24px 28px;
+  transition: background 0.25s;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+.rcard:hover {
+  background: var(--bg2);
+}
+
+.rcard.w2 {
+  grid-column: 1 / -1;
+}
+
+.rcard-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.rcard-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.rcard-body {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+/* ── Spec-style level grid (levels / level) ─────────────────────────── */
+
+.levels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 24px 0;
+}
+
+.level {
+  background: var(--bg);
+  padding: 20px 22px;
+}
+
+.level-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+
+.level-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.level-body {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* ── Table: type badges ─────────────────────────────────────────────── */
+
+.badge.cli {
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-color: rgba(94, 167, 231, 0.25);
+}
+
+.badge.claude-cmd {
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--violet);
+  background: var(--violet-soft);
+  border-color: rgba(143, 122, 227, 0.25);
+}
+
+/* ── Table: group row accent + hover ────────────────────────────────── */
+
+tr.grp-install td:first-child { box-shadow: inset 2px 0 0 var(--orange); }
+tr.grp-init    td:first-child { box-shadow: inset 2px 0 0 var(--teal); }
+tr.grp-plan    td:first-child { box-shadow: inset 2px 0 0 var(--blue); }
+tr.grp-exec    td:first-child { box-shadow: inset 2px 0 0 var(--violet); }
+tr.grp-quality td:first-child { box-shadow: inset 2px 0 0 var(--gold); }
+
+tr.grp-install:hover td { background: rgba(218, 141, 84, 0.05); }
+tr.grp-init:hover    td { background: rgba(66, 180, 154, 0.05); }
+tr.grp-plan:hover    td { background: rgba(94, 167, 231, 0.05); }
+tr.grp-exec:hover    td { background: rgba(143, 122, 227, 0.05); }
+tr.grp-quality:hover td { background: rgba(200, 154, 66, 0.05); }
+
+/* ── Table: group text colors ───────────────────────────────────────── */
+
+.grp-text-install { color: var(--orange); }
+.grp-text-init    { color: var(--teal); }
+.grp-text-plan    { color: var(--blue); }
+.grp-text-exec    { color: var(--violet); }
+.grp-text-quality { color: var(--gold); }
+
+/* ── Reduced motion ─────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 980px) {
   .hero,
   .hero.compact {
@@ -799,8 +1050,15 @@ footer {
 
   .grid-3,
   .grid-2,
-  .command-grid {
+  .command-grid,
+  .rgrid,
+  .rgrid-3,
+  .levels {
     grid-template-columns: 1fr;
+  }
+
+  .rcard.w2 {
+    grid-column: 1;
   }
 
   .timeline-item {

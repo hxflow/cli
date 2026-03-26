@@ -2,32 +2,30 @@
 
 参数: `$ARGUMENTS`（可选: `--profile <team[:platform]>`）
 
-## 当前实现
+## 执行步骤
 
-`hx:gate` 会从 profile 的 `gate_commands` 中读取门控命令，并按固定顺序执行：
+1. 解析 Profile：优先 `--profile`，否则读 `.hx/config.yaml` 的 `defaultProfile`
+   - 按顺序查找：`.hx/profiles/<team>/` → `~/.hx/profiles/<team>/` → 框架内置 `profiles/<team>/`
+2. 读取 profile.yaml 中的 `gate_commands`（lint / build / type / test / arch）
+3. 过滤掉值为空的步骤
+4. 按顺序执行各步骤（使用 Bash 工具在项目根目录运行）：
+   - lint → build → type → test → arch
+   - 若命令包含占位符（如 `{scheme}`），报错并提示补充参数后停止
+   - 任一步骤失败立即停止并报告错误详情
+5. 所有步骤通过后输出 `✓ <team> 门控全部通过`
 
-1. `lint`
-2. `build`
-3. `type`
-4. `test`
-5. `arch`
+## 输出格式
 
-特点：
-
-- 命令在项目根目录执行
-- 仅执行 profile 中已定义的步骤
-- 任一步骤失败即停止
-- 若命令仍包含未替换占位符（如 `{scheme}`），直接报错并提示补参数
-
-## 输出示例
-
-```text
-── 质量门控 ──────────────────────────
-质量门控 · 前端
-→ Step 1/4  lint   ✓ lint 通过
-→ Step 2/4  type   ✓ type 通过
-→ Step 3/4  test   ✓ test 通过
-→ Step 4/4  arch   ✓ arch 通过
+```
+── 质量门控 ──────────────────────────────
+→ Step 1/N  lint   ✓ 通过
+→ Step 2/N  type   ✓ 通过
+→ Step 3/N  test   ✓ 通过
 
 ✓ frontend 门控全部通过
 ```
+
+## 说明
+
+门控命令由项目自定义，在 profile.yaml 的 `gate_commands` 中配置。
+框架不预设具体命令，仅按顺序执行并汇报结果。

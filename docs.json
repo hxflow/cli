@@ -7,13 +7,6 @@
   }
 ,
   {
-    "name": "README",
-    "path": "README.md",
-    "type": "md",
-    "category": "根目录"
-  }
-,
-  {
     "name": "TODO",
     "path": "TODO.md",
     "type": "md",
@@ -35,45 +28,52 @@
   }
 ,
   {
+    "name": "hx-extensibility",
+    "path": "docs/design/hx-extensibility.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
     "name": "harness-engineering-spec",
-    "path": "harness-engineering-spec.html",
+    "path": "docs/guide/harness-engineering-spec.html",
     "type": "html",
-    "category": "根目录"
+    "category": "docs/guide"
   }
 ,
   {
     "name": "hx-command-index",
-    "path": "hx-command-index.html",
+    "path": "docs/guide/hx-command-index.html",
     "type": "html",
-    "category": "根目录"
+    "category": "docs/guide"
   }
 ,
   {
     "name": "hx-config-reference",
-    "path": "hx-config-reference.html",
+    "path": "docs/guide/hx-config-reference.html",
     "type": "html",
-    "category": "根目录"
+    "category": "docs/guide"
   }
 ,
   {
     "name": "hx-deep-dive",
-    "path": "hx-deep-dive.html",
+    "path": "docs/guide/hx-deep-dive.html",
     "type": "html",
-    "category": "根目录"
+    "category": "docs/guide"
   }
 ,
   {
     "name": "hx-guide",
-    "path": "hx-guide.html",
+    "path": "docs/guide/hx-guide.html",
     "type": "html",
-    "category": "根目录"
+    "category": "docs/guide"
   }
 ,
   {
     "name": "hx-onboarding",
-    "path": "hx-onboarding.html",
+    "path": "docs/guide/hx-onboarding.html",
     "type": "html",
-    "category": "根目录"
+    "category": "docs/guide"
   }
 ,
   {
@@ -128,6 +128,20 @@
   {
     "name": "hx-go",
     "path": "src/agents/commands/hx-go.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-init",
+    "path": "src/agents/commands/hx-init.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-status",
+    "path": "src/agents/commands/hx-status.md",
     "type": "md",
     "category": "src/agents/commands"
   }

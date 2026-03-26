@@ -2,44 +2,31 @@
 
 参数: `$ARGUMENTS`（可选: `--profile <team[:platform]>`）
 
-## 当前实现
+## 执行步骤
 
-`hx:entropy` 主要做静态模式扫描，默认关注 `src/` 下的 TypeScript 文件，并排除测试文件。
+1. 解析 Profile：优先 `--profile`，否则读 `.hx/config.yaml` 的 `defaultProfile`
+2. 加载前置 Hook（`entropy-pre.md`，存在则作为额外扫描规则注入）
+3. 扫描 `src/` 目录（排除测试文件）：
 
-当前内置扫描包括：
+   **代码质量问题：**
+   - `console.log / warn / error / debug / info`（禁止进 src/）
+   - `throw new Error(...)`（应使用 AppError）
+   - `: any`（类型逃逸）
+   - 可疑类型断言（`as unknown as`、双重断言）
+   - 空 `catch` 块
+   - `TODO / FIXME / HACK / XXX` 注释
+   - 魔法数字（未命名的字面量）
+   - 未处理的 `new Promise`
 
-- `console.log / warn / error / debug / info`
-- `throw new Error(...)`
-- `: any`
-- 可疑的类型断言
-- 空 `catch`
-- `TODO / FIXME / HACK / XXX`
-- 魔法数字
-- 未处理的 `new Promise`
+4. 检查文档一致性：
+   - `AGENTS.md` 中的活跃特性是否都有对应需求文档
+   - `paths.progressFile` 模板匹配的进度文件中 done 的任务数与实际代码是否匹配
+5. 如果 profile.yaml 定义了 `entropyChecks`，执行额外专项检查
+6. 加载后置 Hook 并执行（`entropy-post.md`）
+7. 输出报告：按类别分组，列出文件路径和行号，汇总问题总数
 
-相关文档检查使用：
+## Hook 路径
 
-- `docs/requirement/*.md`
-- `docs/plans/*-progress.json`
-- `AGENTS.md`
-
-## Hook 注入
-
-在执行熵扫描前后，检查以下 hook 文件（存在则读取内容并注入）：
-
-**前置 Hook（pre）**——注入额外扫描规则或忽略模式：
-- `~/.hx/hooks/entropy-pre.md`（用户全局）
-- `.hx/hooks/entropy-pre.md`（项目级）
-
-**后置 Hook（post）**——扫描完成后执行额外指令（如生成报告、通知等）：
-- `~/.hx/hooks/entropy-post.md`（用户全局）
-- `.hx/hooks/entropy-post.md`（项目级）
-
-也可在 `.hx/config.json` 的 `hooks.entropy.pre` / `hooks.entropy.post` 数组中声明额外路径。
-
-## 输出示例
-
-```text
-熵扫描报告 — 2026/3/24
-扫描文件数: 12，发现问题: 4 处
-```
+- `~/.hx/hooks/entropy-pre.md` / `.hx/hooks/entropy-pre.md`
+- `~/.hx/hooks/entropy-post.md` / `.hx/hooks/entropy-post.md`
+- `.hx/config.yaml` 的 `hooks.entropy.pre` / `hooks.entropy.post` 列表

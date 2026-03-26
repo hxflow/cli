@@ -771,6 +771,11 @@
       let categories = [];
       let currentFilter = "all";
       let searchTerm = "";
+      const repoRootPrefix = "../../";
+
+      function resolveRepoPath(path) {
+        return new URL(`${repoRootPrefix}${path}`, window.location.href).href;
+      }
 
       function initTheme() {
         const savedTheme = localStorage.getItem("theme");
@@ -817,7 +822,7 @@
 
       async function loadDocs() {
         try {
-          const response = await fetch("docs.json");
+          const response = await fetch(resolveRepoPath("docs.json"));
           if (!response.ok) throw new Error("Failed to load docs.json");
           docs = await response.json();
           categories = [...new Set(docs.map((d) => d.category))];
@@ -951,7 +956,7 @@
             const path = card.dataset.path;
             const type = card.dataset.type;
             if (type === "html") {
-              window.open(path, "_blank");
+              window.open(resolveRepoPath(path), "_blank");
             } else {
               window.location.href = `md-viewer.html?file=${encodeURIComponent(path)}`;
             }
