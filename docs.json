@@ -77,8 +77,8 @@
   }
 ,
   {
-    "name": "hx-team-training",
-    "path": "docs/guide/hx-team-training.html",
+    "name": "hx-quickstart",
+    "path": "docs/guide/hx-quickstart.html",
     "type": "html",
     "category": "docs/guide"
   }

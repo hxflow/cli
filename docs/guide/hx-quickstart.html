@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HXFlow · 团队培训页</title>
+<title>HXFlow · 快速入门</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/hx-docs.css">
 <style>
-  .training-strip,
+  .quickstart-strip,
   .repo-map,
   .phase-grid,
   .mistake-grid {
@@ -17,7 +17,7 @@
     gap: 18px;
   }
 
-  .training-strip {
+  .quickstart-strip {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 22px;
   }
@@ -175,7 +175,7 @@
   }
 
   @media (max-width: 1100px) {
-    .training-strip,
+    .quickstart-strip,
     .phase-grid,
     .workshop-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -183,7 +183,7 @@
   }
 
   @media (max-width: 820px) {
-    .training-strip,
+    .quickstart-strip,
     .repo-map,
     .phase-grid,
     .mistake-grid,
@@ -211,14 +211,14 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <nav class="sidebar" id="sidebar">
-  <div class="sidebar-header">HXFlow<strong>团队培训页</strong></div>
+  <div class="sidebar-header">HXFlow<strong>快速入门</strong></div>
   <div class="nav-group">文档导航</div>
   <a data-page="hx-guide.html" href="hx-guide.html"><span class="nav-num">00</span><span>总览</span></a>
   <a data-page="hx-onboarding.html" href="hx-onboarding.html"><span class="nav-num">01</span><span>入门</span></a>
   <a data-page="hx-deep-dive.html" href="hx-deep-dive.html"><span class="nav-num">02</span><span>运行机制</span></a>
   <a data-page="hx-command-index.html" href="hx-command-index.html"><span class="nav-num">03</span><span>命令索引</span></a>
   <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
-  <a data-page="hx-team-training.html" href="hx-team-training.html"><span class="nav-num">05</span><span>培训页</span></a>
+  <a data-page="hx-quickstart.html" href="hx-quickstart.html"><span class="nav-num">05</span><span>快速入门</span></a>
   <div class="nav-group">本页目录</div>
   <a href="#memory"><span class="nav-num">T1</span><span>先记三句话</span></a>
   <a href="#repo"><span class="nav-num">T2</span><span>仓库地图</span></a>
@@ -226,7 +226,7 @@
   <a href="#layers"><span class="nav-num">T4</span><span>三层覆盖</span></a>
   <a href="#use"><span class="nav-num">T5</span><span>怎么使用</span></a>
   <a href="#extend"><span class="nav-num">T6</span><span>怎么扩展</span></a>
-  <a href="#workshop"><span class="nav-num">T7</span><span>培训演练</span></a>
+  <a href="#workshop"><span class="nav-num">T7</span><span>上手演练</span></a>
   <a href="#mistakes"><span class="nav-num">T8</span><span>常见误区</span></a>
   <a href="#next"><span class="nav-num">T9</span><span>继续阅读</span></a>
   <div class="nav-group">链接</div>
@@ -241,7 +241,7 @@
     <div class="hero-inner">
       <div class="hero-tag">TEAM TRAINING · BASED ON CURRENT REPO</div>
       <h1 class="hero-title">用一页讲清 <em>HXFlow</em><br><span class="mono">框架是什么、怎么跑、怎么扩展</span></h1>
-      <p class="hero-sub">这份培训页基于当前仓库事实整理：<code>@hxflow/cli</code> 是一个 Node 单包 CLI，真正的工作流能力由 Markdown 命令契约、Profile、Pipeline 和用户/项目层覆盖共同组成。目标读者是第一次接手 HXFlow 的工程师。</p>
+      <p class="hero-sub">这份快速入门页基于当前仓库事实整理：<code>@hxflow/cli</code> 是一个 Node 单包 CLI，真正的工作流能力由 Markdown 命令契约、Profile、Pipeline 和用户/项目层覆盖共同组成。目标读者是第一次接手 HXFlow 的工程师。</p>
       <div class="hero-actions">
         <a class="btn-primary" href="#memory">先看三句话</a>
         <a class="btn-ghost" href="#use">直接看怎么用</a>
@@ -253,7 +253,7 @@
         <div class="metric"><div class="metric-value">3</div><div class="metric-label">层命令覆盖</div></div>
         <div class="metric"><div class="metric-value">5</div><div class="metric-label">主路径步骤</div></div>
       </div>
-      <div class="training-strip">
+      <div class="quickstart-strip">
         <article class="strip-card">
           <h3>一句话定位</h3>
           <p>HXFlow 不是业务框架，而是一个把“需求整理、任务拆解、执行、质检、交付”结构化的 AI-first 工程工作流框架。</p>
@@ -275,7 +275,7 @@
       <div class="wrap">
         <div class="section-tag">Memory</div>
         <h2 class="section-title">先记三句话</h2>
-        <p class="section-desc">如果培训时间只有 10 分钟，先把这三层心智讲清，初学者就不会把 HXFlow 当成“另一个脚手架”或者“另一个代码框架”。</p>
+        <p class="section-desc">如果你只想在 10 分钟内建立正确心智，先把这三层概念记住，初学者就不会把 HXFlow 当成“另一个脚手架”或者“另一个代码框架”。</p>
         <div class="grid grid-3">
           <article class="card">
             <div class="card-meta">1 / 产品边界</div>
@@ -295,7 +295,7 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>培训建议：</strong>先把“这不是代码框架，而是 AI 工程工作流框架”讲明白，再去讲命令。否则新人会自然误以为 <code>hx-run</code> 是一个 shell 里的构建命令。</div>
+          <div><strong>阅读建议：</strong>先把“这不是代码框架，而是 AI 工程工作流框架”讲明白，再去看命令。否则新人会自然误以为 <code>hx-run</code> 是一个 shell 里的构建命令。</div>
         </div>
       </div>
     </section>
@@ -304,7 +304,7 @@
       <div class="wrap">
         <div class="section-tag">Repository</div>
         <h2 class="section-title">仓库地图：第一次进仓库该看哪里</h2>
-        <p class="section-desc">下面这张地图直接对应当前仓库的真实目录。培训时建议按“入口 → 规则 → 扩展 → 文档”的顺序讲，不要从零散文件开始。</p>
+        <p class="section-desc">下面这张地图直接对应当前仓库的真实目录。建议按“入口 → 规则 → 扩展 → 文档”的顺序阅读，不要从零散文件开始。</p>
         <pre><code><span class="cg"># 当前仓库核心结构</span>
 bin/hx.js                     <span class="cm"># CLI 入口，只负责内置维护命令</span>
 src/scripts/                  <span class="cm"># setup / upgrade / doctor / uninstall 实现</span>
@@ -346,7 +346,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
       <div class="wrap">
         <div class="section-tag">Mental Model</div>
         <h2 class="section-title">命令心智：先分清两套命令</h2>
-        <p class="section-desc">培训时最容易混淆的是“终端里的 hx 命令”和“Agent 里的 hx-* 命令”。这一页必须单独讲，否则后续所有命令都容易被误用。</p>
+        <p class="section-desc">最容易混淆的是“终端里的 hx 命令”和“Agent 里的 hx-* 命令”。这一页单独拆开讲，就是为了避免后续所有命令都被误用。</p>
         <div class="compare-grid">
           <article class="compare-card">
             <h3><code>hx</code> CLI</h3>
@@ -385,7 +385,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
           <div class="path-row">
             <div class="path-label">项目层</div>
             <div>
-              <p><code>&lt;project&gt;/.hx/</code>。优先级最高，适合放项目专属命令、路径模板、Hook 和 pipeline。培训时要强调：业务团队最常改的是这里。</p>
+              <p><code>&lt;project&gt;/.hx/</code>。优先级最高，适合放项目专属命令、路径模板、Hook 和 pipeline。对业务团队来说，最常改的就是这里。</p>
             </div>
           </div>
           <div class="path-row">
@@ -429,7 +429,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
       <div class="wrap">
         <div class="section-tag">Usage</div>
         <h2 class="section-title">初学者怎么用：按时间尺度来记</h2>
-        <p class="section-desc">培训时不要直接背命令表。最容易记住的方式是按“机器级一次、项目级一次、需求级多次”来讲。</p>
+        <p class="section-desc">不要直接背命令表。最容易记住的方式是按“机器级一次、项目级一次、需求级多次”来理解。</p>
         <div class="timeline">
           <div class="timeline-item">
             <div class="timeline-step">A</div>
@@ -499,7 +499,7 @@ hx-mr</code></pre>
       <div class="wrap">
         <div class="section-tag">Extension</div>
         <h2 class="section-title">团队怎么扩展：不要从源码乱改开始</h2>
-        <p class="section-desc">培训时可以把扩展点分成四类。这样新人既知道框架能改什么，也知道什么不该直接碰。</p>
+        <p class="section-desc">建议把扩展点分成四类。这样新人既知道框架能改什么，也知道什么不该直接碰。</p>
         <div class="repo-map">
           <article class="map-card">
             <div class="map-path">.hx/config.yaml</div>
@@ -524,7 +524,7 @@ hx-mr</code></pre>
         </div>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>培训口径可以这样讲：</strong>“想改规则，去 profile；想改流程，去 pipeline；想改单个命令提示，去 commands；想改项目默认入口，去 config。” 这比逐个讲文件更容易记。</div>
+          <div><strong>记忆口径可以这样说：</strong>“想改规则，去 profile；想改流程，去 pipeline；想改单个命令提示，去 commands；想改项目默认入口，去 config。” 这比逐个讲文件更容易记。</div>
         </div>
         <div class="grid grid-2">
           <article class="card">
@@ -533,7 +533,7 @@ hx-mr</code></pre>
             <pre><code>npm run hx:test
 npm run hx:test:unit
 npm run hx:test:integration</code></pre>
-            <p class="card-body">这些命令来自当前仓库 <code>package.json</code>。如果培训对象包含框架维护者，这三个脚本要明确讲出来。</p>
+            <p class="card-body">这些命令来自当前仓库 <code>package.json</code>。如果你的读者包含框架维护者，这三个脚本需要明确提到。</p>
           </article>
           <article class="card">
             <div class="card-meta">共享 profile</div>
@@ -547,8 +547,8 @@ npm run hx:test:integration</code></pre>
     <section id="workshop">
       <div class="wrap">
         <div class="section-tag">Workshop</div>
-        <h2 class="section-title">培训演练建议：一小时让新人跑通一遍</h2>
-        <p class="section-desc">如果你要带团队培训，建议把演练分成三个环节。每个环节都基于当前仓库的真实能力，不需要额外造例子。</p>
+        <h2 class="section-title">上手演练：一小时跑通一遍</h2>
+        <p class="section-desc">如果你要带新人快速入门，建议把演练分成三个环节。每个环节都基于当前仓库的真实能力，不需要额外造例子。</p>
         <div class="workshop-grid">
           <article class="workshop-step">
             <div class="step-tag">20 分钟</div>
@@ -585,7 +585,7 @@ npm run hx:test:integration</code></pre>
     <section id="mistakes">
       <div class="wrap">
         <div class="section-tag">Mistakes</div>
-        <h2 class="section-title">常见误区：培训时要提前打掉的错误理解</h2>
+        <h2 class="section-title">常见误区：一开始就要纠正的错误理解</h2>
         <p class="section-desc">下面这些误区，都能直接从当前仓库代码里找到反证。提前讲清，能少掉大量后续答疑成本。</p>
         <div class="mistake-grid">
           <article class="mistake-card">
@@ -611,8 +611,8 @@ npm run hx:test:integration</code></pre>
     <section id="next">
       <div class="wrap">
         <div class="section-tag">Next</div>
-        <h2 class="section-title">继续阅读：培训后让同事按这条线深入</h2>
-        <p class="section-desc">这份培训页负责建立认知骨架。下面这些文档更适合在培训后分发给不同角色的人继续细读。</p>
+        <h2 class="section-title">继续阅读：按这条线往下深入</h2>
+        <p class="section-desc">这份快速入门页负责建立认知骨架。下面这些文档更适合在完成第一遍理解后，按角色继续细读。</p>
         <div class="reading-grid">
           <a class="reading-card" href="hx-guide.html">
             <h3>总览</h3>
@@ -641,7 +641,7 @@ npm run hx:test:integration</code></pre>
 
   <footer>
     <div class="footer-inner">
-      <p>HXFlow · 团队培训页 · 基于当前仓库事实整理</p>
+      <p>HXFlow · 快速入门 · 基于当前仓库事实整理</p>
       <p><a href="index.html">查看文档目录</a></p>
     </div>
   </footer>
