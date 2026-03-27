@@ -364,9 +364,9 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
               <li>运行环境：Claude Code 或 Codex 这类 Agent 会话。</li>
               <li>职责：整理需求、产出计划、执行任务、做 QA、生成 MR 上下文。</li>
               <li>载体：<code>src/agents/commands/*.md</code> 里的命令契约。</li>
-              <li>同一套 contract，Claude 用 <code>/hx-*</code>，Codex 用 <code>hx-*</code>。</li>
+              <li>同一套 contract，Claude 用 <code>/hx-*</code>，Codex 用 <code>$hx-*</code>。</li>
             </ul>
-            <div class="command-line">Claude: /hx-go --task 12345 --profile base<br>Codex: hx-go --task 12345 --profile base</div>
+            <div class="command-line">Claude: /hx-go --task 12345 --profile base<br>Codex: $hx-go --task 12345 --profile base</div>
           </article>
         </div>
         <div class="callout info">
@@ -463,11 +463,11 @@ hx setup
 
 <span class="cg"># 2. 新项目做一次</span>
 <span class="cm">Claude:</span> /hx-init
-<span class="cm">Codex:</span>  hx-init
+<span class="cm">Codex:</span>  $hx-init
 
 <span class="cg"># 3. 进入需求交付</span>
 <span class="cm">Claude:</span> /hx-go --task 12345 --profile base
-<span class="cm">Codex:</span>  hx-go --task 12345 --profile base</code></pre>
+<span class="cm">Codex:</span>  $hx-go --task 12345 --profile base</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">手动模式</div>
@@ -480,11 +480,11 @@ hx setup
 /hx-mr
 
 <span class="cm">Codex:</span>
-hx-doc --task 12345 --profile base
-hx-plan --profile base
-hx-run --profile base
-hx-qa --profile base
-hx-mr</code></pre>
+$hx-doc --task 12345 --profile base
+$hx-plan --profile base
+$hx-run --profile base
+$hx-qa --profile base
+$hx-mr</code></pre>
             <p class="card-body">主路径里通常不需要你手写 <code>feature key</code>，因为 <code>hx-doc</code> 会自动生成，后续步骤会自动续接。只有冲突、恢复或多需求并行时才显式写 key。</p>
           </article>
         </div>

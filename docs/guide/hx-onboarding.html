@@ -114,7 +114,7 @@
       <div class="wrap">
         <div class="section-tag">Install</div>
         <h2 class="section-title">安装</h2>
-        <p class="section-desc">安装 npm 包后执行 <code>hx setup</code> 初始化全局资源，然后在 Claude Code 或 Codex 中运行 <code>hx-init</code> 初始化项目。</p>
+        <p class="section-desc">安装 npm 包后执行 <code>hx setup</code> 初始化全局资源，然后在 Claude Code 中运行 <code>/hx-init</code>（Codex 中运行 <code>$hx-init</code>）初始化项目。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">终端操作</div>
@@ -147,12 +147,12 @@ hx setup</code></pre>
       <div class="wrap">
         <div class="section-tag">Init</div>
         <h2 class="section-title">项目初始化（Agent 命令）</h2>
-        <p class="section-desc">在 Claude Code 或 Codex 中运行 <code>hx-init</code>；可选 <code>--profile</code> 指定要使用的 Profile 名称。框架默认内置 <code>base</code>。</p>
+        <p class="section-desc">在 Claude Code 或 Codex 中运行；可选 <code>--profile</code> 指定要使用的 Profile 名称。框架默认内置 <code>base</code>。</p>
         <pre><code><span class="cg"># 在 Claude Code 中运行（自动分析项目结构）</span>
 /hx-init
 
 <span class="cg"># 在 Codex 中运行</span>
-hx-init
+$hx-init
 
 <span class="cg"># 或显式指定 profile</span>
 /hx-init --profile base</code></pre>
@@ -222,17 +222,27 @@ CLAUDE.md                  ← 注入 harness 标记块
             </div>
           </div>
         </div>
-        <pre><code><span class="cg"># 手动逐步执行</span>
+        <pre><code><span class="cg"># 手动逐步执行（Claude）</span>
 /hx-doc --task 12345 --profile base
 /hx-plan --profile base
 /hx-run --profile base
 /hx-qa --profile base
 /hx-mr
 
-<span class="cg"># 或一键执行</span>
+<span class="cg"># 手动逐步执行（Codex）</span>
+$hx-doc --task 12345 --profile base
+$hx-plan --profile base
+$hx-run --profile base
+$hx-qa --profile base
+$hx-mr
+
+<span class="cg"># 或一键执行（Claude）</span>
 /hx-go --task 12345 --profile base
 
-<span class="cg"># 从指定步骤恢复</span>
+<span class="cg"># 或一键执行（Codex）</span>
+$hx-go --task 12345 --profile base
+
+<span class="cg"># 从指定步骤恢复（Claude）</span>
 /hx-go user-login --from run --profile base</code></pre>
         <div class="callout tip">
           <span class="icon">✓</span>
