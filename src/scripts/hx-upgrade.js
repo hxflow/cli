@@ -4,12 +4,12 @@
  * hx upgrade — 升级已安装的 Harness Workflow
  *
  * 行为：
- *   1. git pull 更新系统层（框架 repo 自身）
- *   2. 重新生成 agent 适配产物（Claude 转发器 / Codex skill bundle）
+ *   1. 更新系统层（git repo 执行 git pull；npm 安装执行 npm update -g @hxflow/cli）
+ *   2. 执行 hx setup 完成安装/更新（生成 agent 适配产物、更新 ~/.hx/ 配置）
  *   3. 更新当前项目 CLAUDE.md 中的 harness 标记块（如在项目中运行）
  *
  * 三层架构升级原则：
- *   系统层  git pull（本命令负责）
+ *   系统层  git pull 或 npm update（本命令负责）
  *   用户层  ~/.hx/commands/ 用户自己维护，upgrade 不动
  *   项目层  .hx/commands/ 项目自己维护，upgrade 不动
  *
@@ -18,10 +18,9 @@
 
 import { execSync } from 'child_process'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { homedir } from 'os'
 import { resolve } from 'path'
 
-import { FRAMEWORK_ROOT, USER_HX_DIR, findProjectRoot } from './lib/resolve-context.js'
+import { FRAMEWORK_ROOT, findProjectRoot } from './lib/resolve-context.js'
 import { parseArgs, parseSimpleYaml } from './lib/profile-utils.js'
 import {
   DEFAULT_PLAN_DOC,
@@ -30,8 +29,6 @@ import {
   HARNESS_MARKER_END,
   buildHarnessBlock,
   escapeRegExp,
-  generateCodexSkillFiles,
-  generateForwarderFiles,
   resolveAgentTargets,
 } from './lib/install-utils.js'
 
@@ -44,8 +41,8 @@ if (options.help) {
   用法: hx upgrade [--agent <claude|codex|all>] [--dry-run]
 
   更新框架到最新版：
-    1. git pull 更新系统层（框架 repo）
-    2. 重新生成 agent 适配产物
+    1. 更新系统层（git repo 执行 git pull；npm 安装执行 npm update -g @hxflow/cli）
+    2. 自动执行 hx setup 完成安装/更新
     3. 更新当前项目 CLAUDE.md 中的 harness 标记块
 
   用户层 (~/.hx/commands/) 和项目层 (.hx/commands/) 不会被修改。
@@ -59,58 +56,51 @@ if (options.help) {
 }
 
 const dryRun = options['dry-run'] === true
-const agents = resolveAgentTargets(options.agent)
-const userClaudeDir = options['user-claude-dir']
-  ? resolve(options['user-claude-dir'])
-  : resolve(homedir(), '.claude')
-const userCodexDir = options['user-codex-dir']
-  ? resolve(options['user-codex-dir'])
-  : resolve(homedir(), '.codex')
+resolveAgentTargets(options.agent) // 验证 --agent 参数合法性（会在非法值时抛出）
 const summary = { created: [], updated: [], skipped: [], warnings: [] }
 
 console.log(`\n  Harness Workflow · upgrade${dryRun ? ' (dry-run)' : ''}`)
 console.log(`  系统层: ${FRAMEWORK_ROOT}\n`)
 
-// ── Step 1: git pull 更新系统层 ──
+// ── Step 1: 更新系统层 ──
 
-console.log('  Step 1: 更新系统层 (git pull)...')
+console.log('  Step 1: 更新系统层...')
+const isGitRepo = existsSync(resolve(FRAMEWORK_ROOT, '.git'))
 try {
   if (!dryRun) {
-    const output = execSync('git pull', { cwd: FRAMEWORK_ROOT, encoding: 'utf8' })
-    const line = output.trim().split('\n').pop()
-    summary.updated.push(`系统层 (${line})`)
+    if (isGitRepo) {
+      const output = execSync('git pull', { cwd: FRAMEWORK_ROOT, encoding: 'utf8' })
+      const line = output.trim().split('\n').pop()
+      summary.updated.push(`系统层 (git pull: ${line})`)
+    } else {
+      execSync('npm update -g @hxflow/cli', { encoding: 'utf8' })
+      summary.updated.push('系统层 (npm update -g @hxflow/cli)')
+    }
   } else {
-    summary.updated.push('系统层 (dry-run，跳过 git pull)')
+    const method = isGitRepo ? 'git pull' : 'npm update -g @hxflow/cli'
+    summary.updated.push(`系统层 (dry-run，将使用 ${method})`)
   }
 } catch (err) {
-  summary.warnings.push(`git pull 失败: ${err.message.split('\n')[0]}`)
+  summary.warnings.push(`系统层更新失败: ${err.message.split('\n')[0]}`)
 }
 
-// ── Step 2: 重新生成 agent 适配产物 ──
+// ── Step 2: 执行 hx setup 完成安装/更新 ──
 
-console.log(`  Step 2: 重新生成 agent 适配产物 (${agents.join(', ')})...`)
-const commandSourceDir = resolve(FRAMEWORK_ROOT, 'agents', 'commands')
-
-if (agents.includes('claude')) {
-  generateForwarderFiles(
-    commandSourceDir,
-    resolve(userClaudeDir, 'commands'),
-    FRAMEWORK_ROOT,
-    USER_HX_DIR,
-    summary,
-    { dryRun }
-  )
-}
-
-if (agents.includes('codex')) {
-  generateCodexSkillFiles(
-    commandSourceDir,
-    resolve(userCodexDir, 'skills', 'hxflow'),
-    FRAMEWORK_ROOT,
-    USER_HX_DIR,
-    summary,
-    { createDir: true, dryRun }
-  )
+console.log('  Step 2: 执行 hx setup...')
+try {
+  if (!dryRun) {
+    const hxBin = resolve(FRAMEWORK_ROOT, 'bin', 'hx.js')
+    const agentFlag = options.agent ? ` --agent ${options.agent}` : ''
+    execSync(`${process.execPath} ${JSON.stringify(hxBin)} setup${agentFlag}`, {
+      encoding: 'utf8',
+      stdio: 'inherit',
+    })
+    summary.updated.push('hx setup 已执行')
+  } else {
+    summary.updated.push('hx setup (dry-run，跳过)')
+  }
+} catch (err) {
+  summary.warnings.push(`hx setup 执行失败: ${err.message.split('\n')[0]}`)
 }
 
 // ── Step 3: 更新 CLAUDE.md 标记块（如在项目中运行）──
