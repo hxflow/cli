@@ -20,7 +20,7 @@ codex: hx-init
 - **源码目录**：`src/`、`app/`、`lib/` 等主要目录的层级与命名
 - **门控命令**：`package.json` 中的 `scripts`（lint、test、typecheck、build）；Makefile、`go test` 等
 - **文档结构**：是否存在 `docs/`、需求文档、执行计划等目录，记录实际路径模式
-- **现有配置**：`.hx/config.yaml`、`.hx/commands/`、`.hx/hooks/`、`.hx/pipelines/`、`CLAUDE.md`
+- **现有配置**：`.hx/config.yaml`、`.hx/commands/`、`.hx/hooks/`、`.hx/pipelines/`、`CLAUDE.md`、`AGENTS.md`
 
 ### Step 2: 推断 Profile
 
@@ -119,12 +119,15 @@ paths:
 - `.hx/hooks/run-pre.md.example`
 - `.hx/hooks/run-post.md.example`
 - `.hx/pipelines/default.yaml`
+- `.hx/profiles/<name>/golden-rules.md`（内容为空，表示无项目级覆盖）
+- `.hx/profiles/<name>/review-checklist.md`（内容为空，表示无项目级覆盖）
 
 样板要求：
 
 - 都带注释
 - 明确说明查找优先级、命名方式、什么时候该改这个文件
 - pipeline 默认内容可以复制当前系统默认流水线，再加注释说明如何改步骤
+- `golden-rules.md` 和 `review-checklist.md` 必须创建，即使内容为空。三层覆盖原则下框架层已有默认内容，项目层空文件表示"暂无项目级覆盖"，可按需填充；若不创建，AI 找不到文件时会自行脑补，产生幻觉内容
 
 **5c. 若需要项目级 profile**，写入 `.hx/profiles/<name>/profile.yaml`：
 ```yaml
@@ -138,9 +141,12 @@ gate_commands:
 ```
 若 `<name>` 为 `base`，则直接更新 `.hx/profiles/base/profile.yaml`；若为其他名称，保留 `extends: base`。
 
-**5d. 在 `CLAUDE.md` 中注入或更新 harness 标记块**
+**5d. 在 `CLAUDE.md` 和 `AGENTS.md` 中注入或更新 harness 标记块**
 
-若 `CLAUDE.md` 不存在则创建；若已存在 `<!-- hxflow:start -->` 则替换块内内容。
+按以下规则处理：
+- `CLAUDE.md`：供 Claude Code 读取，不存在则创建；已存在 `<!-- hxflow:start -->` 则替换块内内容
+- `AGENTS.md`：供 Codex / OpenAI Agents 读取，不存在则创建；已存在 `<!-- hxflow:start -->` 则替换块内内容
+- 两个文件注入**相同内容**的标记块
 
 标记块格式：
 ```

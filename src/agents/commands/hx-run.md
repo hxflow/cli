@@ -50,8 +50,10 @@ codex: hx-run
 8. 加载前置 Hook（`run-pre.md`，存在则注入为额外约束）
 9. 逐任务执行：
    - 对每个目标任务，按其验收标准、架构层级约束直接执行（编写代码）
-   - 每个任务完成后立即更新 `progressFile`：目标任务 `status → done`，写入 `completedAt`
+   - 每个任务完成后立即更新 `progressFile`：目标任务 `status → "done"`，`completedAt → ISO 8601 时间戳`；只修改这两个字段，不得新增或删除任何字段
    - 若某个任务失败，立即停止后续任务，保留已完成任务的进度更新
+   - 全部目标任务执行完毕后，更新 `progressFile` 的 `updatedAt` 为当天日期，`lastRun → { at, status: "completed", taskId: <最后完成的 task id> }`
+   - 若执行中途阻塞（缺少信息、无法继续），更新 `lastRun → { at, status: "blocked", taskId: <阻塞的 task id>, reason: <阻塞原因> }`，同时更新 `updatedAt`
 10. 加载后置 Hook（`run-post.md`，存在则执行额外指令）
 11. 输出结果：
    - 默认展示本次完成任务数、剩余任务数和下一步建议

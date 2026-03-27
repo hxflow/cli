@@ -38,7 +38,47 @@ codex: hx-plan
    - 文档头中的 `Feature Key`
 7. 加载 profile 的 `task-split-strategy.md`（如有），按策略拆分任务
 8. 写入 `planDoc`（计划 Markdown，含 TASK 列表）
-9. 写入 `progressFile`（所有任务初始状态为 `pending`）
+9. 写入 `progressFile`，严格按以下 schema，不得增减字段：
+
+```json
+{
+  "feature": "<feature-key>",
+  "profile": "<profile-name>",
+  "generatedAt": "<ISO 8601 date>",
+  "updatedAt": "<ISO 8601 date>",
+  "lastRun": null,
+  "tasks": [
+    {
+      "id": "TASK-BE-01",
+      "name": "任务名称",
+      "status": "pending",
+      "completedAt": null
+    }
+  ]
+}
+```
+
+字段约束：
+- `feature`：string，当前需求的 feature key
+- `profile`：string，本次使用的 profile 名称
+- `generatedAt`：string（ISO 8601 date），文件首次生成日期，写入后不再修改
+- `updatedAt`：string（ISO 8601 date），每次写入文件时更新为当天日期
+- `lastRun`：object 或 `null`，初始为 `null`；每次 `hx-run` 执行后更新，结构见下方
+- `tasks`：array，顺序与 `planDoc` 中 TASK 列表一致，只记录执行状态，不冗余计划内容
+- `tasks[].id`：string，格式 `TASK-<TEAM>-<NN>`
+- `tasks[].name`：string，任务名称
+- `tasks[].status`：enum，只允许 `"pending"` 或 `"done"`，初始全部为 `"pending"`
+- `tasks[].completedAt`：string（ISO 8601）或 `null`，初始全部为 `null`
+
+`lastRun` 结构（由 `hx-run` 写入）：
+```json
+{
+  "at": "<ISO 8601 date>",
+  "status": "completed | blocked",
+  "taskId": "<最后执行的 task id>",
+  "reason": "<仅 blocked 时填写，说明阻塞原因>"
+}
+```
 10. 加载后置 Hook 并执行（`plan-post.md`）
 11. 输出计划摘要，默认提示下一步 `hx-run`；若用户需要排查输入问题，再提示可选执行 `hx-ctx`
 
