@@ -76,7 +76,7 @@
             </thead>
             <tbody>
               <tr class="grp-install"><td><span class="command-name">hx setup</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>初始化 ~/.hx/ 并生成 Claude / Codex 两侧入口</td></tr>
-              <tr class="grp-install"><td><span class="command-name">hx upgrade</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>git pull 更新系统层，重新生成 Agent 入口</td></tr>
+              <tr class="grp-install"><td><span class="command-name">hx upgrade</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>npm install -g 更新到最新版，重新生成 Agent 入口</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx uninstall</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>清理安装痕迹（转发器、CLAUDE.md 标记块）</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx doctor</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>环境健康检测（Node 版本、全局安装、项目配置）</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx version</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>输出 CLI 版本</td></tr>
@@ -111,7 +111,7 @@
             <p class="card-body">生成 Claude / Codex 两侧入口，初始化 ~/.hx/ 目录结构。</p>
             <div class="note-list">
               <p>会创建 <code>~/.hx/</code>（commands/、profiles/、pipelines/）目录结构。</p>
-              <p>生成 Claude 转发器到 <code>~/.claude/commands/</code>，同时生成 Codex skill bundle 到 <code>~/.codex/skills/hxflow/</code>。</p>
+              <p>生成 Claude 转发器到 <code>~/.claude/commands/</code>，同时为每个命令生成 Codex skill 目录到 <code>~/.codex/skills/hx-&lt;cmd&gt;/SKILL.md</code>。</p>
               <p><code>~/.hx/config.yaml</code> 不存在时创建，写入 frameworkRoot。</p>
               <p>Skill 由 Agent 自身机制管理，<code>hx setup</code> 不会安装或同步 skill。</p>
             </div>
@@ -133,8 +133,8 @@
             <div class="command-syntax">hx upgrade [--dry-run]</div>
             <p class="card-body">升级系统层并重新生成 Agent 入口。</p>
             <div class="note-list">
-              <p>git pull 更新框架 repo（系统层）。</p>
-              <p>重新生成 <code>~/.claude/commands/</code> 转发器和 <code>~/.codex/skills/hxflow/</code> bundle（pick up 新增命令）。</p>
+              <p>npm install -g 拉取最新版本（使用私有 registry）。</p>
+              <p>重新生成 <code>~/.claude/commands/</code> 转发器和 <code>~/.codex/skills/hx-&lt;cmd&gt;/</code> skill 目录（pick up 新增命令）。</p>
               <p>用户层 (<code>~/.hx/commands/</code>) 和项目层 (<code>.hx/commands/</code>) 不会被修改。</p>
             </div>
           </article>

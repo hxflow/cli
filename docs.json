@@ -77,6 +77,13 @@
   }
 ,
   {
+    "name": "hx-team-training",
+    "path": "docs/guide/hx-team-training.html",
+    "type": "html",
+    "category": "docs/guide"
+  }
+,
+  {
     "name": "hx-clean",
     "path": "src/agents/commands/hx-clean.md",
     "type": "md",

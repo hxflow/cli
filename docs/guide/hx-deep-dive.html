@@ -125,7 +125,7 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>入口机制：</strong>Claude 通过 <code>~/.claude/commands/</code> 转发器运行 <code>/hx-*</code>；Codex 通过 <code>~/.codex/skills/hxflow/</code> skill bundle 运行 <code>hx-*</code>。两者最终都按项目层 → 用户层 → 系统层的顺序读取同一套实体文件。</div>
+          <div><strong>入口机制：</strong>Claude 通过 <code>~/.claude/commands/</code> 转发器运行 <code>/hx-*</code>；Codex 通过 <code>~/.codex/skills/hx-&lt;cmd&gt;/SKILL.md</code> 独立 skill 目录运行 <code>hx-*</code>。两者最终都按项目层 → 用户层 → 系统层的顺序读取同一套实体文件。</div>
         </div>
       </div>
     </section>

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HXFlow · 团队培训页</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/hx-docs.css">
+<style>
+  .training-strip,
+  .repo-map,
+  .phase-grid,
+  .mistake-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .training-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 22px;
+  }
+
+  .strip-card,
+  .map-card,
+  .phase-card,
+  .mistake-card {
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+
+  .strip-card h3,
+  .map-card h3,
+  .phase-card h3,
+  .mistake-card h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .strip-card p,
+  .map-card p,
+  .phase-card p,
+  .mistake-card p {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .map-card .map-path,
+  .phase-card .phase-tag,
+  .workshop-step .step-tag {
+    display: inline-flex;
+    margin-bottom: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--gold-soft);
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+
+  .repo-map,
+  .mistake-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .phase-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .path-stack {
+    display: grid;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .path-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 18px;
+    align-items: start;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  html.light .path-row {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .path-label {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .path-row p {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .compare-grid,
+  .workshop-grid,
+  .reading-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compare-card,
+  .workshop-step,
+  .reading-card {
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--panel);
+  }
+
+  .compare-card h3,
+  .workshop-step h3,
+  .reading-card h3 {
+    margin-bottom: 10px;
+    font-size: 20px;
+  }
+
+  .compare-card ul,
+  .workshop-step ul,
+  .reading-card ul {
+    padding-left: 18px;
+    color: var(--text-muted);
+  }
+
+  .compare-card li,
+  .workshop-step li,
+  .reading-card li {
+    margin-bottom: 8px;
+  }
+
+  .command-line {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(94, 167, 231, 0.08);
+    border: 1px solid rgba(94, 167, 231, 0.18);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .workshop-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reading-card a {
+    text-decoration: none;
+  }
+
+  .reading-card p {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .foot-note {
+    margin-top: 18px;
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+
+  @media (max-width: 1100px) {
+    .training-strip,
+    .phase-grid,
+    .workshop-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 820px) {
+    .training-strip,
+    .repo-map,
+    .phase-grid,
+    .mistake-grid,
+    .compare-grid,
+    .workshop-grid,
+    .reading-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .path-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+
+<body>
+<button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+  <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="展开目录" aria-expanded="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">HXFlow<strong>团队培训页</strong></div>
+  <div class="nav-group">文档导航</div>
+  <a data-page="hx-guide.html" href="hx-guide.html"><span class="nav-num">00</span><span>总览</span></a>
+  <a data-page="hx-onboarding.html" href="hx-onboarding.html"><span class="nav-num">01</span><span>入门</span></a>
+  <a data-page="hx-deep-dive.html" href="hx-deep-dive.html"><span class="nav-num">02</span><span>运行机制</span></a>
+  <a data-page="hx-command-index.html" href="hx-command-index.html"><span class="nav-num">03</span><span>命令索引</span></a>
+  <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
+  <a data-page="hx-team-training.html" href="hx-team-training.html"><span class="nav-num">05</span><span>培训页</span></a>
+  <div class="nav-group">本页目录</div>
+  <a href="#memory"><span class="nav-num">T1</span><span>先记三句话</span></a>
+  <a href="#repo"><span class="nav-num">T2</span><span>仓库地图</span></a>
+  <a href="#commands"><span class="nav-num">T3</span><span>命令心智</span></a>
+  <a href="#layers"><span class="nav-num">T4</span><span>三层覆盖</span></a>
+  <a href="#use"><span class="nav-num">T5</span><span>怎么使用</span></a>
+  <a href="#extend"><span class="nav-num">T6</span><span>怎么扩展</span></a>
+  <a href="#workshop"><span class="nav-num">T7</span><span>培训演练</span></a>
+  <a href="#mistakes"><span class="nav-num">T8</span><span>常见误区</span></a>
+  <a href="#next"><span class="nav-num">T9</span><span>继续阅读</span></a>
+  <div class="nav-group">链接</div>
+  <a href="index.html"><span class="nav-num">←</span><span>返回文档目录</span></a>
+</nav>
+
+<div class="page-shell">
+  <header class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-inner">
+      <div class="hero-tag">TEAM TRAINING · BASED ON CURRENT REPO</div>
+      <h1 class="hero-title">用一页讲清 <em>HXFlow</em><br><span class="mono">框架是什么、怎么跑、怎么扩展</span></h1>
+      <p class="hero-sub">这份培训页基于当前仓库事实整理：<code>@hxflow/cli</code> 是一个 Node 单包 CLI，真正的工作流能力由 Markdown 命令契约、Profile、Pipeline 和用户/项目层覆盖共同组成。目标读者是第一次接手 HXFlow 的工程师。</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#memory">先看三句话</a>
+        <a class="btn-ghost" href="#use">直接看怎么用</a>
+        <a class="btn-subtle" href="hx-command-index.html">查命令索引</a>
+      </div>
+      <div class="hero-stats">
+        <div class="metric"><div class="metric-value">1</div><div class="metric-label">个 Node CLI 包</div></div>
+        <div class="metric"><div class="metric-value">12</div><div class="metric-label">个内置 Agent 命令</div></div>
+        <div class="metric"><div class="metric-value">3</div><div class="metric-label">层命令覆盖</div></div>
+        <div class="metric"><div class="metric-value">5</div><div class="metric-label">主路径步骤</div></div>
+      </div>
+      <div class="training-strip">
+        <article class="strip-card">
+          <h3>一句话定位</h3>
+          <p>HXFlow 不是业务框架，而是一个把“需求整理、任务拆解、执行、质检、交付”结构化的 AI-first 工程工作流框架。</p>
+        </article>
+        <article class="strip-card">
+          <h3>一句话区分</h3>
+          <p><code>hx</code> 负责安装和维护框架本身；<code>hx-*</code> / <code>/hx-*</code> 才是工程师每天使用的工作流命令。</p>
+        </article>
+        <article class="strip-card">
+          <h3>一句话落地</h3>
+          <p>机器级先跑 <code>hx setup</code>，项目级再跑 <code>hx-init</code>，需求级优先走 <code>hx-go</code> 或主路径链路。</p>
+        </article>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="memory">
+      <div class="wrap">
+        <div class="section-tag">Memory</div>
+        <h2 class="section-title">先记三句话</h2>
+        <p class="section-desc">如果培训时间只有 10 分钟，先把这三层心智讲清，初学者就不会把 HXFlow 当成“另一个脚手架”或者“另一个代码框架”。</p>
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="card-meta">1 / 产品边界</div>
+            <h3 class="card-title">它编排的是交付流程，不是业务运行时</h3>
+            <p class="card-body">仓库里没有 React、Vue、Spring 这类业务运行时框架代码，核心是 <code>bin/hx.js</code>、<code>src/agents/commands/</code>、<code>src/profiles/</code> 和 <code>src/pipelines/</code> 这组工作流定义。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">2 / 真正入口</div>
+            <h3 class="card-title">真正执行逻辑是 Markdown 命令契约</h3>
+            <p class="card-body"><code>bin/hx.js</code> 只处理 <code>setup / upgrade / uninstall / doctor / version</code>。像 <code>hx-init</code>、<code>hx-doc</code>、<code>hx-go</code> 这种日常命令，本质上是被 Agent 读取的命令契约文件。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">3 / 扩展方式</div>
+            <h3 class="card-title">扩展靠覆盖，不靠魔改内核</h3>
+            <p class="card-body">项目层 <code>.hx/</code>、用户层 <code>~/.hx/</code>、系统层 <code>src/</code> 形成统一查找顺序。团队一般在项目层或用户层改规则，而不是直接改内置 <code>base</code>。</p>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>培训建议：</strong>先把“这不是代码框架，而是 AI 工程工作流框架”讲明白，再去讲命令。否则新人会自然误以为 <code>hx-run</code> 是一个 shell 里的构建命令。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="repo">
+      <div class="wrap">
+        <div class="section-tag">Repository</div>
+        <h2 class="section-title">仓库地图：第一次进仓库该看哪里</h2>
+        <p class="section-desc">下面这张地图直接对应当前仓库的真实目录。培训时建议按“入口 → 规则 → 扩展 → 文档”的顺序讲，不要从零散文件开始。</p>
+        <pre><code><span class="cg"># 当前仓库核心结构</span>
+bin/hx.js                     <span class="cm"># CLI 入口，只负责内置维护命令</span>
+src/scripts/                  <span class="cm"># setup / upgrade / doctor / uninstall 实现</span>
+src/scripts/lib/              <span class="cm"># profile 解析、上下文查找、安装工具</span>
+src/agents/commands/*.md      <span class="cm"># hx-init / hx-doc / hx-go 等命令契约</span>
+src/pipelines/default.yaml    <span class="cm"># 默认主路径：doc -> plan -> run -> qa -> mr</span>
+src/profiles/base/            <span class="cm"># 内置基础 profile：模板、规则、清单</span>
+docs/guide/*.html             <span class="cm"># 面向团队的静态文档</span></code></pre>
+        <div class="repo-map">
+          <article class="map-card">
+            <div class="map-path">bin/hx.js</div>
+            <h3>判断这是“维护 CLI”还是“业务工作流”</h3>
+            <p>这个文件会明确告诉你：内置 CLI 命令只有 <code>setup</code>、<code>upgrade</code>、<code>uninstall</code>、<code>doctor</code>、<code>version</code>。如果你输入 <code>hx-init</code>，CLI 会提示这是 agent contract，而不是直接执行的 Node 子命令。</p>
+          </article>
+          <article class="map-card">
+            <div class="map-path">src/agents/commands/</div>
+            <h3>真正决定工作流行为的地方</h3>
+            <p>每个 <code>hx-*</code> 命令都是一份 Markdown 约束文件，里面写“事实来源、执行步骤、边界和输出要求”。这是 HXFlow 最关键的设计点。</p>
+          </article>
+          <article class="map-card">
+            <div class="map-path">src/profiles/base/</div>
+            <h3>团队规则和模板的起点</h3>
+            <p><code>profile.yaml</code> 管规则，<code>golden-rules.md</code> 管原则，<code>requirement-template.md</code> 和 <code>plan-template.md</code> 管文档骨架。所有自定义 profile 都从这里继承。</p>
+          </article>
+          <article class="map-card">
+            <div class="map-path">src/pipelines/default.yaml</div>
+            <h3>一键执行为什么能跑起来</h3>
+            <p><code>hx-go</code> 会去读 pipeline，按步骤依次解析对应命令文件。所以一键模式本质上是“读取 YAML 后按顺序调度一组 Markdown 命令”。</p>
+          </article>
+        </div>
+        <div class="callout tip">
+          <span class="icon">✓</span>
+          <div><strong>新人读仓库顺序：</strong><code>README.md</code> → <code>bin/hx.js</code> → <code>src/agents/commands/hx-init.md</code> → <code>src/pipelines/default.yaml</code> → <code>src/profiles/base/README.md</code>。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="wrap">
+        <div class="section-tag">Mental Model</div>
+        <h2 class="section-title">命令心智：先分清两套命令</h2>
+        <p class="section-desc">培训时最容易混淆的是“终端里的 hx 命令”和“Agent 里的 hx-* 命令”。这一页必须单独讲，否则后续所有命令都容易被误用。</p>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <h3><code>hx</code> CLI</h3>
+            <ul>
+              <li>运行环境：终端里的 Node CLI。</li>
+              <li>当前仓库内置子命令：<code>setup</code>、<code>upgrade</code>、<code>uninstall</code>、<code>doctor</code>、<code>version</code>。</li>
+              <li>职责：安装框架、生成 Agent 适配层、做环境诊断。</li>
+              <li>典型场景：新机器装一次、升级框架、排查环境问题。</li>
+            </ul>
+            <div class="command-line">hx setup</div>
+          </article>
+          <article class="compare-card">
+            <h3><code>hx-*</code> / <code>/hx-*</code> Agent 命令</h3>
+            <ul>
+              <li>运行环境：Claude Code 或 Codex 这类 Agent 会话。</li>
+              <li>职责：整理需求、产出计划、执行任务、做 QA、生成 MR 上下文。</li>
+              <li>载体：<code>src/agents/commands/*.md</code> 里的命令契约。</li>
+              <li>同一套 contract，Claude 用 <code>/hx-*</code>，Codex 用 <code>hx-*</code>。</li>
+            </ul>
+            <div class="command-line">Claude: /hx-go --task 12345 --profile base<br>Codex: hx-go --task 12345 --profile base</div>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>一句话区分：</strong><code>hx</code> 是“装框架和修框架”，<code>hx-*</code> 是“用框架交付需求”。从这个仓库的实现看，二者甚至不在同一条执行链路上。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="layers">
+      <div class="wrap">
+        <div class="section-tag">Layers</div>
+        <h2 class="section-title">三层覆盖：为什么团队可以不改内核</h2>
+        <p class="section-desc">HXFlow 的核心设计不是“所有团队都改同一个模板”，而是三层同构目录。查找命中后再沿着 <code>extends</code> 继续合并或覆盖。</p>
+        <div class="path-stack">
+          <div class="path-row">
+            <div class="path-label">项目层</div>
+            <div>
+              <p><code>&lt;project&gt;/.hx/</code>。优先级最高，适合放项目专属命令、路径模板、Hook 和 pipeline。培训时要强调：业务团队最常改的是这里。</p>
+            </div>
+          </div>
+          <div class="path-row">
+            <div class="path-label">用户层</div>
+            <div>
+              <p><code>~/.hx/</code>。跨项目共享，适合放个人或团队通用 profile、自定义命令和复用规则。<code>hx setup</code> 会先把这层基础结构准备好。</p>
+            </div>
+          </div>
+          <div class="path-row">
+            <div class="path-label">系统层</div>
+            <div>
+              <p><code>&lt;frameworkRoot&gt;/src/</code>。也就是当前仓库内置的默认实现：命令契约、<code>base</code> profile、默认 pipeline、setup/upgrade 脚本都在这里。</p>
+            </div>
+          </div>
+        </div>
+        <div class="phase-grid">
+          <article class="phase-card">
+            <div class="phase-tag">Command Lookup</div>
+            <h3>命令优先级</h3>
+            <p>例如 <code>hx-go</code> 会先找 <code>.hx/commands/hx-go.md</code>，再找 <code>~/.hx/commands/hx-go.md</code>，最后才退回系统层。</p>
+          </article>
+          <article class="phase-card">
+            <div class="phase-tag">Profile Merge</div>
+            <h3>Profile 继承</h3>
+            <p><code>profiles/&lt;name&gt;/profile.yaml</code> 支持 <code>extends</code>，对象递归合并，数组整体替换，标量直接覆盖。这是团队化落地的主扩展点。</p>
+          </article>
+          <article class="phase-card">
+            <div class="phase-tag">Pipeline Override</div>
+            <h3>流程改造</h3>
+            <p>默认主路径来自 <code>src/pipelines/default.yaml</code>，但项目层或用户层可以用同名文件覆盖，做到“保留框架骨架，但换执行顺序”。</p>
+          </article>
+        </div>
+        <div class="callout tip">
+          <span class="icon">✓</span>
+          <div><strong>团队治理建议：</strong>不要直接改系统层 <code>src/profiles/base/</code>。先在项目层或用户层做一份清晰命名的 profile，例如 <code>my-team</code>，并显式 <code>extends: base</code>。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="use">
+      <div class="wrap">
+        <div class="section-tag">Usage</div>
+        <h2 class="section-title">初学者怎么用：按时间尺度来记</h2>
+        <p class="section-desc">培训时不要直接背命令表。最容易记住的方式是按“机器级一次、项目级一次、需求级多次”来讲。</p>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-step">A</div>
+            <div>
+              <div class="timeline-title">机器级：先装框架</div>
+              <div class="timeline-body">全局安装 npm 包后执行 <code>hx setup</code>。根据当前仓库 <code>src/scripts/hx-setup.js</code> 的实现，这一步会写入 <code>~/.hx/</code> 目录结构、<code>~/.hx/config.yaml</code>，并生成 Claude/Codex 对应的适配层。</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-step">B</div>
+            <div>
+              <div class="timeline-title">项目级：初始化当前仓库</div>
+              <div class="timeline-body">在 Agent 会话里运行 <code>hx-init</code>。它会分析项目结构、推断默认 profile、写入 <code>.hx/config.yaml</code>、样板命令、Hook、Pipeline，并在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 中注入 Harness 标记块。</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-step">C</div>
+            <div>
+              <div class="timeline-title">需求级：优先走主路径</div>
+              <div class="timeline-body">最推荐的主路径是 <code>hx-doc → hx-plan → hx-run → hx-qa → hx-mr</code>。不想手动分步时，直接用 <code>hx-go</code> 读取 pipeline 一次性调度这条链路。</div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">最短上手路径</div>
+            <h3 class="card-title">第一次体验建议这样讲</h3>
+            <pre><code><span class="cg"># 1. 机器只做一次</span>
+npm install -g @hxflow/cli --registry https://npm.cdfsunrise.com/
+hx setup
+
+<span class="cg"># 2. 新项目做一次</span>
+<span class="cm">Claude:</span> /hx-init
+<span class="cm">Codex:</span>  hx-init
+
+<span class="cg"># 3. 进入需求交付</span>
+<span class="cm">Claude:</span> /hx-go --task 12345 --profile base
+<span class="cm">Codex:</span>  hx-go --task 12345 --profile base</code></pre>
+          </article>
+          <article class="card">
+            <div class="card-meta">手动模式</div>
+            <h3 class="card-title">需要可控性时分步执行</h3>
+            <pre><code><span class="cm">Claude:</span>
+/hx-doc --task 12345 --profile base
+/hx-plan --profile base
+/hx-run --profile base
+/hx-qa --profile base
+/hx-mr
+
+<span class="cm">Codex:</span>
+hx-doc --task 12345 --profile base
+hx-plan --profile base
+hx-run --profile base
+hx-qa --profile base
+hx-mr</code></pre>
+            <p class="card-body">主路径里通常不需要你手写 <code>feature key</code>，因为 <code>hx-doc</code> 会自动生成，后续步骤会自动续接。只有冲突、恢复或多需求并行时才显式写 key。</p>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>本仓库里的默认主路径事实：</strong><code>src/pipelines/default.yaml</code> 当前定义的步骤就是 <code>doc -> plan -> run -> qa -> mr</code>，其中 <code>doc</code> 和 <code>plan</code> 默认带 checkpoint，执行完后会等待用户确认。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="extend">
+      <div class="wrap">
+        <div class="section-tag">Extension</div>
+        <h2 class="section-title">团队怎么扩展：不要从源码乱改开始</h2>
+        <p class="section-desc">培训时可以把扩展点分成四类。这样新人既知道框架能改什么，也知道什么不该直接碰。</p>
+        <div class="repo-map">
+          <article class="map-card">
+            <div class="map-path">.hx/config.yaml</div>
+            <h3>改路径和默认 profile</h3>
+            <p>这是项目级主入口。最先讲它，因为路径模板、默认 profile、Hook 和 pipeline 入口都在这里汇总。</p>
+          </article>
+          <article class="map-card">
+            <div class="map-path">.hx/profiles/&lt;name&gt;/</div>
+            <h3>改团队规则</h3>
+            <p>当团队需要自己的架构层级、门控命令和模板时，创建自定义 profile，并用 <code>extends: base</code> 继承当前内置规则。</p>
+          </article>
+          <article class="map-card">
+            <div class="map-path">.hx/commands/*.md</div>
+            <h3>改命令行为</h3>
+            <p>如果某个命令需要项目级改造，直接用同名命令文件覆盖。例如项目层写 <code>.hx/commands/hx-run.md</code>，优先级会高于系统层。</p>
+          </article>
+          <article class="map-card">
+            <div class="map-path">.hx/pipelines/default.yaml</div>
+            <h3>改流程顺序</h3>
+            <p>当团队不想走默认主路径，或者需要插入内部阶段时，优先改 pipeline，而不是去改 <code>hx-go</code> 的核心实现。</p>
+          </article>
+        </div>
+        <div class="callout tip">
+          <span class="icon">✓</span>
+          <div><strong>培训口径可以这样讲：</strong>“想改规则，去 profile；想改流程，去 pipeline；想改单个命令提示，去 commands；想改项目默认入口，去 config。” 这比逐个讲文件更容易记。</div>
+        </div>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">维护者验证</div>
+            <h3 class="card-title">改完框架怎么自测</h3>
+            <pre><code>npm run hx:test
+npm run hx:test:unit
+npm run hx:test:integration</code></pre>
+            <p class="card-body">这些命令来自当前仓库 <code>package.json</code>。如果培训对象包含框架维护者，这三个脚本要明确讲出来。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">共享 profile</div>
+            <h3 class="card-title">共享策略</h3>
+            <p class="card-body">框架只内置 <code>base</code>。其他 profile 按 README 约定应下沉到用户层或项目层。这样系统层升级时，团队规则不会被覆盖。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="workshop">
+      <div class="wrap">
+        <div class="section-tag">Workshop</div>
+        <h2 class="section-title">培训演练建议：一小时让新人跑通一遍</h2>
+        <p class="section-desc">如果你要带团队培训，建议把演练分成三个环节。每个环节都基于当前仓库的真实能力，不需要额外造例子。</p>
+        <div class="workshop-grid">
+          <article class="workshop-step">
+            <div class="step-tag">20 分钟</div>
+            <h3>环节一：理解框架结构</h3>
+            <ul>
+              <li>打开 <code>README.md</code>，先建立整体概念。</li>
+              <li>再看 <code>bin/hx.js</code>，分清维护 CLI 和 Agent 命令。</li>
+              <li>最后浏览 <code>src/agents/commands/hx-init.md</code> 和 <code>src/pipelines/default.yaml</code>。</li>
+            </ul>
+          </article>
+          <article class="workshop-step">
+            <div class="step-tag">20 分钟</div>
+            <h3>环节二：跑一次主路径</h3>
+            <ul>
+              <li>机器级执行 <code>hx setup</code>。</li>
+              <li>项目级执行 <code>hx-init</code>。</li>
+              <li>需求级执行 <code>hx-go --task 12345 --profile base</code>，或至少手动跑一遍 <code>hx-doc → hx-plan</code>。</li>
+            </ul>
+          </article>
+          <article class="workshop-step">
+            <div class="step-tag">20 分钟</div>
+            <h3>环节三：做一次最小扩展</h3>
+            <ul>
+              <li>在项目层新增 <code>.hx/profiles/my-team/profile.yaml</code>。</li>
+              <li>给它加一条团队自己的 <code>gate_commands</code>。</li>
+              <li>让大家理解“团队定制不是改源码，而是做覆盖”。</li>
+            </ul>
+          </article>
+        </div>
+        <div class="foot-note">这套演练对新人的价值，不在于背会全部命令，而在于建立正确心智：哪里是系统层、哪里是团队层、哪里是项目层，什么改动应该落在哪一层。</div>
+      </div>
+    </section>
+
+    <section id="mistakes">
+      <div class="wrap">
+        <div class="section-tag">Mistakes</div>
+        <h2 class="section-title">常见误区：培训时要提前打掉的错误理解</h2>
+        <p class="section-desc">下面这些误区，都能直接从当前仓库代码里找到反证。提前讲清，能少掉大量后续答疑成本。</p>
+        <div class="mistake-grid">
+          <article class="mistake-card">
+            <h3>误区 1：<code>hx-init</code> 是普通 shell 子命令</h3>
+            <p>不是。当前 <code>bin/hx.js</code> 会明确提示它是 agent command contract。日常工作流命令由 Agent 读取 Markdown 契约后执行。</p>
+          </article>
+          <article class="mistake-card">
+            <h3>误区 2：框架升级要顺手改 <code>base</code></h3>
+            <p>不应该。<code>base</code> 是内置根基类，团队规则应放在用户层或项目层自定义 profile 里，否则后续升级会和团队约束纠缠在一起。</p>
+          </article>
+          <article class="mistake-card">
+            <h3>误区 3：每次都要手动写 <code>feature key</code></h3>
+            <p>不是主路径常态。<code>hx-doc</code> 会生成稳定的内部 key，后续命令通常自动续接。只有恢复执行、冲突消歧或多需求并行时才需要显式输入。</p>
+          </article>
+          <article class="mistake-card">
+            <h3>误区 4：<code>hx-go</code> 是写死的流程</h3>
+            <p>不是。它读的是 pipeline YAML，所以团队完全可以覆盖 <code>.hx/pipelines/default.yaml</code> 来改变流程顺序或插入检查点。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="next">
+      <div class="wrap">
+        <div class="section-tag">Next</div>
+        <h2 class="section-title">继续阅读：培训后让同事按这条线深入</h2>
+        <p class="section-desc">这份培训页负责建立认知骨架。下面这些文档更适合在培训后分发给不同角色的人继续细读。</p>
+        <div class="reading-grid">
+          <a class="reading-card" href="hx-guide.html">
+            <h3>总览</h3>
+            <p>适合刚接触 HXFlow 的同学，快速复盘“框架定位和主链路”。</p>
+          </a>
+          <a class="reading-card" href="hx-onboarding.html">
+            <h3>入门</h3>
+            <p>适合第一次实际操作的人，重点看安装、初始化和完整执行例子。</p>
+          </a>
+          <a class="reading-card" href="hx-deep-dive.html">
+            <h3>运行机制</h3>
+            <p>适合维护者和高级用户，理解命令查找、Profile 合并、Hook 与上下文装配。</p>
+          </a>
+          <a class="reading-card" href="hx-config-reference.html">
+            <h3>配置参考</h3>
+            <p>适合要做项目级落地的人，查路径、Hook、Profile、Pipeline 的具体字段。</p>
+          </a>
+        </div>
+        <div class="foot-nav">
+          <a class="btn-ghost" href="index.html">打开文档目录</a>
+          <a class="btn-primary" href="hx-onboarding.html">继续看入门</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>HXFlow · 团队培训页 · 基于当前仓库事实整理</p>
+      <p><a href="index.html">查看文档目录</a></p>
+    </div>
+  </footer>
+</div>
+
+<script src="../../assets/hx-docs.js"></script>
+</body>
+</html>
