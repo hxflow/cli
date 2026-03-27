@@ -182,14 +182,13 @@ export function generateCodexSkillFiles(sourceDir, targetDir, frameworkRoot, use
   }
 
   const specs = loadCommandSpecs(sourceDir)
-  const files = {
-    'SKILL.md': buildCodexSkillContent(specs, frameworkRoot, userHxDir),
-    'commands.json': buildCodexCommandsManifest(specs, frameworkRoot, userHxDir),
-  }
 
-  for (const [fileName, content] of Object.entries(files)) {
-    const dstPath = resolve(targetDir, fileName)
-    const label = `~/.codex/skills/hxflow/${fileName}`
+  for (const spec of specs) {
+    const file = `${spec.name}.md`
+    const dstPath = resolve(targetDir, file)
+    const label = `~/.codex/skills/${file}`
+
+    const content = buildCodexSkillFileContent(spec, frameworkRoot, userHxDir)
     const existing = existsSync(dstPath) ? readFileSync(dstPath, 'utf8') : null
 
     if (existing === content) {
@@ -257,50 +256,35 @@ function parseCommandFrontmatter(content) {
     }, {})
 }
 
-function buildCodexSkillContent(specs, frameworkRoot, userHxDir) {
-  const commandList = specs
-    .map((spec) => `- \`${spec.codex}\` -> \`${spec.usage}\` · ${spec.description}`)
-    .join('\n')
+function buildCodexSkillFileContent(spec, frameworkRoot, userHxDir) {
+  const systemPath = resolve(frameworkRoot, 'agents', 'commands', `${spec.name}.md`)
+
+  if (spec.protected) {
+    return `---
+name: ${spec.name}
+description: ${spec.description}
+---
+<!-- hx-skill: ${spec.name} — 由 hx setup 自动生成，请勿手动修改 -->
+<!-- protected: 此命令由框架锁定，不支持用户层或项目层覆盖 -->
+
+读取 \`${systemPath}\` 的完整内容作为指令执行（$ARGUMENTS 原样透传）。
+
+若文件不存在，报错：\`${spec.name} 命令实体文件未找到，请运行 hx setup 修复。\`
+`
+  }
 
   return `---
-name: hxflow
-description: Execute canonical hx-* workflow commands in Codex using the same command contract as Claude.
+name: ${spec.name}
+description: ${spec.description}
 ---
+<!-- hx-skill: ${spec.name} — 由 hx setup 自动生成，请勿手动修改 -->
 
-# hxflow
+按以下优先级找到第一个存在的文件，读取其完整内容作为指令执行（$ARGUMENTS 原样透传）：
 
-Use this skill when the user invokes a canonical Harness Workflow command such as \`hx-init\`, \`hx-go\`, \`hx-run\`, \`hx-qa\`, or asks to use Harness Workflow in Codex.
+1. 从当前目录向上查找含 \`.hx/config.yaml\` 或 \`.git\` 的项目根目录，读取 \`<项目根>/.hx/commands/${spec.name}.md\`
+2. \`${userHxDir}/commands/${spec.name}.md\`
+3. \`${systemPath}\`
 
-## Command Contract
-
-- Preserve the literal command token and trailing arguments exactly. Example: \`hx-run user-login --profile base\`
-- Claude uses slash commands such as \`/hx-run\`; Codex uses the canonical command form \`hx-run\`
-- Canonical command definitions live in the same markdown files used by Claude
-
-## Resolution Order
-
-1. Walk up from the current working directory until finding \`.hx/config.yaml\` or \`.git\`
-2. If \`<projectRoot>/.hx/commands/<command>.md\` exists, read it and execute its full content as the command instruction
-3. Else if \`${userHxDir}/commands/<command>.md\` exists, read it and execute its full content
-4. Else read \`${frameworkRoot}/agents/commands/<command>.md\`
-5. Pass the raw trailing text as \`$ARGUMENTS\`
-
-## Available Commands
-
-${commandList}
+若三处均不存在，报错：\`${spec.name} 命令实体文件未找到，请运行 hx setup 修复。\`
 `
-}
-
-function buildCodexCommandsManifest(specs, frameworkRoot, userHxDir) {
-  return JSON.stringify({
-    name: 'hxflow',
-    frameworkRoot,
-    userHxDir,
-    resolutionOrder: [
-      '<projectRoot>/.hx/commands/<command>.md',
-      `${userHxDir}/commands/<command>.md`,
-      `${frameworkRoot}/agents/commands/<command>.md`,
-    ],
-    commands: specs,
-  }, null, 2) + '\n'
 }

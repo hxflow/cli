@@ -54,9 +54,10 @@
         class="nav-num">04</span><span>配置参考</span></a>
     <div class="nav-group">本页目录</div>
     <a href="#positioning"><span class="nav-num">A1</span><span>产品定位</span></a>
-    <a href="#reading-path"><span class="nav-num">A2</span><span>核心链路</span></a>
-    <a href="#modules"><span class="nav-num">A3</span><span>文档模块</span></a>
-    <a href="#maintenance"><span class="nav-num">A4</span><span>关键约束</span></a>
+    <a href="#glossary"><span class="nav-num">A2</span><span>先懂两个词</span></a>
+    <a href="#reading-path"><span class="nav-num">A3</span><span>核心链路</span></a>
+    <a href="#modules"><span class="nav-num">A4</span><span>文档模块</span></a>
+    <a href="#maintenance"><span class="nav-num">A5</span><span>关键约束</span></a>
     <div class="nav-group">链接</div>
     <a href="harness-engineering-spec.html"><span class="nav-num">←</span><span>返回规范文档</span></a>
   </nav>
@@ -125,6 +126,30 @@
         </div>
       </section>
 
+      <section id="glossary">
+        <div class="wrap">
+          <div class="section-tag">Glossary</div>
+          <h2 class="section-title">先懂两个词</h2>
+          <p class="section-desc">多数人第一次卡住的不是命令，而是不知道 <code>feature key</code> 和 <code>profile</code> 分别在框架里扮演什么角色。</p>
+          <div class="grid grid-2">
+            <article class="card">
+              <div class="card-meta">术语 01</div>
+              <h3 class="card-title"><code>feature key</code> = 当前需求的内部短 ID</h3>
+              <p class="card-body">可以把它理解成“这次需求在 HXFlow 里的文件名前缀”。例如登录需求可能被生成成 <code>user-login</code>，随后需求文档、计划文档、进度文件通常都会围绕它命名：<code>docs/requirement/user-login.md</code>、<code>docs/plans/user-login.md</code>、<code>docs/plans/user-login-progress.json</code>。</p>
+            </article>
+            <article class="card">
+              <div class="card-meta">术语 02</div>
+              <h3 class="card-title"><code>profile</code> = 这次执行要遵守哪套团队规则</h3>
+              <p class="card-body">可以把它理解成“工作流模板 + 质量门禁 + 路径约定”的组合。比如 <code>base</code> 是框架内置最小规则集；如果团队有自己的目录分层、测试命令或模板，就会在 <code>.hx/profiles/&lt;name&gt;/</code> 或 <code>~/.hx/profiles/&lt;name&gt;/</code> 下定义自有 profile。</p>
+            </article>
+          </div>
+          <div class="callout info">
+            <span class="icon">i</span>
+            <div><strong>一句话记忆：</strong><code>feature key</code> 回答“这是哪一个需求”，<code>profile</code> 回答“这次按哪套规则做”。正常主路径里，前者通常自动生成并自动续接，后者才是你更常显式指定的参数。</div>
+          </div>
+        </div>
+      </section>
+
       <section id="reading-path">
         <div class="wrap">
           <div class="section-tag">Workflow</div>
@@ -184,6 +209,10 @@
               <strong>一键模式：</strong><code>/hx-go [&lt;feature-key&gt;] [--task &lt;id&gt;] --profile &lt;name&gt;</code> 读取 pipeline YAML
               驱动默认主路径（<code>doc -> plan -> run -> qa -> mr</code>），支持 <code>--from &lt;step-id&gt;</code> 从指定阶段恢复。
             </div>
+          </div>
+          <div class="callout tip">
+            <span class="icon">✓</span>
+            <div><strong>读图方式：</strong>如果你只想先跑通一遍，不要先纠结 <code>feature key</code>。直接把心智放在“先选 profile，再从 <code>/hx-doc</code> 开始”。只有在断点恢复、冲突消歧或手工指定需求时，才需要显式输入 key。</div>
           </div>
         </div>
       </section>

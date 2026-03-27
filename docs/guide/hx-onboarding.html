@@ -29,11 +29,13 @@
   <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
   <div class="nav-group">本页目录</div>
   <a href="#first-look"><span class="nav-num">B1</span><span>命名与职责</span></a>
-  <a href="#install"><span class="nav-num">B2</span><span>安装</span></a>
-  <a href="#init"><span class="nav-num">B3</span><span>项目初始化</span></a>
-  <a href="#workflow"><span class="nav-num">B4</span><span>执行链路</span></a>
-  <a href="#pitfalls"><span class="nav-num">B5</span><span>常见问题</span></a>
-  <a href="#next"><span class="nav-num">B6</span><span>相关文档</span></a>
+  <a href="#glossary"><span class="nav-num">B2</span><span>术语速读</span></a>
+  <a href="#install"><span class="nav-num">B3</span><span>安装</span></a>
+  <a href="#init"><span class="nav-num">B4</span><span>项目初始化</span></a>
+  <a href="#workflow"><span class="nav-num">B5</span><span>执行链路</span></a>
+  <a href="#example"><span class="nav-num">B6</span><span>完整例子</span></a>
+  <a href="#pitfalls"><span class="nav-num">B7</span><span>常见问题</span></a>
+  <a href="#next"><span class="nav-num">B8</span><span>相关文档</span></a>
   <div class="nav-group">链接</div>
   <a href="harness-engineering-spec.html"><span class="nav-num">←</span><span>返回规范文档</span></a>
 </nav>
@@ -80,6 +82,30 @@
         <div class="callout info">
           <span class="icon">i</span>
           <div><strong>顺序：</strong>执行链路 → 运行机制 → 配置参考。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="glossary">
+      <div class="wrap">
+        <div class="section-tag">Glossary</div>
+        <h2 class="section-title">术语速读</h2>
+        <p class="section-desc">先把两个高频词读顺，再看命令链路会轻很多。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">术语 01</div>
+            <h3 class="card-title"><code>feature key</code></h3>
+            <p class="card-body">它是“当前需求在 HXFlow 里的内部短 ID”，不是给业务方看的标题。比如“用户登录页支持手机号登录”这类需求，系统可能生成 <code>user-login</code> 作为 key。后续很多文件都会以它命名，所以它更像一个稳定的文件前缀，而不是展示名。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">术语 02</div>
+            <h3 class="card-title"><code>profile</code></h3>
+            <p class="card-body">它是“本次执行采用哪套团队规则”。里面会定义模板、架构层级、质量门控命令和默认路径。最常见的是 <code>base</code>，它表示先按框架内置最小规则跑通；如果团队有定制流程，再换成自己的 profile。</p>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>一句话记忆：</strong><code>feature key</code> 用来串起“同一个需求”的文档和进度文件，<code>profile</code> 用来决定“按什么规则生成和执行”。正常情况下你通常只需要显式写 <code>--profile</code>，不需要手写 <code>feature key</code>。</div>
         </div>
       </div>
     </section>
@@ -211,6 +237,85 @@ CLAUDE.md                  ← 注入 harness 标记块
         <div class="callout tip">
           <span class="icon">✓</span>
           <div><strong>可选诊断：</strong>若 <code>/hx-run</code> 因输入不完整而停止，可额外执行 <code>/hx-ctx --profile base</code> 查看具体缺失项。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="example">
+      <div class="wrap">
+        <div class="section-tag">Example</div>
+        <h2 class="section-title">完整例子</h2>
+        <p class="section-desc">下面用一个真实心智的例子，把“任务来源 → feature key → 文档 → 计划 → 执行 → 交付”串起来。</p>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">场景</div>
+            <h3 class="card-title">需求：任务系统里有一个登录相关任务</h3>
+            <pre><code><span class="cg"># 任务来源</span>
+任务 ID: 12345
+任务标题: 用户登录页支持手机号登录
+
+<span class="cg"># 我们先用最简单的规则集</span>
+profile: base</code></pre>
+            <p class="card-body">这时你可以把它理解成：“我要做一个登录需求，并且这次先按 <code>base</code> 这套默认规则来执行。”</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">命令</div>
+            <h3 class="card-title">最常见的两种启动方式</h3>
+            <pre><code><span class="cg"># 一步一步来</span>
+/hx-doc --task 12345 --profile base
+/hx-plan --profile base
+/hx-run --profile base
+/hx-qa --profile base
+/hx-mr
+
+<span class="cg"># 或者直接一键跑主路径</span>
+/hx-go --task 12345 --profile base</code></pre>
+            <p class="card-body">如果只是第一次体验，优先用这两套命令，不要先手输 <code>feature key</code>。</p>
+          </article>
+        </div>
+        <div class="callout tip">
+          <span class="icon">✓</span>
+          <div><strong>这一步发生了什么：</strong><code>/hx-doc</code> 会读取任务 12345 的标题和描述，再自动生成一个适合做文件名的 kebab-case key。假设它生成的是 <code>user-login</code>，后面整条链路就会围绕这个 key 工作。</div>
+        </div>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="card-meta">生成结果</div>
+            <h3 class="card-title">你会在仓库里看到这些文件</h3>
+            <pre><code>docs/
+├── requirement/
+│   └── user-login.md
+└── plans/
+    ├── user-login.md
+    └── user-login-progress.json</code></pre>
+            <p class="card-body">这里的 <code>user-login</code> 就是 feature key。它把“需求文档、计划文档、进度文件”三件事绑定成同一个需求上下文。</p>
+          </article>
+          <article class="card">
+            <div class="card-meta">文件内容</div>
+            <h3 class="card-title">文档头部大概会长这样</h3>
+            <pre><code><span class="cg"># docs/requirement/user-login.md</span>
+# 需求：用户登录页支持手机号登录
+
+&gt; 内部主键（Feature Key）：user-login
+&gt; Profile：base
+
+<span class="cg"># docs/plans/user-login-progress.json</span>
+{
+  "feature": "user-login",
+  "profile": "base",
+  "tasks": [
+    { "id": "TASK-BE-01", "status": "pending" }
+  ]
+}</code></pre>
+            <p class="card-body">所以读到这些字段时可以直接这样理解：<code>feature</code> 说明“这是哪个需求”，<code>profile</code> 说明“按哪套规则拆任务和做门控”。</p>
+          </article>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>为什么后面常常不用再写 key：</strong>当你刚执行过 <code>/hx-doc</code> 或当前打开的需求文档头部已经写着 <code>Feature Key: user-login</code>，<code>/hx-plan</code>、<code>/hx-run</code>、<code>/hx-mr</code> 一般都能自动续接到这个需求。</div>
+        </div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>什么时候才需要手动写 key：</strong>通常只在断点恢复、同一项目里同时有多个需求、或者自动定位失败时。例如：<code>/hx-go user-login --from run --profile base</code>。</div>
         </div>
       </div>
     </section>

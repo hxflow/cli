@@ -285,7 +285,7 @@ describe('generateForwarderFiles', () => {
 // ── generateCodexSkillFiles ────────────────────────────────────────────────
 
 describe('generateCodexSkillFiles', () => {
-  it('生成 Codex skill bundle', () => {
+  it('每个命令生成独立的 skill 文件', () => {
     const sourceDir = makeTempDir('codex-src-')
     const targetDir = makeTempDir('codex-dst-')
     writeFileSync(resolve(sourceDir, 'hx-run.md'), [
@@ -304,13 +304,13 @@ describe('generateCodexSkillFiles', () => {
     const summary = { created: [], updated: [], skipped: [], warnings: [] }
     generateCodexSkillFiles(sourceDir, targetDir, '/fw', '/user-hx', summary, {})
 
-    expect(existsSync(resolve(targetDir, 'SKILL.md'))).toBe(true)
-    expect(existsSync(resolve(targetDir, 'commands.json'))).toBe(true)
-    expect(summary.created).toContain('~/.codex/skills/hxflow/SKILL.md')
-    expect(summary.created).toContain('~/.codex/skills/hxflow/commands.json')
+    expect(existsSync(resolve(targetDir, 'hx-run.md'))).toBe(true)
+    expect(existsSync(resolve(targetDir, 'SKILL.md'))).toBe(false)
+    expect(existsSync(resolve(targetDir, 'commands.json'))).toBe(false)
+    expect(summary.created).toContain('~/.codex/skills/hx-run.md')
   })
 
-  it('skill 内容包含 canonical contract 和解析顺序', () => {
+  it('skill 文件包含命令描述和解析顺序', () => {
     const sourceDir = makeTempDir('codex-content-src-')
     const targetDir = makeTempDir('codex-content-dst-')
     writeFileSync(resolve(sourceDir, 'hx-run.md'), [
@@ -329,10 +329,10 @@ describe('generateCodexSkillFiles', () => {
     const summary = { created: [], updated: [], skipped: [], warnings: [] }
     generateCodexSkillFiles(sourceDir, targetDir, '/framework', '/user-hx', summary, {})
 
-    const content = readFileSync(resolve(targetDir, 'SKILL.md'), 'utf8')
-    expect(content).toContain('Claude uses slash commands')
-    expect(content).toContain('hx-run <feature> <task-id> [--profile <name>]')
-    expect(content).toContain('/user-hx/commands/<command>.md')
-    expect(content).toContain('/framework/agents/commands/<command>.md')
+    const content = readFileSync(resolve(targetDir, 'hx-run.md'), 'utf8')
+    expect(content).toContain('name: hx-run')
+    expect(content).toContain('description: Phase 04 · 执行任务')
+    expect(content).toContain('/user-hx/commands/hx-run.md')
+    expect(content).toContain('/framework/agents/commands/hx-run.md')
   })
 })

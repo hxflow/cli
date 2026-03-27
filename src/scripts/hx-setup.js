@@ -8,7 +8,7 @@
  *   2. ~/.hx/config.yaml（写入 frameworkRoot，如不存在）
  *   3. Agent 适配层：
  *      - ~/.claude/commands/ — Claude 转发器
- *      - ~/.codex/skills/hxflow/ — Codex skill bundle
+ *      - ~/.codex/skills/hx-*.md — Codex skill 文件（每个命令一个）
  *
  * 三层架构：
  *   系统层  <frameworkRoot>/src/agents/commands/   命令实体（git pull 升级）
@@ -55,7 +55,7 @@ if (options.help) {
     ~/.hx/              目录结构（commands/、profiles/、pipelines/）
     ~/.hx/config.yaml   用户全局配置（记录 frameworkRoot）
     ~/.claude/commands/ Claude 转发器文件（按三层优先级路由到实体命令）
-    ~/.codex/skills/    Codex skill bundle（统一使用 canonical hx-* contract）
+    ~/.codex/skills/    Codex skill 文件（每个命令一个 hx-*.md）
 
   hx setup 会安装 Claude 转发器和 Codex skill bundle。
   业务侧自定义 skill 仍由用户自行管理。
@@ -139,7 +139,7 @@ if (agents.includes('claude')) {
 if (agents.includes('codex')) {
   generateCodexSkillFiles(
     commandSourceDir,
-    resolve(userCodexDir, 'skills', 'hxflow'),
+    resolve(userCodexDir, 'skills'),
     FRAMEWORK_ROOT,
     userHxDir,
     summary,
