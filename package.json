@@ -1,6 +1,6 @@
 {
   "name": "@hxflow/cli",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Project-rules-driven AI engineering workflow — zero-disruption installer for existing projects.",
   "license": "MIT",
   "type": "module",
