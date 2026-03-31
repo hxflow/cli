@@ -67,7 +67,7 @@
       <div class="hero-inner">
         <div class="hero-tag">HXFLOW · OVERVIEW</div>
         <h1 class="hero-title"><em>HXFlow</em></h1>
-        <p class="hero-sub">HXFlow 是 AI-first 需求交付框架。<code>hx</code> CLI 负责安装与维护，所有工作流命令（<code>/hx-*</code>）在 Claude
+        <p class="hero-sub">HXFlow 是需求交付框架。<code>hx</code> CLI 负责安装与维护，所有工作流命令（<code>/hx-*</code>）在 Claude
           Code 中直接执行。npm 包名为 <code>@hxflow/cli</code>。</p>
         <div class="hero-actions">
           <a class="btn-primary" href="hx-onboarding.html">入门</a>
@@ -107,7 +107,7 @@
             <article class="card">
               <div class="card-meta">团队治理</div>
               <h3 class="card-title">统一团队差异</h3>
-              <p class="card-body">通过 <code>.hx/rules/*.md</code> 项目规则和 <code>.hx/config.yaml</code> 硬变量配置团队约束与门控命令。三层覆盖（系统 → 用户 → 项目）支持无侵入自定义。</p>
+              <p class="card-body">通过 <code>.hx/rules/*.md</code> 项目规则和 <code>.hx/config.yaml</code> 硬变量配置团队约束与门控命令。三层覆盖按项目 → 用户 → 系统命中即停止，支持无侵入自定义。</p>
             </article>
             <article class="card">
               <div class="card-meta">质量闭环</div>
@@ -119,8 +119,7 @@
           <div class="callout info">
             <span class="icon">i</span>
             <div>
-              <strong>两类命令：</strong><code>hx</code> CLI（setup / upgrade / uninstall / doctor /
-              version）负责框架维护；<code>/hx-*</code> / <code>hx-*</code> 是统一的 Agent 命令契约，由 Claude 转发器或 Codex skill bundle 路由到框架实体执行。
+              <strong>两类命令：</strong><code>hx</code> CLI 只保留 <code>setup</code> 和 <code>version</code>；<code>/hx-*</code> / <code>$hx-*</code> 是统一的 Agent 命令契约，由 Claude 转发器或 Codex skill 入口路由到框架实体执行。
             </div>
           </div>
         </div>
@@ -130,21 +129,21 @@
         <div class="wrap">
           <div class="section-tag">Glossary</div>
           <h2 class="section-title">先懂两个词</h2>
-          <p class=”section-desc”>多数人第一次卡住的不是命令，而是不知道 <code>feature key</code> 和项目规则分别在框架里扮演什么角色。</p>
-          <div class=”grid grid-2”>
-            <article class=”card”>
-              <div class=”card-meta”>术语 01</div>
-              <h3 class=”card-title”><code>feature key</code> = 当前需求的内部短 ID</h3>
-              <p class=”card-body”>可以把它理解成”这次需求在 HXFlow 里的文件名前缀”。例如登录需求可能被生成成 <code>user-login</code>，随后需求文档、计划文档、进度文件通常都会围绕它命名：<code>docs/requirement/user-login.md</code>、<code>docs/plans/user-login.md</code>、<code>docs/plans/user-login-progress.json</code>。</p>
+          <p class="section-desc">多数人第一次卡住的不是命令，而是不知道 <code>feature key</code> 和项目规则分别在框架里扮演什么角色。</p>
+          <div class="grid grid-2">
+            <article class="card">
+              <div class="card-meta">术语 01</div>
+              <h3 class="card-title"><code>feature key</code> = 当前需求的内部短 ID</h3>
+              <p class="card-body">可以把它理解成”这次需求在 HXFlow 里的文件名前缀”。例如登录需求可能被生成成 <code>user-login</code>，随后需求文档、计划文档、进度文件通常都会围绕它命名：<code>docs/requirement/user-login.md</code>、<code>docs/plans/user-login.md</code>、<code>docs/plans/user-login-progress.json</code>。</p>
             </article>
-            <article class=”card”>
-              <div class=”card-meta”>术语 02</div>
-              <h3 class=”card-title”><code>.hx/rules/*.md</code> = 项目规则文件</h3>
-              <p class=”card-body”>项目规则文件由 <code>/hx-init</code> 生成骨架，存放在 <code>.hx/rules/</code> 目录下。其中 <code>golden-rules.md</code> 定义团队黄金原则，其他规则文件按需添加。规则一经手动区写入，后续 <code>/hx-rules update</code> 不会覆盖。</p>
+            <article class="card">
+              <div class="card-meta">术语 02</div>
+              <h3 class="card-title"><code>.hx/rules/*.md</code> = 项目规则文件</h3>
+              <p class="card-body">项目规则文件由 <code>/hx-init</code> 生成骨架，存放在 <code>.hx/rules/</code> 目录下。其中 <code>golden-rules.md</code> 定义团队黄金原则，其他规则文件按需添加。规则一经手动区写入，后续 <code>/hx-rules update</code> 不会覆盖。</p>
             </article>
           </div>
-          <div class=”callout info”>
-            <span class=”icon”>i</span>
+          <div class="callout info">
+            <span class="icon">i</span>
             <div><strong>一句话记忆：</strong><code>feature key</code> 回答”这是哪一个需求”，<code>.hx/rules/*.md</code> 决定”团队按什么规则执行”。正常主路径里，feature key 通常自动生成并自动续接，规则文件在项目初始化时一次性配置好。</div>
           </div>
         </div>
@@ -168,7 +167,7 @@
               <div class="timeline-step">2</div>
               <div>
                 <div class="timeline-title">需求文档</div>
-                <div class="timeline-body"><code>/hx-doc [&lt;feature-key|标题&gt;] [--task &lt;id&gt;]</code> 创建需求文档；未传 feature key 时由 AI 基于需求详情自动生成内部主键，正常情况下不需要你手动处理。
+                <div class="timeline-body"><code>/hx-doc [&lt;feature-key|标题&gt;] [--task &lt;id&gt;]</code> 创建需求文档；未传 feature key 时会基于需求详情自动生成内部主键，正常情况下不需要你手动处理。
                 </div>
               </div>
             </div>
@@ -260,24 +259,23 @@
             <article class="card">
               <div class="card-meta">命令真源</div>
               <h3 class="card-title">入口和分发以 <code>bin/hx.js</code> 为准</h3>
-              <p class="card-body"><code>hx</code> CLI 只暴露 5 个维护命令（setup / upgrade / uninstall / doctor /
-                version）；<code>/hx-*</code> 工作流命令由 <code>~/.claude/commands/</code> 中的转发器路由到
-                <code>src/agents/commands/</code> 实体文件执行。</p>
+              <p class="card-body"><code>hx</code> CLI 只暴露 2 个内置命令（setup / version）；<code>/hx-*</code> 工作流命令由 <code>~/.claude/commands/</code> 中的转发器路由到
+                <code>src/commands/</code> 实体文件执行。</p>
               <div class="path-strip">
                 <span class="pill">bin/hx.js</span>
-                <span class="pill">src/agents/commands/</span>
+                <span class="pill">src/commands/</span>
                 <span class="pill">~/.claude/commands/</span>
               </div>
             </article>
             <article class="card">
               <div class="card-meta">配置真源</div>
               <h3 class="card-title">三层配置有固定解析顺序</h3>
-              <p class="card-body">系统层（框架内置）→ 用户层（<code>~/.hx/</code>）→ 项目层（<code>.hx/</code>）。commands / hooks /
-                pipelines 取第一个存在的文件；<code>config.yaml</code> 做字段级 merge，项目层优先级最高。</p>
+              <p class="card-body">项目层（<code>.hx/</code>）→ 用户层（<code>~/.hx/</code>）→ 系统层（框架内置）。commands / hooks /
+                pipelines 取第一个存在的文件；<code>~/.hx/settings.yaml</code> 只保存安装级设置，项目运行时配置以 <code>.hx/config.yaml</code> 为准。</p>
               <div class="path-strip">
-                <span class="pill">src/agents/</span>
-                <span class="pill">~/.hx/</span>
                 <span class="pill">.hx/</span>
+                <span class="pill">~/.hx/</span>
+                <span class="pill">src/</span>
               </div>
             </article>
           </div>

@@ -90,7 +90,7 @@
       <div class="wrap">
         <div class="section-tag">Runtime</div>
         <h2 class="section-title">运行时路径</h2>
-        <p class="section-desc">框架将资源划分为系统层、用户层和项目层，Claude Code 在运行时按优先级路由。</p>
+        <p class="section-desc">框架将资源划分为系统层、用户层和项目层，Claude 与 Codex 都按同一套优先级路由。</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -103,17 +103,30 @@
             <tbody>
               <tr>
                 <td><span class="badge violet">FRAMEWORK_ROOT</span></td>
-                <td><code>src/agents/commands/（命令实体）<br>src/templates/（规则骨架模板）<br>src/pipelines/（内置流水线）</code></td>
-                <td>框架内置资源（只读），通过 git pull 升级。命令不直接在此运行，由转发器路由。</td>
+                <td>
+                  <div><code>src/commands/</code>（命令实体）</div>
+                  <div><code>src/pipelines/</code>（内置流水线）</div>
+                </td>
+                <td>框架内置资源（只读），通过装包或重装同步。命令不直接在此运行，由转发器路由。</td>
               </tr>
               <tr>
                 <td><span class="badge gold">USER_HX_DIR</span></td>
-                <td><code>~/.hx/commands/（用户命令覆盖）<br>~/.hx/hooks/（用户 Hook）<br>~/.hx/pipelines/（用户流水线）<br>~/.hx/config.yaml</code></td>
-                <td>跨项目共享的用户级覆盖。由 hx setup 创建目录结构，用户自行写入覆盖文件。</td>
+                <td>
+                  <div><code>~/.hx/commands/</code>（用户命令覆盖）</div>
+                  <div><code>~/.hx/hooks/</code>（用户 Hook）</div>
+                  <div><code>~/.hx/pipelines/</code>（用户流水线）</div>
+                  <div><code>~/.hx/settings.yaml</code></div>
+                </td>
+                <td>跨项目共享的用户级覆盖与安装设置。由 hx setup 创建目录结构，用户自行写入覆盖文件。</td>
               </tr>
               <tr>
                 <td><span class="badge blue">PROJECT_ROOT</span></td>
-                <td><code>.hx/commands/（项目命令覆盖）<br>.hx/rules/（项目规则文件）<br>.hx/pipelines/（项目流水线）<br>.hx/config.yaml</code></td>
+                <td>
+                  <div><code>.hx/commands/</code>（项目命令覆盖）</div>
+                  <div><code>.hx/rules/</code>（项目规则文件）</div>
+                  <div><code>.hx/pipelines/</code>（项目流水线）</div>
+                  <div><code>.hx/config.yaml</code></div>
+                </td>
                 <td>项目专属覆盖，优先级最高。由 /hx-init 初始化 .hx/config.yaml 与 .hx/rules/。</td>
               </tr>
             </tbody>
@@ -121,7 +134,7 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>配置优先级：</strong>内置默认值 → <code>~/.hx/config.yaml</code> → <code>.hx/config.yaml</code>（字段级深合并，数组整体覆盖）。</div>
+          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置；项目运行时配置以 <code>.hx/config.yaml</code> 为准。commands / hooks / pipelines 仍按项目层 → 用户层 → 框架层的顺序解析。</div>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
@@ -155,7 +168,7 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>设计原则：</strong>新架构移除了 <code>--profile</code> 参数、<code>defaultProfile</code> 字段和继承链。运行时事实收敛为 <code>.hx/config.yaml</code>（硬变量）与 <code>.hx/rules/*.md</code>（规则文件），静态读取，无动态推断。</div>
+          <div><strong>设计原则：</strong>运行时事实收敛为 <code>.hx/config.yaml</code>（硬变量）与 <code>.hx/rules/*.md</code>（规则文件），静态读取，无动态推断。</div>
         </div>
       </div>
     </section>
@@ -179,12 +192,14 @@ paths.progressFile 对应文件</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">Hook 注入</div>
-            <h3 class="card-title">两种定义方式，统一合并</h3>
-            <pre><code>hooks:
-  run:
-    pre:
-      - .hx/hooks/extra.md</code></pre>
-            <p class="card-body">加载顺序为全局约定 → 项目约定 → 配置式数组；相同绝对路径会去重。</p>
+            <h3 class="card-title">由 frontmatter 启用，按命名规则查找</h3>
+            <pre><code>---
+name: hx-run
+hooks:
+  - pre
+  - post
+---</code></pre>
+            <p class="card-body">只有命令 frontmatter 声明了 <code>hooks</code>，运行时才会按 <code>pre_run.md</code> / <code>post_run.md</code> 在项目层 → 用户层 → 框架层查找 Hook 文件。</p>
           </article>
         </div>
       </div>

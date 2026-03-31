@@ -1,39 +1,23 @@
-# Harness Workflow 项目级配置
-# 运行时只读取结构化硬变量；解释性规则统一维护在 .hx/rules/*.md。
-
-schemaVersion: {{SCHEMA_VERSION}}
-
+# 项目内主要路径。
+# 若项目结构特殊，可按实际情况调整这些值。
 paths:
-  src: {{SRC_PATH}}
-  requirementDoc: {{REQUIREMENT_DOC}}
-  planDoc: {{PLAN_DOC}}
-  progressFile: {{PROGRESS_FILE}}
+  # 主要源码目录。
+  src: {{paths.src}}
+  # 需求文档路径。
+  requirementDoc: {{paths.requirementDoc}}
+  # 执行计划文档路径。
+  planDoc: {{paths.planDoc}}
+  # 任务进度文件路径。
+  progressFile: {{paths.progressFile}}
 
+# 质量门命令。
+# 留空表示当前项目未启用该检查项。
 gates:
-  lint: {{GATE_LINT}}
-  test: {{GATE_TEST}}
-  type: {{GATE_TYPE}}
-  build: {{GATE_BUILD}}
-
-hooks:
-  doc:
-    pre: []
-    post: []
-  plan:
-    pre: []
-    post: []
-  run:
-    pre: []
-    post: []
-  review:
-    pre: []
-    post: []
-  fix:
-    pre: []
-    post: []
-  clean:
-    pre: []
-    post: []
-  mr:
-    pre: []
-    post: []
+  # 代码检查命令。
+  lint: {{gates.lint}}
+  # 构建命令。
+  build: {{gates.build}}
+  # 类型检查命令。
+  type: {{gates.type}}
+  # 测试命令。
+  test: {{gates.test}}

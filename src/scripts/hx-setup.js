@@ -1,66 +1,33 @@
 #!/usr/bin/env node
 
-/**
- * hx setup — 全局安装框架文件到用户目录
- *
- * 安装内容：
- *   1. ~/.hx/ 目录结构（commands/、hooks/、pipelines/）
- *   2. ~/.hx/config.yaml（写入 frameworkRoot，如不存在）
- *   3. Agent 适配层：
- *      - ~/.claude/commands/ — Claude 转发器
- *      - ~/.codex/skills/<hx-cmd>/ — Codex skill 目录（每个命令一个，内含 SKILL.md）
- *
- * 三层架构：
- *   系统层  <frameworkRoot>/src/agents/commands/   命令实体（git pull 升级）
- *   用户层  ~/.hx/commands/                        用户自定义覆盖
- *   项目层  <project>/.hx/commands/                项目专属覆盖
- *
- * Claude/Codex 适配层由框架生成；业务 skill 仍由用户自行管理。
- *
- * 幂等设计：重复运行安全。
- *
- * 测试隔离参数（非正式公开）：
- *   --user-hx-dir <dir>      覆盖 ~/.hx/ 路径
- *   --user-claude-dir <dir>  覆盖 ~/.claude/ 路径
- *   --user-codex-dir <dir>   覆盖 ~/.codex/ 路径
- */
+/** hx setup 只负责创建 ~/.hx 目录骨架、写 ~/.hx/settings.yaml，并生成 Claude/Codex 适配层。 */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { resolve } from 'path'
 
-import { FRAMEWORK_ROOT } from './lib/resolve-context.js'
-import { parseArgs, parseSimpleYaml } from './lib/config-utils.js'
+import { FRAMEWORK_ROOT, PACKAGE_ROOT } from './lib/resolve-context.js'
+import {
+  parseArgs,
+  readTopLevelYamlScalar,
+  upsertTopLevelYamlScalar,
+} from './lib/config-utils.js'
 import {
   generateCodexSkillFiles,
   generateForwarderFiles,
+  loadCommandSpecs,
+  mergeCommandSpecs,
   resolveAgentTargets,
 } from './lib/install-utils.js'
 
-// ── CLI 参数 ──
+const USER_LAYER_DIRS = ['commands', 'hooks', 'pipelines']
+const USER_SETTINGS_FILE = 'settings.yaml'
+const USER_SETTINGS_CONTENT = `# Harness Workflow 用户级配置\nframeworkRoot: ${PACKAGE_ROOT}\n`
 
 const { options } = parseArgs(process.argv.slice(2))
 
 if (options.help) {
-  console.log(`
-  用法: hx setup [--agent <claude|codex|all>] [--dry-run]
-
-  选项:
-        --agent <name>  安装目标 agent，支持 claude、codex、all（默认 all）
-        --dry-run       仅显示将要安装的内容，不实际写入
-    -h, --help          显示帮助
-
-  将框架文件安装到用户全局目录：
-    ~/.hx/              目录结构（commands/、hooks/、pipelines/）
-    ~/.hx/config.yaml   用户全局配置（记录 frameworkRoot）
-    ~/.claude/commands/ Claude 转发器文件（按三层优先级路由到实体命令）
-    ~/.codex/skills/    Codex skill 目录（每个命令一个子目录，内含 SKILL.md）
-
-  hx setup 会安装 Claude 转发器和 Codex skill bundle。
-  业务侧自定义 skill 仍由用户自行管理。
-
-  安装后，在任意项目中运行 hx-init 初始化项目。
-  `)
+  console.log(buildHelpText())
   process.exit(0)
 }
 
@@ -76,57 +43,23 @@ const userCodexDir = options['user-codex-dir']
   ? resolve(options['user-codex-dir'])
   : resolve(homedir(), '.codex')
 
-const summary = { created: [], updated: [], skipped: [], warnings: [] }
+const summary = { created: [], updated: [], removed: [], skipped: [], warnings: [] }
 
-console.log(`\n  Harness Workflow · setup${dryRun ? ' (dry-run)' : ''}`)
-console.log(`  agents      → ${agents.join(', ')}`)
-console.log(`  ~/.hx/      → ${userHxDir}`)
-if (agents.includes('claude')) console.log(`  ~/.claude/  → ${userClaudeDir}`)
-if (agents.includes('codex')) console.log(`  ~/.codex/   → ${userCodexDir}`)
-console.log('')
+printSetupHeader({ agents, dryRun, userHxDir, userClaudeDir, userCodexDir })
 
-// ── Step 1: 创建 ~/.hx/ 目录结构 ──
+ensureUserLayerDirectories(userHxDir, summary, dryRun)
+ensureUserSettingsFile(userHxDir, summary, dryRun)
 
-for (const sub of ['', 'commands', 'hooks', 'pipelines']) {
-  const dir = sub ? resolve(userHxDir, sub) : userHxDir
-  if (!existsSync(dir)) {
-    if (!dryRun) mkdirSync(dir, { recursive: true })
-    summary.created.push(`~/.hx/${sub || ''}`.replace(/\/$/, '') + '/')
-  }
-}
-
-// ── Step 2: 创建 ~/.hx/config.yaml（写入 frameworkRoot）──
-
-const userConfigPath = resolve(userHxDir, 'config.yaml')
-if (!existsSync(userConfigPath)) {
-  if (!dryRun) writeFileSync(userConfigPath, `# Harness Workflow 用户全局配置\nframeworkRoot: ${FRAMEWORK_ROOT}\n`, 'utf8')
-  summary.created.push('~/.hx/config.yaml')
-} else {
-  // 确保 frameworkRoot 字段是最新的
-  try {
-    const existing = parseSimpleYaml(readFileSync(userConfigPath, 'utf8'))
-    if (existing.frameworkRoot !== FRAMEWORK_ROOT) {
-      const updated = readFileSync(userConfigPath, 'utf8').replace(
-        /^frameworkRoot:.*$/m,
-        `frameworkRoot: ${FRAMEWORK_ROOT}`
-      )
-      if (!dryRun) writeFileSync(userConfigPath, updated, 'utf8')
-      summary.updated.push('~/.hx/config.yaml (frameworkRoot)')
-    } else {
-      summary.skipped.push('~/.hx/config.yaml (已存在)')
-    }
-  } catch {
-    summary.warnings.push('~/.hx/config.yaml 解析失败，跳过 frameworkRoot 写入')
-  }
-}
-
-// ── Step 3: 生成 agent 适配层 ──
-
-const commandSourceDir = resolve(FRAMEWORK_ROOT, 'agents', 'commands')
+const frameworkCommandDir = resolve(FRAMEWORK_ROOT, 'commands')
+const userCommandDir = resolve(userHxDir, 'commands')
+const commandSpecs = mergeCommandSpecs(
+  loadCommandSpecs(frameworkCommandDir),
+  loadCommandSpecs(userCommandDir)
+)
 
 if (agents.includes('claude')) {
   generateForwarderFiles(
-    commandSourceDir,
+    commandSpecs,
     resolve(userClaudeDir, 'commands'),
     FRAMEWORK_ROOT,
     userHxDir,
@@ -137,7 +70,7 @@ if (agents.includes('claude')) {
 
 if (agents.includes('codex')) {
   generateCodexSkillFiles(
-    commandSourceDir,
+    commandSpecs,
     resolve(userCodexDir, 'skills'),
     FRAMEWORK_ROOT,
     userHxDir,
@@ -146,28 +79,92 @@ if (agents.includes('codex')) {
   )
 }
 
-// ── 输出报告 ──
+printSummary(summary, dryRun)
 
-console.log('  ── 安装报告 ──\n')
-
-if (summary.created.length > 0) {
-  console.log('  创建:')
-  for (const item of summary.created) console.log(`    + ${item}`)
+function ensureUserLayerDirectories(userHxDir, summary, dryRun) {
+  for (const sub of ['', ...USER_LAYER_DIRS]) {
+    const dir = sub ? resolve(userHxDir, sub) : userHxDir
+    if (!existsSync(dir)) {
+      if (!dryRun) mkdirSync(dir, { recursive: true })
+      summary.created.push(`~/.hx/${sub || ''}`.replace(/\/$/, '') + '/')
+    }
+  }
 }
 
-if (summary.updated.length > 0) {
-  console.log('  更新:')
-  for (const item of summary.updated) console.log(`    ~ ${item}`)
+function ensureUserSettingsFile(userHxDir, summary, dryRun) {
+  const userSettingsPath = resolve(userHxDir, USER_SETTINGS_FILE)
+
+  if (!existsSync(userSettingsPath)) {
+    if (!dryRun) writeFileSync(userSettingsPath, USER_SETTINGS_CONTENT, 'utf8')
+    summary.created.push('~/.hx/settings.yaml')
+    return
+  }
+
+  const previousContent = readFileSync(userSettingsPath, 'utf8')
+  const existingFrameworkRoot = readTopLevelYamlScalar(previousContent, 'frameworkRoot')
+
+  if (existingFrameworkRoot === PACKAGE_ROOT) {
+    summary.skipped.push('~/.hx/settings.yaml (已存在)')
+    return
+  }
+
+  const nextContent = upsertTopLevelYamlScalar(previousContent, 'frameworkRoot', PACKAGE_ROOT)
+  if (!dryRun) writeFileSync(userSettingsPath, nextContent, 'utf8')
+  summary.updated.push('~/.hx/settings.yaml (frameworkRoot)')
 }
 
-if (summary.skipped.length > 0) {
-  console.log('  跳过:')
-  for (const item of summary.skipped) console.log(`    - ${item}`)
+function printSetupHeader({ agents, dryRun, userHxDir, userClaudeDir, userCodexDir }) {
+  const lines = [
+    `\n  Harness Workflow · setup${dryRun ? ' (dry-run)' : ''}`,
+    `  agents      → ${agents.join(', ')}`,
+    `  ~/.hx/      → ${userHxDir}`,
+  ]
+
+  if (agents.includes('claude')) lines.push(`  ~/.claude/  → ${userClaudeDir}`)
+  if (agents.includes('codex')) lines.push(`  ~/.codex/   → ${userCodexDir}`)
+
+  for (const line of lines) console.log(line)
+  console.log('')
 }
 
-if (summary.warnings.length > 0) {
-  console.log('  警告:')
-  for (const item of summary.warnings) console.log(`    ! ${item}`)
+function printSummary(summary, dryRun) {
+  console.log('  ── 安装报告 ──\n')
+  for (const [title, items, marker] of [
+    ['创建', summary.created, '+'],
+    ['更新', summary.updated, '~'],
+    ['删除', summary.removed, 'x'],
+    ['跳过', summary.skipped, '-'],
+    ['警告', summary.warnings, '!'],
+  ]) {
+    if (items.length === 0) continue
+    console.log(`  ${title}:`)
+    for (const item of items) console.log(`    ${marker} ${item}`)
+  }
+  console.log(`\n  ${dryRun ? '[dry-run] 未实际写入。' : '完成。后续请在 Agent 会话中运行 hx-init。'}\n`)
 }
 
-console.log(`\n  ${dryRun ? '[dry-run] 未实际写入。' : '完成。运行 hx-init 初始化项目。'}\n`)
+function buildHelpText() {
+  return `
+  用法: hx setup [--agent <claude|codex|all>] [--dry-run]
+
+  选项:
+        --agent <name>  安装目标 agent，支持 claude、codex、all（默认 all）
+        --dry-run       仅显示将要安装的内容，不实际写入
+    -h, --help          显示帮助
+
+  将框架文件安装到用户全局目录：
+    ~/.hx/              用户层目录骨架（commands/、hooks/、pipelines/）
+    ~/.hx/settings.yaml 用户级配置（记录 frameworkRoot）
+    ~/.claude/commands/ Claude 转发器文件（按三层优先级路由到实体命令）
+    ~/.codex/skills/    Codex skill 目录（每个命令一个子目录，内含 SKILL.md）
+
+  npm 安装包时会自动执行一次 setup。
+  hx setup 用于手动修复、补装或重跑安装逻辑。
+
+  注意：不会把框架内置命令、Hook、Pipeline 复制到 ~/.hx/ 下。
+  hx setup 会安装 Claude 转发器和 Codex skill bundle。
+  业务侧自定义 skill 仍由用户自行管理。
+
+  安装后，在 Agent 会话中运行 hx-init 初始化项目。
+  `
+}

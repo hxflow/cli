@@ -1,0 +1,28 @@
+# Framework Pipelines
+
+- 这里是框架层 pipeline 目录，也是 pipeline 解析规则的公共约定。
+- pipeline 文件统一采用 `<name>.yaml` 命名，例如 `default.yaml`、`release.yaml`。
+- 查找顺序固定为：
+  - 项目层 `.hx/pipelines/`
+  - 用户层 `~/.hx/pipelines/`
+  - 框架层 `src/pipelines/`
+- 解析时按同名文件取第一个存在的版本，不做多层 merge。
+- pipeline 只定义流程编排，不承载命令正文。
+- 数据结构固定为：
+  - 顶层必须包含 `name` 和 `steps`
+  - `name` 必须是非空字符串
+  - `steps` 必须是非空数组
+- 每个 step 必须包含：
+  - `id`：非空字符串，且在当前 pipeline 内唯一
+  - `name`：非空字符串
+  - `command`：非空字符串，值必须是 `hx-*` 命令名
+- 每个 step 可选包含：
+  - `phase`：展示用字符串
+  - `checkpoint.message`：非空字符串，存在时表示该步骤执行后暂停等待确认
+  - `on_fail`：失败策略，当前只允许 `stop`
+- 约束：
+  - step 顺序即执行顺序
+  - 不允许空 step、匿名 step、重复 `id`
+  - 不允许在 pipeline 中内联命令正文或额外脚本逻辑
+  - 未声明的扩展字段默认不作为公共能力承诺
+- 某个 pipeline 文件不存在时继续回退到下一层；三层都不存在时直接报错。

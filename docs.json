@@ -14,13 +14,6 @@
   }
 ,
   {
-    "name": "TODO",
-    "path": "TODO.md",
-    "type": "md",
-    "category": "根目录"
-  }
-,
-  {
     "name": "hx-extensibility",
     "path": "docs/design/hx-extensibility.md",
     "type": "md",
@@ -37,13 +30,6 @@
   {
     "name": "hx-rules-refactor",
     "path": "docs/design/hx-rules-refactor.md",
-    "type": "md",
-    "category": "docs/design"
-  }
-,
-  {
-    "name": "testing-reference",
-    "path": "docs/design/testing-reference.md",
     "type": "md",
     "category": "docs/design"
   }
@@ -98,156 +84,205 @@
   }
 ,
   {
-    "name": "hx-clean",
-    "path": "src/agents/commands/hx-clean.md",
+    "name": "README",
+    "path": "src/commands/README.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
+  }
+,
+  {
+    "name": "hx-clean",
+    "path": "src/commands/hx-clean.md",
+    "type": "md",
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-ctx",
-    "path": "src/agents/commands/hx-ctx.md",
+    "path": "src/commands/hx-ctx.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-doc",
-    "path": "src/agents/commands/hx-doc.md",
+    "path": "src/commands/hx-doc.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-doctor",
-    "path": "src/agents/commands/hx-doctor.md",
+    "path": "src/commands/hx-doctor.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-fix",
-    "path": "src/agents/commands/hx-fix.md",
+    "path": "src/commands/hx-fix.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-go",
-    "path": "src/agents/commands/hx-go.md",
+    "path": "src/commands/hx-go.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-init",
-    "path": "src/agents/commands/hx-init.md",
+    "path": "src/commands/hx-init.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-issue",
-    "path": "src/agents/commands/hx-issue.md",
+    "path": "src/commands/hx-issue.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-mr",
-    "path": "src/agents/commands/hx-mr.md",
+    "path": "src/commands/hx-mr.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-plan",
-    "path": "src/agents/commands/hx-plan.md",
+    "path": "src/commands/hx-plan.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-qa",
-    "path": "src/agents/commands/hx-qa.md",
+    "path": "src/commands/hx-qa.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-review",
-    "path": "src/agents/commands/hx-review.md",
+    "path": "src/commands/hx-review.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-rules",
-    "path": "src/agents/commands/hx-rules.md",
+    "path": "src/commands/hx-rules.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-run",
-    "path": "src/agents/commands/hx-run.md",
+    "path": "src/commands/hx-run.md",
     "type": "md",
-    "category": "src/agents/commands"
-  }
-,
-  {
-    "name": "hx-setup",
-    "path": "src/agents/commands/hx-setup.md",
-    "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-status",
-    "path": "src/agents/commands/hx-status.md",
+    "path": "src/commands/hx-status.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-uninstall",
-    "path": "src/agents/commands/hx-uninstall.md",
+    "path": "src/commands/hx-uninstall.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
   }
 ,
   {
     "name": "hx-upgrade",
-    "path": "src/agents/commands/hx-upgrade.md",
+    "path": "src/commands/hx-upgrade.md",
     "type": "md",
-    "category": "src/agents/commands"
+    "category": "src/commands"
+  }
+,
+  {
+    "name": "resolution",
+    "path": "src/commands/resolution.md",
+    "type": "md",
+    "category": "src/commands"
+  }
+,
+  {
+    "name": "README",
+    "path": "src/hooks/README.md",
+    "type": "md",
+    "category": "src/hooks"
+  }
+,
+  {
+    "name": "README",
+    "path": "src/pipelines/README.md",
+    "type": "md",
+    "category": "src/pipelines"
+  }
+,
+  {
+    "name": "claude-layered",
+    "path": "src/templates/forwarders/claude-layered.md",
+    "type": "md",
+    "category": "src/templates/forwarders"
+  }
+,
+  {
+    "name": "claude-protected",
+    "path": "src/templates/forwarders/claude-protected.md",
+    "type": "md",
+    "category": "src/templates/forwarders"
+  }
+,
+  {
+    "name": "codex-layered",
+    "path": "src/templates/forwarders/codex-layered.md",
+    "type": "md",
+    "category": "src/templates/forwarders"
+  }
+,
+  {
+    "name": "codex-protected",
+    "path": "src/templates/forwarders/codex-protected.md",
+    "type": "md",
+    "category": "src/templates/forwarders"
   }
 ,
   {
     "name": "golden-rules",
-    "path": "src/templates/golden-rules.md",
+    "path": "src/templates/rules/golden-rules.md",
     "type": "md",
-    "category": "src/templates"
+    "category": "src/templates/rules"
   }
 ,
   {
     "name": "plan-template",
-    "path": "src/templates/plan-template.md",
+    "path": "src/templates/rules/plan-template.md",
     "type": "md",
-    "category": "src/templates"
+    "category": "src/templates/rules"
   }
 ,
   {
     "name": "requirement-template",
-    "path": "src/templates/requirement-template.md",
+    "path": "src/templates/rules/requirement-template.md",
     "type": "md",
-    "category": "src/templates"
+    "category": "src/templates/rules"
   }
 ,
   {
     "name": "review-checklist",
-    "path": "src/templates/review-checklist.md",
+    "path": "src/templates/rules/review-checklist.md",
     "type": "md",
-    "category": "src/templates"
+    "category": "src/templates/rules"
   }
 ]

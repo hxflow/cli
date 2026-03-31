@@ -1,20 +1,28 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { resolve } from 'path'
 
+import { afterEach, describe, expect, it } from 'vitest'
+
 import {
-  HARNESS_MARKER_END,
-  HARNESS_MARKER_START,
-  buildHarnessBlock,
-  escapeRegExp,
   generateCodexSkillFiles,
   generateForwarderFiles,
   loadCommandSpecs,
+  mergeCommandSpecs,
   resolveAgentTargets,
 } from '../../src/scripts/lib/install-utils.js'
 
 const tempDirs = []
+
+function createTempDir(prefix) {
+  const dir = mkdtempSync(resolve(tmpdir(), prefix))
+  tempDirs.push(dir)
+  return dir
+}
+
+function createSummary() {
+  return { created: [], updated: [], removed: [], skipped: [], warnings: [] }
+}
 
 afterEach(() => {
   while (tempDirs.length > 0) {
@@ -22,129 +30,150 @@ afterEach(() => {
   }
 })
 
-function makeTempDir(prefix) {
-  const dir = mkdtempSync(resolve(tmpdir(), prefix))
-  tempDirs.push(dir)
-  return dir
-}
-
-describe('buildHarnessBlock', () => {
-  it('包含开始和结束标记', () => {
-    const block = buildHarnessBlock()
-    expect(block).toContain(HARNESS_MARKER_START)
-    expect(block).toContain(HARNESS_MARKER_END)
-  })
-
-  it('展示 config 与 rules 目录，而不是 profile', () => {
-    const block = buildHarnessBlock({
-      requirementDoc: '业务线/香港/需求/{feature}/资料/需求.md',
-      planDoc: '业务线/香港/需求/{feature}/任务/{taskId}/任务执行.md',
-    })
-
-    expect(block).toContain('配置: `.hx/config.yaml`')
-    expect(block).toContain('规则目录: `.hx/rules/`')
-    expect(block).toContain('需求文档: `业务线/香港/需求/{feature}/资料/`')
-    expect(block).toContain('执行计划: `业务线/香港/需求/{feature}/任务/{taskId}/`')
-    expect(block).not.toContain('Profile:')
-  })
-})
-
-describe('escapeRegExp', () => {
-  it('marker 字符串可以安全用于 RegExp', () => {
-    const escaped = escapeRegExp(HARNESS_MARKER_START)
-    expect(() => new RegExp(escaped)).not.toThrow()
-  })
-})
-
-describe('resolveAgentTargets', () => {
-  it('默认返回全部 agent', () => {
+describe('install-utils', () => {
+  it('resolves agent targets and rejects invalid values', () => {
     expect(resolveAgentTargets()).toEqual(['claude', 'codex'])
-  })
-
-  it('支持单个 agent 和逗号分隔 agent', () => {
     expect(resolveAgentTargets('claude')).toEqual(['claude'])
-    expect(resolveAgentTargets('codex')).toEqual(['codex'])
-    expect(resolveAgentTargets('claude,codex')).toEqual(['claude', 'codex'])
+    expect(resolveAgentTargets('codex,claude,codex')).toEqual(['codex', 'claude'])
+    expect(() => resolveAgentTargets('claude,unknown')).toThrow('无效的 agent')
   })
-})
 
-describe('loadCommandSpecs', () => {
-  it('解析命令 frontmatter', () => {
-    const sourceDir = makeTempDir('spec-src-')
-    writeFileSync(resolve(sourceDir, 'hx-run.md'), [
+  it('loads command specs from frontmatter and merges with protected precedence', () => {
+    const frameworkDir = createTempDir('hx-framework-commands-')
+    const userDir = createTempDir('hx-user-commands-')
+    const projectDir = createTempDir('hx-project-commands-')
+
+    writeFileSync(resolve(frameworkDir, 'hx-init.md'), [
       '---',
-      'name: hx-run',
-      'description: Phase 04 · 执行任务',
-      'usage: hx-run [<feature-key>] [--task <task-id>]',
-      'claude: /hx-run',
-      'codex: hx-run',
+      'name: hx-init',
+      'description: Framework Init',
+      'protected: true',
       '---',
       '',
-      '# hx-run',
-      ''
-    ].join('\n'), 'utf8')
-
-    const specs = loadCommandSpecs(sourceDir)
-    expect(specs[0]).toMatchObject({
-      name: 'hx-run',
-      usage: 'hx-run [<feature-key>] [--task <task-id>]',
-      claude: '/hx-run',
-      codex: 'hx-run',
-    })
-  })
-})
-
-describe('generateForwarderFiles', () => {
-  it('为 sourceDir 中每个 hx-*.md 创建转发器文件', () => {
-    const sourceDir = makeTempDir('gen-src-')
-    const targetDir = makeTempDir('gen-dst-')
-    writeFileSync(resolve(sourceDir, 'hx-run.md'), '# hx-run entity', 'utf8')
-    writeFileSync(resolve(sourceDir, 'hx-plan.md'), '# hx-plan entity', 'utf8')
-
-    const summary = { created: [], updated: [], skipped: [], warnings: [] }
-    generateForwarderFiles(sourceDir, targetDir, '/fw', '/user-hx', summary, {})
-
-    expect(existsSync(resolve(targetDir, 'hx-run.md'))).toBe(true)
-    expect(existsSync(resolve(targetDir, 'hx-plan.md'))).toBe(true)
-    expect(summary.created).toContain('~/.claude/commands/hx-run.md')
-  })
-
-  it('转发器内容包含项目层、用户层和系统层路径', () => {
-    const sourceDir = makeTempDir('gen-content-src-')
-    const targetDir = makeTempDir('gen-content-dst-')
-    writeFileSync(resolve(sourceDir, 'hx-run.md'), '# hx-run', 'utf8')
-
-    const summary = { created: [], updated: [], skipped: [], warnings: [] }
-    generateForwarderFiles(sourceDir, targetDir, '/framework', '/user-hx', summary, {})
-
-    const content = readFileSync(resolve(targetDir, 'hx-run.md'), 'utf8')
-    expect(content).toContain('.hx/commands/hx-run.md')
-    expect(content).toContain('/user-hx/commands/hx-run.md')
-    expect(content).toContain('/framework')
-  })
-})
-
-describe('generateCodexSkillFiles', () => {
-  it('生成 codex skill 文件，并指向三层命令来源', () => {
-    const sourceDir = makeTempDir('skill-src-')
-    const targetDir = makeTempDir('skill-dst-')
-    writeFileSync(resolve(sourceDir, 'hx-run.md'), [
+      '# init',
+      '',
+    ].join('\n'))
+    writeFileSync(resolve(frameworkDir, 'hx-doc.md'), [
       '---',
-      'name: hx-run',
-      'description: Phase 04 · 执行任务',
-      'usage: hx-run [<feature-key>] [--task <task-id>]',
-      'claude: /hx-run',
-      'codex: hx-run',
-      '---'
-    ].join('\n'), 'utf8')
+      'description: Framework Doc',
+      '---',
+      '',
+      '# doc',
+      '',
+    ].join('\n'))
+    writeFileSync(resolve(userDir, 'hx-doc.md'), [
+      '---',
+      'description: User Doc',
+      '---',
+      '',
+      '# doc',
+      '',
+    ].join('\n'))
+    writeFileSync(resolve(projectDir, 'hx-doc.md'), [
+      '---',
+      'description: Project Doc',
+      '---',
+      '',
+      '# doc',
+      '',
+    ].join('\n'))
+    writeFileSync(resolve(projectDir, 'notes.md'), '# ignore\n')
 
-    const summary = { created: [], updated: [], skipped: [], warnings: [] }
-    generateCodexSkillFiles(sourceDir, targetDir, '/framework', '/user-hx', summary, {
-      createDir: true
-    })
+    const merged = mergeCommandSpecs(
+      loadCommandSpecs(frameworkDir),
+      loadCommandSpecs(userDir),
+      loadCommandSpecs(projectDir)
+    )
 
-    const content = readFileSync(resolve(targetDir, 'hx-run', 'SKILL.md'), 'utf8')
-    expect(content).toContain('/user-hx/commands/hx-run.md')
-    expect(content).toContain('/framework/agents/commands/hx-run.md')
+    expect(merged).toEqual([
+      { name: 'hx-doc', description: 'Project Doc', protected: false },
+      { name: 'hx-init', description: 'Framework Init', protected: true },
+    ])
+  })
+
+  it('generates forwarder and codex files from templates', () => {
+    const targetDir = createTempDir('hx-adapter-target-')
+    const codexDir = createTempDir('hx-codex-target-')
+    const frameworkRoot = resolve(process.cwd(), 'src')
+    const userHxDir = '/tmp/hx-user'
+    const summary = createSummary()
+    const codexSummary = createSummary()
+    const specs = [
+      { name: 'hx-doc', description: 'Doc Command', protected: false },
+      { name: 'hx-init', description: 'Init Command', protected: true },
+    ]
+
+    generateForwarderFiles(specs, targetDir, frameworkRoot, userHxDir, summary, { createDir: true })
+    generateCodexSkillFiles(specs, codexDir, frameworkRoot, userHxDir, codexSummary, { createDir: true })
+
+    const forwarder = readFileSync(resolve(targetDir, 'hx-doc.md'), 'utf8')
+    const protectedForwarder = readFileSync(resolve(targetDir, 'hx-init.md'), 'utf8')
+    const codexSkill = readFileSync(resolve(codexDir, 'hx-doc', 'SKILL.md'), 'utf8')
+    const protectedCodexSkill = readFileSync(resolve(codexDir, 'hx-init', 'SKILL.md'), 'utf8')
+
+    expect(forwarder).toContain('hx-forwarder: hx-doc')
+    expect(forwarder).toContain('按以下优先级找到第一个存在的文件')
+    expect(forwarder).toContain('`.hx/config.yaml` 或 `.git`')
+    expect(forwarder).toContain('`/tmp/hx-user/commands/hx-doc.md`')
+    expect(forwarder).toContain(`\`${frameworkRoot}/commands/hx-doc.md\``)
+    expect(forwarder).toContain('`/tmp/hx-user/commands/hx-doc.md`')
+    expect(forwarder).toContain('`<项目根>/.hx/commands/hx-doc.md`')
+    expect(forwarder).not.toContain('protected: 此命令由框架锁定')
+    expect(protectedForwarder).toContain('protected: 此命令由框架锁定')
+    expect(protectedForwarder).toContain(`\`${frameworkRoot}/commands/hx-init.md\``)
+    expect(protectedForwarder).not.toContain('/tmp/hx-user/commands/hx-init.md')
+    expect(protectedForwarder).not.toContain('<项目根>/.hx/commands/hx-init.md')
+    expect(codexSkill).toContain('hx-skill: hx-doc')
+    expect(codexSkill).toContain('name: hx-doc')
+    expect(codexSkill).toContain('按以下优先级找到第一个存在的文件')
+    expect(codexSkill).toContain(`\`${frameworkRoot}/commands/hx-doc.md\``)
+    expect(protectedCodexSkill).toContain('hx-skill: hx-init')
+    expect(protectedCodexSkill).toContain('protected: 此命令由框架锁定')
+    expect(protectedCodexSkill).toContain(`\`${frameworkRoot}/commands/hx-init.md\``)
+    expect(protectedCodexSkill).not.toContain('/tmp/hx-user/commands/hx-init.md')
+    expect(codexSummary.created).toContain('~/.codex/skills/hx-doc/SKILL.md')
+  })
+
+  it('skips writing unchanged adapter files', () => {
+    const targetDir = createTempDir('hx-forwarder-repeat-')
+    const frameworkRoot = resolve(process.cwd(), 'src')
+    const userHxDir = '/tmp/hx-user'
+    const spec = [{ name: 'hx-doc', description: 'Doc Command', protected: false }]
+
+    generateForwarderFiles(spec, targetDir, frameworkRoot, userHxDir, createSummary(), { createDir: true })
+    const secondSummary = createSummary()
+    generateForwarderFiles(spec, targetDir, frameworkRoot, userHxDir, secondSummary, { createDir: true })
+
+    expect(secondSummary.skipped).toContain('~/.claude/commands/hx-doc.md (无变化)')
+  })
+
+  it('prunes stale managed adapter files for removed commands', () => {
+    const targetDir = createTempDir('hx-forwarder-stale-')
+    const codexDir = createTempDir('hx-codex-stale-')
+    const frameworkRoot = resolve(process.cwd(), 'src')
+    const userHxDir = '/tmp/hx-user'
+    const specs = [{ name: 'hx-doc', description: 'Doc Command', protected: false }]
+    const forwarderSummary = createSummary()
+    const codexSummary = createSummary()
+
+    writeFileSync(
+      resolve(targetDir, 'hx-setup.md'),
+      '<!-- hx-forwarder: hx-setup — 由 hx setup 自动生成，请勿手动修改 -->\n',
+      'utf8'
+    )
+    mkdirSync(resolve(codexDir, 'hx-setup'), { recursive: true })
+    writeFileSync(
+      resolve(codexDir, 'hx-setup', 'SKILL.md'),
+      '<!-- hx-skill: hx-setup — 由 hx setup 自动生成，请勿手动修改 -->\n',
+      'utf8'
+    )
+
+    generateForwarderFiles(specs, targetDir, frameworkRoot, userHxDir, forwarderSummary, { createDir: true })
+    generateCodexSkillFiles(specs, codexDir, frameworkRoot, userHxDir, codexSummary, { createDir: true })
+
+    expect(forwarderSummary.removed).toContain('~/.claude/commands/hx-setup.md')
+    expect(codexSummary.removed).toContain('~/.codex/skills/hx-setup/')
+    expect(() => readFileSync(resolve(targetDir, 'hx-setup.md'), 'utf8')).toThrow()
+    expect(() => readFileSync(resolve(codexDir, 'hx-setup', 'SKILL.md'), 'utf8')).toThrow()
   })
 })

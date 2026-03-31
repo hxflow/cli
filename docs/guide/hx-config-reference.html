@@ -31,7 +31,7 @@
   <a href="#precedence"><span class="nav-num">E1</span><span>优先级与入口</span></a>
   <a href="#schema"><span class="nav-num">E2</span><span>配置字段</span></a>
   <a href="#paths"><span class="nav-num">E3</span><span>路径模板</span></a>
-  <a href="#hooks"><span class="nav-num">E4</span><span>Hook 配置</span></a>
+  <a href="#hooks"><span class="nav-num">E4</span><span>Hook 规则</span></a>
   <a href="#project-rules"><span class="nav-num">E5</span><span>项目规则</span></a>
   <a href="#compat"><span class="nav-num">E6</span><span>排错</span></a>
   <div class="nav-group">链接</div>
@@ -46,15 +46,15 @@
     <div class="hero-inner">
       <div class="hero-tag">HXFLOW · CONFIGURATION</div>
       <h1 class="hero-title">配置参考</h1>
-      <p class="hero-sub">说明配置入口、字段定义、合并策略、Hook 加载顺序和项目规则文件。</p>
+      <p class="hero-sub">说明用户级 settings、项目级 config、字段定义、Hook 命名与查找规则，以及项目规则文件。</p>
       <div class="hero-actions">
         <a class="btn-primary" href="#schema">字段定义</a>
         <a class="btn-ghost" href="hx-command-index.html">命令索引</a>
       </div>
       <div class="hero-stats">
-        <div class="metric"><div class="metric-value">3</div><div class="metric-label">配置层级</div></div>
-        <div class="metric"><div class="metric-value">6</div><div class="metric-label">paths 字段</div></div>
-        <div class="metric"><div class="metric-value">1</div><div class="metric-label">字段级深合并</div></div>
+        <div class="metric"><div class="metric-value">2</div><div class="metric-label">正式配置入口</div></div>
+        <div class="metric"><div class="metric-value">4</div><div class="metric-label">paths 字段</div></div>
+        <div class="metric"><div class="metric-value">3</div><div class="metric-label">资源覆盖层级</div></div>
       </div>
     </div>
   </header>
@@ -64,27 +64,27 @@
       <div class="wrap">
         <div class="section-tag">Precedence</div>
         <h2 class="section-title">配置入口与优先级</h2>
-        <p class="section-desc">CLI 会合并用户级与项目级配置。</p>
+        <p class="section-desc">用户级 settings 和项目级 config 是两套独立入口，不做字段合并。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">配置文件</div>
             <h3 class="card-title">两个正式入口</h3>
-            <pre><code>~/.hx/config.yaml
+            <pre><code>~/.hx/settings.yaml
 &lt;project&gt;/.hx/config.yaml</code></pre>
-            <p class="card-body">前者承载跨项目默认值，后者承载项目级覆盖。</p>
+            <p class="card-body">前者承载用户级安装设置，后者承载项目级运行时配置。</p>
           </article>
           <article class="card">
             <div class="card-meta">优先级</div>
-            <h3 class="card-title">合并顺序</h3>
-            <pre><code>内置默认值
-→ ~/.hx/config.yaml
-→ &lt;project&gt;/.hx/config.yaml</code></pre>
-            <p class="card-body">项目级覆盖用户级，用户级覆盖框架默认值。</p>
+            <h3 class="card-title">资源解析顺序</h3>
+            <pre><code>项目级 commands/hooks/pipelines
+→ 用户级 commands/hooks/pipelines
+→ 框架内置资源</code></pre>
+            <p class="card-body">commands / hooks / pipelines 命中即停止；<code>~/.hx/settings.yaml</code> 不参与项目配置合并。</p>
           </article>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>合并策略：</strong>各字段深合并（deep merge），数组整体覆盖。</div>
+          <div><strong>边界：</strong><code>~/.hx/settings.yaml</code> 只记录安装级设置；项目运行时事实由 <code>.hx/config.yaml</code> 维护。</div>
         </div>
       </div>
     </section>
@@ -93,13 +93,13 @@
       <div class="wrap">
         <div class="section-tag">Schema</div>
         <h2 class="section-title"><code>.hx/config.yaml</code> 核心字段</h2>
-        <p class="section-desc">核心字段如下。</p>
+        <p class="section-desc">项目级 <code>.hx/config.yaml</code> 当前只维护 <code>paths</code> 和 <code>gates</code> 两组字段。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">object</div>
-            <h3 class="card-title"><code>gate_commands</code></h3>
-            <p class="card-body">定义质量门控命令，按 <code>lint → build → type → test</code> 顺序执行。只执行已定义的步骤。</p>
-            <pre><code>gate_commands:
+            <h3 class="card-title"><code>gates</code></h3>
+            <p class="card-body">定义质量门命令，按 <code>lint → build → type → test</code> 顺序执行。留空表示当前项目未启用该检查项。</p>
+            <pre><code>gates:
   lint: npm run lint
   type: npm run type-check
   test: npm run test</code></pre>
@@ -112,19 +112,7 @@
   src: app                           # 源码目录（默认 src）
   requirementDoc: docs/req/{feature}.md   # 需求文档模板
   planDoc: docs/plans/{feature}.md        # 执行计划模板
-  progressFile: docs/plans/{feature}-progress.json  # 进度文件模板
-  taskDoc: 业务线/{feature}/任务/{taskId}/执行.md    # 任务文档模板（可选）</code></pre>
-          </article>
-          <article class="card">
-            <div class="card-meta">object</div>
-            <h3 class="card-title"><code>hooks</code></h3>
-            <p class="card-body">显式声明要注入的 Hook 文件。</p>
-            <pre><code>hooks:
-  run:
-    pre:
-      - .hx/hooks/extra.md
-    post:
-      - ~/.hx/hooks/review-extra.md</code></pre>
+  progressFile: docs/plans/{feature}-progress.json  # 进度文件模板</code></pre>
           </article>
         </div>
       </div>
@@ -142,7 +130,6 @@
             <pre><code>requirementDoc → docs/requirement/{feature}.md
 planDoc        → docs/plans/{feature}.md
 progressFile   → docs/plans/{feature}-progress.json
-taskDoc        → （无默认，可选）
 src            → src</code></pre>
           </article>
           <article class="card">
@@ -150,8 +137,8 @@ src            → src</code></pre>
             <h3 class="card-title">推荐显式写出最终值</h3>
             <pre><code>paths:
   requirementDoc: 需求/{feature}.md
-  taskDoc: 任务/{feature}/{taskId}/执行.md</code></pre>
-            <p class="card-body">当前实现会在 <code>.hx/config.yaml</code> 中显式写出默认配置和样板入口；CLI 与 <code>CLAUDE.md</code> 注入块都会按最终合并后的 paths 展示真实目录。</p>
+  planDoc: 计划/{feature}.md</code></pre>
+            <p class="card-body">当前实现会在 <code>.hx/config.yaml</code> 中显式写出最终值；命令运行时直接按这些路径模板定位需求、计划和进度文件。</p>
           </article>
         </div>
         <div class="callout warn">
@@ -164,39 +151,40 @@ src            → src</code></pre>
     <section id="hooks">
       <div class="wrap">
         <div class="section-tag">Hooks</div>
-        <h2 class="section-title">Hook 配置</h2>
-        <p class="section-desc">Hook 支持约定式和配置式两种定义方式。</p>
+        <h2 class="section-title">Hook 规则</h2>
+        <p class="section-desc">Hook 不再写在 <code>.hx/config.yaml</code> 中，而是由命令 frontmatter 和固定文件命名共同决定。</p>
         <div class="grid grid-2">
           <article class="card">
-            <div class="card-meta">约定式</div>
-            <h3 class="card-title">文件存在即加载</h3>
-            <pre><code>~/.hx/hooks/run-pre.md
-~/.hx/hooks/run-post.md
-.hx/hooks/run-pre.md
-.hx/hooks/run-post.md</code></pre>
-            <p class="card-body">配置成本较低。</p>
+            <div class="card-meta">启用条件</div>
+            <h3 class="card-title">由命令 frontmatter 声明支持</h3>
+            <pre><code>---
+name: hx-run
+hooks:
+  - pre
+  - post
+---</code></pre>
+            <p class="card-body">只有命令 frontmatter 声明了 <code>hooks</code>，运行时才会去查找对应的 Hook 文件。</p>
           </article>
           <article class="card">
-            <div class="card-meta">配置式</div>
-            <h3 class="card-title">显式列出文件路径</h3>
-            <pre><code>hooks:
-  doc:
-    pre:
-      - .hx/hooks/doc-pre.md
-  run:
-    post:
-      - ~/.hx/hooks/style-extra.md</code></pre>
-            <p class="card-body">用于精确控制命令粒度。</p>
+            <div class="card-meta">命名规则</div>
+            <h3 class="card-title">按阶段和命令名查找</h3>
+            <pre><code>.hx/hooks/pre_run.md
+.hx/hooks/post_run.md
+~/.hx/hooks/pre_run.md
+~/.hx/hooks/post_run.md
+src/hooks/pre_run.md
+src/hooks/post_run.md</code></pre>
+            <p class="card-body">命名规则见 <code>src/hooks/README.md</code>，查找顺序固定为项目层 → 用户层 → 框架层。</p>
           </article>
         </div>
-        <pre><code>最终加载顺序:
-全局约定 Hook
-→ 项目约定 Hook
-→ hooks.&lt;command&gt;.&lt;phase&gt; 中声明的数组
+        <pre><code>启用逻辑:
+读取命令 frontmatter 中的 hooks
+→ 对每个已声明阶段查找 pre_&lt;command&gt;.md / post_&lt;command&gt;.md
+→ 项目层 → 用户层 → 框架层
 
-输出拼接方式:
+拼接顺序:
 Pre Hook
-→ 主 Prompt
+→ 主命令正文
 → Post Hook</code></pre>
       </div>
     </section>
@@ -212,7 +200,7 @@ Pre Hook
           <article class="card">
             <div class="card-meta">初始化</div>
             <h3 class="card-title">由 <code>/hx-init</code> 生成骨架</h3>
-            <p class="card-body"><code>/hx-init</code> 分析项目结构后，将 <code>src/templates/</code> 中的规则骨架渲染到 <code>.hx/rules/</code>。生成的文件分为自动区和手动区，以注释分隔。</p>
+            <p class="card-body"><code>/hx-init</code> 分析项目结构后，直接写入项目级规则起始文件到 <code>.hx/rules/</code>。生成的文件分为 <code>hx:auto</code> 区和 <code>hx:manual</code> 区。</p>
           </article>
           <article class="card">
             <div class="card-meta">手动区永久保留</div>
@@ -232,7 +220,7 @@ Pre Hook
       <div class="wrap">
         <div class="section-tag">Troubleshooting</div>
         <h2 class="section-title">排错</h2>
-        <p class="section-desc">排查问题时优先检查配置优先级、Profile 搜索根和文档路径模板。</p>
+        <p class="section-desc">排查问题时优先检查项目根、路径模板、命令解析和 Hook / pipeline 文件位置。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">有效入口</div>
@@ -247,7 +235,8 @@ Pre Hook
             <h3 class="card-title">检查项</h3>
             <div class="note-list">
               <p>最终生效的是用户级还是项目级配置。</p>
-              <p>Hook 文件是否在被查找的根目录中。</p>
+              <p>Hook 文件是否按 <code>pre_&lt;command&gt;.md</code> / <code>post_&lt;command&gt;.md</code> 命名。</p>
+              <p>当前命令 frontmatter 是否声明了 <code>hooks</code>。</p>
               <p><code>paths.requirementDoc</code>、<code>paths.planDoc</code> 与项目实际目录是否一致。</p>
               <p>运行 <code>hx doctor</code> 快速检测所有配置问题。</p>
             </div>

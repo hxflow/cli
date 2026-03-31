@@ -5,69 +5,74 @@
  *
  * 内置命令:
  *   hx setup [--dry-run]
- *   hx upgrade [--target <dir>] [--dry-run]
- *   hx uninstall [--target <dir>] [--yes] [--dry-run]
- *   hx doctor
  *   hx version
  *
- * 自定义工作流:
- *   在 .hx/commands/ 中创建 <name>.md，运行 hx upgrade 后即可被 Claude/Codex 适配层发现
- *   同名文件会覆盖框架内置的 hx-* 命令 contract
- *
- * 工作流命令（Canonical contract）:
- *   hx-init  hx-doc  hx-plan  hx-ctx  hx-run  hx-qa  hx-review  hx-fix
- *   hx-clean  hx-mr  hx-status  hx-go  hx-rules  hx-upgrade
+ * 其他 hx-* 能力通过 agent 命令 contract 提供，不是本地 Node 子命令。
  */
 
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { existsSync, readFileSync } from 'fs'
+import {
+  BUILTIN_CLI_COMMANDS,
+  loadCommandSpecs,
+  mergeCommandSpecs,
+} from '../src/scripts/lib/install-utils.js'
+import { USER_HX_DIR, findProjectRoot } from '../src/scripts/lib/resolve-context.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCRIPTS_DIR = resolve(__dirname, '..', 'src', 'scripts')
-
-// ── 帮助信息 ──
+const FRAMEWORK_COMMAND_DIR = resolve(__dirname, '..', 'src', 'commands')
+const PACKAGE_JSON_PATH = resolve(__dirname, '..', 'package.json')
+const BUILTIN_SCRIPTS = {
+  setup: 'hx-setup.js',
+}
+const projectRoot = findProjectRoot(process.cwd())
+const installedCommandSpecs = mergeCommandSpecs(
+  loadCommandSpecs(FRAMEWORK_COMMAND_DIR),
+  loadCommandSpecs(resolve(USER_HX_DIR, 'commands')),
+  loadCommandSpecs(resolve(projectRoot, '.hx', 'commands'))
+)
+const installedCommandNames = new Set(installedCommandSpecs.map((spec) => spec.name))
 
 function printHelp() {
+  const contractList = formatCommandList(installedCommandSpecs.map((spec) => spec.name))
+
   console.log(`
   Harness Workflow CLI
 
   用法: hx <command> [options]
 
   内置命令:
-    setup     全局安装框架文件到 ~/.hx/，并生成 Claude/Codex 适配层（首次使用必跑）
-    upgrade   升级命令文件；同步 .hx/commands/ 中的自定义覆盖
-    uninstall 移除安装痕迹
-    doctor    健康检测（环境、安装、项目配置）
+    setup     手动重跑全局安装/修复 ~/.hx 与 Claude/Codex 适配层
+    version   输出当前 CLI 版本
 
   自定义工作流:
-    在 .hx/commands/<name>.md 中编写 prompt-first 命令定义
-    Claude 使用 /hx-*；Codex 使用 hx-*；两边共享同一份命令 contract
+    共享命令放在 ~/.hx/commands/hx-*.md，执行 hx setup 后生成适配层
+    项目级 .hx/commands/hx-*.md 只负责覆盖同名 contract
+    Claude 使用 /hx-*；Codex 使用 hx-*；除 setup / version 外，其余 hx-* 都不是本地 Node 子命令
+
+  当前可见命令 contract:
+${contractList}
 
   全局选项:
     --help    显示帮助
 
   示例:
-    hx setup                     # 首次安装
-    hx upgrade                   # 升级 + 同步自定义命令
-    hx doctor                    # 检查环境健康状态
+    npm install -g @hxflow/cli   # 安装后自动完成 setup
+    hx setup                     # 手动修复安装产物
+    hx version                   # 查看版本
   `)
 }
 
-// ── 版本 ──
-
 function printVersion() {
   try {
-    const pkg = JSON.parse(
-      readFileSync(resolve(__dirname, '..', 'package.json'), 'utf8')
-    )
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'))
     console.log(`hx v${pkg.version}`)
   } catch {
     console.log('hx v1.0.0')
   }
 }
-
-// ── 主流程 ──
 
 const args = process.argv.slice(2)
 const command = args[0]
@@ -82,27 +87,36 @@ if (command === 'version' || command === '--version' || command === '-v') {
   process.exit(0)
 }
 
-const BUILTIN_SCRIPTS = {
-  setup:     'hx-setup.js',
-  upgrade:   'hx-upgrade.js',
-  uninstall: 'hx-uninstall.js',
-  doctor:    'hx-doctor.js',
-}
-
 const script = BUILTIN_SCRIPTS[command]
 
 if (!script) {
-  const CANONICAL_COMMANDS = ['hx-init', 'hx-doc', 'hx-plan', 'hx-ctx', 'hx-run', 'hx-qa', 'hx-review', 'hx-fix', 'hx-clean', 'hx-mr', 'hx-status', 'hx-go', 'hx-rules', 'hx-upgrade', 'hx-setup', 'hx-uninstall', 'hx-doctor']
-  const legacyCommands = ['init', 'doc', 'plan', 'ctx', 'run', 'qa', 'review', 'fix', 'clean', 'mr', 'status', 'go']
-  if (CANONICAL_COMMANDS.includes(command)) {
+  if (installedCommandNames.has(command)) {
     console.error(`  "${command}" 是 agent 命令 contract。Claude 使用 "/${command}"，Codex 使用 "${command}"。`)
-  } else if (legacyCommands.includes(command)) {
-    console.error(`  "${command}" 是旧式短命令。Claude 使用 "/hx-${command}"，Codex 使用 "hx-${command}"。`)
   } else {
-    console.error(`  未知命令: ${command}`)
-    console.error(`  自定义工作流：在 .hx/commands/${command}.md 中编写指令，运行 hx upgrade 后供 Claude/Codex 适配层使用`)
+    printUnknownCommand(command)
   }
   process.exit(1)
+}
+
+function formatCommandList(commands) {
+  if (commands.length === 0) {
+    return '    (未发现命令 contract)'
+  }
+
+  const lines = []
+
+  for (let index = 0; index < commands.length; index += 4) {
+    lines.push(`    ${commands.slice(index, index + 4).join('  ')}`)
+  }
+
+  return lines.join('\n')
+}
+
+function printUnknownCommand(commandName) {
+  console.error(`  未知命令: ${commandName}`)
+  console.error('  新增共享命令：在 ~/.hx/commands/hx-*.md 中编写 contract 后运行 hx setup 安装适配层')
+  console.error(`  项目级覆写：在 ${projectRoot}/.hx/commands/ 中放同名 hx-*.md`)
+  console.error(`  当前 CLI 仅直接执行: ${BUILTIN_CLI_COMMANDS.join(', ')}`)
 }
 
 const scriptPath = resolve(SCRIPTS_DIR, script)

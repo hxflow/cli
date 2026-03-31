@@ -11,8 +11,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const HX_CONFIG_FILE = '.hx/config.yaml'
 
-/** 框架自身的根目录（scripts/lib/ 向上两级） */
+/** 框架源码根目录（src/） */
 export const FRAMEWORK_ROOT = resolve(__dirname, '../..')
+
+/** 已安装包根目录 */
+export const PACKAGE_ROOT = resolve(__dirname, '../../..')
 
 /** 用户全局 hx 目录 */
 export const USER_HX_DIR = resolve(homedir(), '.hx')

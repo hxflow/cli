@@ -1,190 +1,152 @@
-# hx 可扩展性设计文档
+# hx 可扩展性设计
 
-> 状态：部分已实现（AI-first 重构后方案有调整）
-> 原始日期：2026-03-25 · 更新：2026-03-26
-
----
-
-## 背景与目标
-
-hx 目前是「框架驱动用户」——用户必须按 hx 的目录结构、文档格式、命令顺序来。
-
-目标改为「框架适配用户」——用户已有的文档体系、命令习惯、工作流程，hx 去适配。
-
-### 典型迁移场景
-
-- Go 后端团队，已有完善的 Skill-based 工作流
-- 任务单格式：`业务线/香港/需求/<需求>/任务/TS-46852-<名>/任务执行.md`（需求 + 计划 + 测试用例三合一）
-- 18 个自定义 Skill 覆盖完整开发链路
-- DevOps 任务 ID 格式：`TS-\d+`，非 hx 默认的 `TASK-XX-NN`
-
-最小迁移成本：只需新建 `.hx/config.yaml` + `.hx/rules/*.md`，不改现有目录结构和 Skill。
+> 状态：部分已实现
+> 日期：2026-03-30
+> 类型：实现对齐文档
 
 ---
 
-## 架构调整说明（AI-first 重构）
+## 目标
 
-原设计依赖 CLI 脚本处理路径解析、命令覆写、流水线执行。
-重构后改为 **Agent-as-executor 模式**：路径解析、命令路由、流水线执行全部由 Claude 或 Codex 在运行时完成，无需对应的 JS 实现。
+当前项目的扩展性目标是：
 
-| 原设计 | 实际实现 |
-|--------|---------|
-| `path-pattern.js` 路径解析 | Agent 读取 `paths.*` 模板，运行时替换变量 |
-| `command-resolver.js` 命令覆写链 | 转发器（`~/.claude/commands/hx-*.md`）三层路由 |
-| `yaml-executor.js` + `hx-pipeline.js` | `/hx-go` + `src/pipelines/default.yaml` |
-| `next-step-resolver.js` 下一步提示 | 内联在各 `hx-*` Agent 命令中 |
-| `hx-agent-run.js`、`hx-new-doc.js` 等 CLI 脚本 | 删除，由 Agent 命令直接执行 |
+- 让项目保留自己的目录结构和文档路径
+- 让用户或项目可以覆盖默认命令与流水线
+- 让规则生成尽量依赖项目现状，而不是要求项目适配框架内部约定
+
+这套能力已经落到三层结构与项目初始化机制中，而不是额外的执行引擎。
 
 ---
 
-## Layer 1 · paths 路径配置 ✅ 已实现
+## 当前可扩展层
 
-### 实现方式
+### Layer 1 · 路径模板
 
-路径配置字段写入 `.hx/config.yaml`，Agent 命令运行时读取并替换 `{feature}`、`{taskId}` 占位符。
+路径模板通过 `.hx/config.yaml` 的 `paths.*` 配置控制：
 
-```yaml
-# .hx/config.yaml
-paths:
-  requirementDoc: 业务线/香港/需求/{feature}/资料/需求.md
-  planDoc: 业务线/香港/需求/{feature}/任务/{taskId}/任务执行.md
-  progressFile: 业务线/香港/需求/{feature}/progress.json
-  taskDoc: 业务线/香港/需求/{feature}/任务/{taskId}/任务执行.md  # 可选
-  src: src
+- `paths.src`
+- `paths.requirementDoc`
+- `paths.planDoc`
+- `paths.progressFile`
+
+当前行为：
+
+- `hx-init` 会扫描项目并写入默认值
+- 若项目已有配置，则只补全缺失字段
+- 默认模板会根据现有目录信号在 `docs/requirement`、`docs/req`、`workflow/requirements` 等路径间做保守选择
+
+### Layer 2 · 规则文件
+
+规则文件位于 `.hx/rules/`，由 `hx-init` 与 `hx-rules update` 统一管理。
+
+扩展方式：
+
+- 自动区由脚本生成
+- 人工区由项目长期维护
+
+这保证了项目可以在不改脚本的前提下沉淀自己的长期规则。
+
+### Layer 3 · Hook 扩展
+
+项目级 Hook 放在：
+
+- `.hx/hooks/`
+
+当前配置入口为 `.hx/config.yaml` 中的：
+
+- `hooks.doc`
+- `hooks.plan`
+- `hooks.run`
+- `hooks.review`
+- `hooks.fix`
+- `hooks.clean`
+- `hooks.mr`
+
+脚本会补齐这些键，但不为项目强行写入实际 hook 内容。
+
+### Layer 4 · 命令覆写
+
+命令覆写采用三层优先级：
+
+```text
+<project>/.hx/commands/<cmd>.md
+~/.hx/commands/<cmd>.md
+<frameworkRoot>/agents/commands/<cmd>.md
 ```
 
-### 路径模板变量
+当前实现：
 
-| 变量 | 来源 |
-|---|---|
-| `{feature}` | 当前需求的内部 `feature key` |
-| `{taskId}` | 当前任务的 `task id` |
+- 转发器由 `hx setup` 生成
+- Claude 与 Codex 都通过同一套命令契约路由
+- 项目可以直接放同名命令覆盖框架默认行为
 
-### `/hx-init` 自动推断
+### Layer 5 · Pipeline 覆写
 
-`/hx-init` 会扫描项目目录，自动检测现有文档路径模式，并把最终生效的默认值或自定义值显式写入 `.hx/config.yaml`。
+流水线同样采用三层优先级：
 
-### 待完善
+```text
+<project>/.hx/pipelines/<name>.yaml
+~/.hx/pipelines/<name>.yaml
+<frameworkRoot>/pipelines/<name>.yaml
+```
 
-- `config.yaml` 中的 `task_id_format`（自定义任务 ID 格式，如 `TS-\d+`）还未支持
-- `progress_tracking: false` 模式（完全依赖 taskDoc，不生成 progress.json）还未支持
+当前默认流水线定义位于：
+
+- `src/pipelines/default.yaml`
+
+`hx-go` 只按 pipeline 做调度，不额外引入新的执行语法。
 
 ---
 
-## Layer 2 · 命令增强
+## 当前已实现能力
 
-### 2a · 下一步提示 ✅ 已实现
+当前仓库已经具备：
 
-各 `hx-*` Agent 命令完成后内联输出下一步提示，例如：
-
-```
-✓ /hx-doc user-login 完成
-  <requirementDoc for user-login>
-
-下一步：/hx-plan user-login
-```
-
-无需独立的 `next-step-resolver.js`，Agent 命令自行处理。
-
-### 2b · /hx-status ✅ 已实现
-
-查看任务进度的 Agent 命令，支持无参数（汇总所有 feature）和指定 feature（列出详细任务状态）。
-
-```
-── user-login ──────────────────────────────
-   [████████░░]  4/5 完成
-   下一个: TASK-BE-05 — 集成测试
-
-下一步: /hx-run user-login
-```
-
-实体文件：`src/agents/commands/hx-status.md`
+- 项目初始化契约：`src/commands/hx-init.md`
+- 规则刷新契约：`src/commands/hx-rules.md`
+- 全局安装与转发器生成：`src/scripts/hx-setup.js`
+- 命令契约入口：`src/commands/hx-*.md`
+- 默认流水线：`src/pipelines/default.yaml`
 
 ---
 
-## Layer 3 · 三层命令覆写 ✅ 已实现
+## 当前未实现能力
 
-### 实现方式
+以下扩展点仍属于后续能力，不应在文档中表述为已支持：
 
-转发器文件 (`~/.claude/commands/hx-*.md`) 按优先级路由到实体命令文件：
-
-```
-<project>/.hx/commands/<cmd>.md   ← 项目级（最高优先级）
-~/.hx/commands/<cmd>.md           ← 用户级
-<frameworkRoot>/agents/commands/<cmd>.md  ← 系统层（兜底）
-```
-
-转发器由 `hx setup` 生成，内容固定，升级只需 `git pull` + 重新生成转发器，用户层和项目层覆盖不受影响。
-
-### 与原设计的差异
-
-原设计是 YAML 格式的命令覆写（需要 `yaml-executor.js`）。
-实际实现是 Markdown 格式的 Claude 指令覆写，更灵活，无需引擎。
+- 自定义 task id 规则
+- 关闭 progress 文件的纯任务文档模式
+- 更复杂的 pipeline 语法，例如 `foreach`
+- 规则片段的共享包编译
+- 项目外部规则仓库的同步、安装、启停
 
 ---
 
-## Layer 4 · Pipeline 编排 ✅ 已实现
+## 设计边界
 
-### 实现方式
+为避免项目扩展能力反向膨胀，当前设计坚持以下边界：
 
-`/hx-go` 读取 pipeline YAML 按步骤驱动执行，YAML 同样支持三层覆写：
+- 不增加新的运行时配置模型
+- 不引入额外的项目扫描脚本链
+- 不让外部共享能力在运行时直接参与决策
+- 不让命令执行逻辑依赖网络状态
 
-```
-<project>/.hx/pipelines/default.yaml   ← 项目级
-~/.hx/pipelines/default.yaml           ← 用户级
-<frameworkRoot>/pipelines/default.yaml ← 系统层
-```
+扩展只通过项目本地事实体现：
 
-### 系统默认流水线（src/pipelines/default.yaml）
-
-当前默认流水线按主路径组织：doc → plan → run → qa → mr
-
-可选辅助步骤：
-- ctx：执行前预检诊断
-- review / fix：人工审查与失败修复
-- clean：工程清理扫描
-
-支持：
-- `checkpoint`：执行后暂停，等用户确认继续
-- `on_fail: stop`：失败时终止流水线
-- `--from <step-id>`：从指定步骤恢复（断点续跑）
-
-### 与原设计的差异
-
-原设计有更复杂的 `foreach`、`when`、`$var` 替换、状态持久化等机制。
-当前实现聚焦核心场景（顺序执行 + checkpoint + 断点恢复），默认覆盖主路径；辅助步骤由项目级 pipeline 按需插入。
+- `.hx/config.yaml`
+- `.hx/rules/*.md`
+- `.hx/hooks/`
+- `.hx/commands/`
+- `.hx/pipelines/`
 
 ---
 
-## 待实现
+## 结论
 
-### P1 · task_id_format + progress_tracking: false
+当前项目的可扩展性已经不依赖复杂执行器，而是依赖：
 
-支持自定义任务 ID 格式（如 `TS-\d+`）和纯 taskDoc 模式（不生成 progress.json）。
-适用场景：直接对接 DevOps 任务号，不需要 hx 维护独立进度文件。
+- 初始化阶段把项目现状写成固定事实
+- 运行时只读取这些事实
+- 用户层与项目层通过标准目录覆盖框架默认值
 
-### P2 · Pipeline foreach 支持
-
-`foreach: pendingTasks` 让 run 步骤自动遍历所有 pending 任务。
-当前 `/hx-run` 默认已实现类似能力，但未集成到 pipeline YAML 语法中。
-
----
-
-## 当前文件结构
-
-```
-src/agents/commands/hx-*.md          工作流 Agent 命令实体
-src/pipelines/default.yaml           默认流水线定义
-src/templates/                        规则文件骨架模板
-src/scripts/lib/config-utils.js      CLI 参数解析与 YAML 读取
-src/scripts/lib/scan-project.js      项目扫描
-src/scripts/lib/derive-project-facts.js  推导项目事实
-src/scripts/lib/render-rule-templates.js 渲染规则文件
-src/scripts/lib/rule-context.js      默认配置与路径工具
-src/scripts/lib/resolve-context.js   路径常量 + 项目根查找
-src/scripts/lib/install-utils.js     转发器生成
-src/scripts/hx-setup.js             全局安装
-src/scripts/hx-upgrade.js           升级（git pull + 重新生成转发器）
-src/scripts/hx-uninstall.js         卸载
-src/scripts/hx-doctor.js            健康检测
-```
+后续若继续增强，也应沿着这条路径扩展，而不是引入新的运行时抽象。

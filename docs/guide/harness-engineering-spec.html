@@ -2631,7 +2631,7 @@
     <div class="hero-inner">
       <div class="hero-tag">需求开发规范 · v1.0</div>
       <h1 class="hero-title">Harness<br><em>Engineering</em></h1>
-      <p class="hero-sub">基于 base + 自定义 Profile 的工程操作手册 · 从需求到上线的完整执行指南</p>
+      <p class="hero-sub">基于三层覆盖与项目规则的工程操作手册 · 从需求到上线的完整执行指南</p>
       <div class="hero-roles">
         <div class="role-badge fe"><span class="dot"></span>Framework</div>
         <div class="role-badge be"><span class="dot"></span>User</div>
@@ -2648,7 +2648,7 @@
       </div>
       <div class="hstat">
         <div class="hstat-n">1</div>
-        <div class="hstat-l">内置 Profile</div>
+        <div class="hstat-l">默认流水线</div>
       </div>
       <div class="hstat">
         <div class="hstat-n">0</div>
@@ -2713,7 +2713,7 @@
           <div class="install-method">
             <div class="im-step">执行引擎</div>
             <div class="im-title">Claude Code + Skills</div>
-            <div class="im-body">所有 Phase 通过 <code>/hx-*</code> 斜杠命令内置 Profile 系统适配团队差异。一键
+            <div class="im-body">所有 Phase 通过 <code>/hx-*</code> 命令契约和三层覆盖规则适配团队差异。一键
               <code>/hx-go</code> 默认跑完主路径 <code>doc → plan → run → qa → mr</code>；辅助步骤可通过项目级 pipeline 按需插入。
             </div>
           </div>
@@ -3708,7 +3708,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
                     <polyline points="1,5 4,8 9,2" />
                   </svg></div>
                 <div><strong style="color:var(--txt)">错误 → 规则化（最重要）</strong>：每发现一个 Agent 重复犯的错误，立即将正确做法写入 Lint 规则或
-                  当前 Profile 的 <code>golden-rules.md</code>。下次 Agent 执行时这个错误就不会再出现
+                  当前项目的 <code>golden-rules.md</code>。下次 Agent 执行时这个错误就不会再出现
                 </div>
               </li>
               <li class="must">
@@ -3875,7 +3875,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
             <div class="wf-step gate-s">
               <div class="wf-snum">✓</div>
               <div class="wf-stitle">质量校验</div>
-              <div class="wf-sbody">按 Profile 执行对应门控命令；失败则停下等待修复</div>
+              <div class="wf-sbody">按 <code>.hx/config.yaml</code> 中的 <code>gates</code> 执行对应门控命令；失败则停下等待修复</div>
               <span class="wf-cmd">/hx-qa</span>
             </div>
           </div>

@@ -97,14 +97,14 @@
             <h3 class="card-title"><code>feature key</code></h3>
             <p class="card-body">它是“当前需求在 HXFlow 里的内部短 ID”，不是给业务方看的标题。比如“用户登录页支持手机号登录”这类需求，系统可能生成 <code>user-login</code> 作为 key。后续很多文件都会以它命名，所以它更像一个稳定的文件前缀，而不是展示名。</p>
           </article>
-          <article class=”card”>
-            <div class=”card-meta”>术语 02</div>
-            <h3 class=”card-title”><code>.hx/rules/*.md</code> 项目规则文件</h3>
-            <p class=”card-body”>它是”本项目执行时遵守的团队规则”。由 <code>/hx-init</code> 生成骨架，存放在 <code>.hx/rules/</code> 目录。其中 <code>golden-rules.md</code> 包含团队黄金原则；手动区的内容永久保留，不会被 <code>/hx-rules update</code> 覆盖。</p>
+          <article class="card">
+            <div class="card-meta">术语 02</div>
+            <h3 class="card-title"><code>.hx/rules/*.md</code> 项目规则文件</h3>
+            <p class="card-body">它是”本项目执行时遵守的团队规则”。由 <code>/hx-init</code> 生成骨架，存放在 <code>.hx/rules/</code> 目录。其中 <code>golden-rules.md</code> 包含团队黄金原则；手动区的内容永久保留，不会被 <code>/hx-rules update</code> 覆盖。</p>
           </article>
         </div>
-        <div class=”callout info”>
-          <span class=”icon”>i</span>
+        <div class="callout info">
+          <span class="icon">i</span>
           <div><strong>一句话记忆：</strong><code>feature key</code> 用来串起”同一个需求”的文档和进度文件，<code>.hx/rules/*.md</code> 决定”按什么团队规则生成和执行”。正常情况下 feature key 自动生成续接，规则文件在项目初始化时配置好，后续只需按需更新。</div>
         </div>
       </div>
@@ -114,7 +114,7 @@
       <div class="wrap">
         <div class="section-tag">Install</div>
         <h2 class="section-title">安装</h2>
-        <p class="section-desc">安装 npm 包后执行 <code>hx setup</code> 初始化全局资源，然后在 Claude Code 中运行 <code>/hx-init</code>（Codex 中运行 <code>$hx-init</code>）初始化项目。</p>
+        <p class="section-desc">安装 npm 包后会自动补齐全局入口；需要手动修复时再执行 <code>hx setup</code>。随后在 Claude Code 中运行 <code>/hx-init</code>（Codex 中运行 <code>$hx-init</code>）初始化项目。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">终端操作</div>
@@ -125,19 +125,19 @@ npm install -g @hxflow/cli --registry https://npm.cdfsunrise.com/
 <span class="cg"># 查看版本</span>
 hx version
 
-<span class="cg"># 初始化全局资源（仅需运行一次）</span>
+<span class="cg"># 如需手动修复全局资源，可重新执行</span>
 hx setup</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">资源写入</div>
-            <h3 class="card-title">hx setup 写入目录</h3>
-            <pre><code>~/.hx/config.yaml
+            <h3 class="card-title">安装链写入目录</h3>
+            <pre><code>~/.hx/settings.yaml
 ~/.hx/commands/
 ~/.hx/hooks/
 ~/.hx/pipelines/
 ~/.claude/commands/    ← Claude 转发器
 ~/.codex/skills/hx-*/   ← Codex skill 目录（每命令一个）</code></pre>
-            <p class="card-body">这些入口都不含业务逻辑，运行时按三层优先级路由到实体命令文件；skill 仍由 Agent 自身机制管理。</p>
+            <p class="card-body">npm 安装会自动补齐这些入口；<code>hx setup</code> 只用于手动修复。它们都不含业务逻辑，运行时按三层优先级路由到实体命令文件；<code>~/.hx/settings.yaml</code> 只保存用户级安装设置。</p>
           </article>
         </div>
       </div>
@@ -157,12 +157,15 @@ $hx-init</code></pre>
           <article class="card">
             <div class="card-meta">输出</div>
             <h3 class="card-title">写入的文件</h3>
-            <pre><code>.hx/config.yaml            ← 硬变量配置 + paths
-CLAUDE.md                  ← 注入 harness 标记块
-.hx/rules/*.md             ← 项目规则文件骨架
-.hx/commands/*.example     ← 自定义命令样板
-.hx/hooks/*.example        ← Hook 样板
-.hx/pipelines/default.yaml ← 项目级流水线样板</code></pre>
+            <pre><code>.hx/config.yaml                 ← 项目级运行时配置
+CLAUDE.md / AGENTS.md          ← 注入 harness 标记块
+.hx/rules/*.md                 ← 项目规则文件骨架
+.hx/commands/README.md         ← 项目级命令目录说明
+.hx/commands/hx-your-command.md.example
+.hx/hooks/README.md            ← Hook 目录说明
+.hx/hooks/pre_run.md.example
+.hx/hooks/post_run.md.example
+.hx/pipelines/default.yaml     ← 项目级流水线样板</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">约束</div>
@@ -257,10 +260,10 @@ $hx-go --task 12345
           <article class="card">
             <div class="card-meta">场景</div>
             <h3 class="card-title">需求：任务系统里有一个登录相关任务</h3>
-            <pre><code><span class=”cg”># 任务来源</span>
+            <pre><code><span class="cg"># 任务来源</span>
 任务 ID: 12345
 任务标题: 用户登录页支持手机号登录</code></pre>
-            <p class=”card-body”>这时你可以把它理解成：”我要做一个登录需求，执行时按项目 <code>.hx/rules/</code> 中定义的团队规则运行。”</p>
+            <p class="card-body">这时你可以把它理解成：”我要做一个登录需求，执行时按项目 <code>.hx/rules/</code> 中定义的团队规则运行。”</p>
           </article>
           <article class="card">
             <div class="card-meta">命令</div>
@@ -296,19 +299,19 @@ $hx-go --task 12345
           <article class="card">
             <div class="card-meta">文件内容</div>
             <h3 class="card-title">文档头部大概会长这样</h3>
-            <pre><code><span class=”cg”># docs/requirement/user-login.md</span>
+            <pre><code><span class="cg"># docs/requirement/user-login.md</span>
 # 需求：用户登录页支持手机号登录
 
 &gt; 内部主键（Feature Key）：user-login
 
-<span class=”cg”># docs/plans/user-login-progress.json</span>
+<span class="cg"># docs/plans/user-login-progress.json</span>
 {
   “feature”: “user-login”,
   “tasks”: [
     { “id”: “TASK-BE-01”, “status”: “pending” }
   ]
 }</code></pre>
-            <p class=”card-body”>所以读到这些字段时可以直接这样理解：<code>feature</code> 说明”这是哪个需求”，执行规则由 <code>.hx/rules/</code> 中的项目规则文件统一决定。</p>
+            <p class="card-body">所以读到这些字段时可以直接这样理解：<code>feature</code> 说明”这是哪个需求”，执行规则由 <code>.hx/rules/</code> 中的项目规则文件统一决定。</p>
           </article>
         </div>
         <div class="callout info">
@@ -340,13 +343,13 @@ $hx-go --task 12345
           </article>
           <article class="card">
             <div class="card-meta">错误 03</div>
-            <h3 class="card-title">没有先执行 hx setup，或没有运行 hx-init</h3>
-            <p class="card-body">hx setup 初始化全局入口与目录结构；hx-init 初始化项目配置。两步都必须完成。</p>
+            <h3 class="card-title">安装链没有跑通，或没有运行 hx-init</h3>
+            <p class="card-body">装包阶段会自动初始化全局入口与目录结构；<code>hx-init</code> 初始化项目配置。如果缺少全局入口，优先重装包或手动执行 <code>hx setup</code> 修复。</p>
           </article>
           <article class="card">
             <div class="card-meta">错误 04</div>
             <h3 class="card-title">将 hx setup 和 /hx-init 搞混</h3>
-            <p class="card-body">hx setup 只需运行一次（机器级），/hx-init 在每个新项目运行（项目级）。</p>
+            <p class="card-body"><code>hx setup</code> 是机器级修复入口；<code>/hx-init</code> 是每个新项目都要执行的项目级初始化。</p>
           </article>
           <article class="card">
             <div class="card-meta">错误 05</div>

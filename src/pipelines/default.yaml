@@ -1,15 +1,13 @@
 # Harness Workflow 默认流水线
 #
-# 自定义方式：在 <project>/.hx/pipelines/default.yaml 或
-# ~/.hx/pipelines/default.yaml 中创建同名文件进行覆盖。
+# 覆盖顺序与命名规则见 src/pipelines/README.md。
 #
-# 步骤字段：
-#   id       — 唯一标识，--from <id> 用于从该步骤开始
-#   phase    — 展示用阶段标签
-#   name     — 展示用名称
-#   command  — 对应的 hx-* 命令名（不含 .md）
-#   checkpoint.message — 若存在，执行后暂停等待用户确认
-#   on_fail  — stop：失败时终止流水线（默认继续）
+# 结构约束：
+#   顶层必须包含 name 和 steps
+#   steps 必须是非空数组
+#   每个 step 必须包含 id、name、command
+#   checkpoint.message 和 on_fail 为可选字段
+#   on_fail 当前只允许 stop
 
 name: 全自动流水线（主路径）
 
