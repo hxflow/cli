@@ -27,6 +27,7 @@
   <a data-page="hx-deep-dive.html" href="hx-deep-dive.html"><span class="nav-num">02</span><span>运行机制</span></a>
   <a data-page="hx-command-index.html" href="hx-command-index.html"><span class="nav-num">03</span><span>命令索引</span></a>
   <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
+  <a data-page="md-viewer.html" href="md-viewer.html?file=../CHANGELOG.md"><span class="nav-num">05</span><span>变更记录</span></a>
   <div class="nav-group">本页目录</div>
   <a href="#overview"><span class="nav-num">D1</span><span>总览表</span></a>
   <a href="#bootstrap"><span class="nav-num">D2</span><span>安装与维护</span></a>
@@ -51,7 +52,7 @@
         <a class="btn-ghost" href="hx-config-reference.html">配置参考</a>
       </div>
         <div class="hero-stats">
-          <div class="metric"><div class="metric-value">2</div><div class="metric-label">CLI 命令</div></div>
+          <div class="metric"><div class="metric-value">3</div><div class="metric-label">CLI 命令</div></div>
         <div class="metric"><div class="metric-value">12</div><div class="metric-label">Agent 命令</div></div>
         <div class="metric"><div class="metric-value">1</div><div class="metric-label">入口文件 bin/hx.js</div></div>
       </div>
@@ -63,7 +64,7 @@
       <div class="wrap">
         <div class="section-tag">Overview</div>
         <h2 class="section-title">命令总览</h2>
-        <p class="section-desc">当前版本包含 2 个 CLI 子命令和 15 个 Agent 命令，数量以 <code>bin/hx.js</code> 和 <code>src/commands/</code> 为准。主路径命令为 <code>/hx-doc → /hx-plan → /hx-run → /hx-qa → /hx-mr</code>。</p>
+        <p class="section-desc">当前版本包含 3 个 CLI 子命令和 15 个 Agent 命令，数量以 <code>bin/hx.js</code> 和 <code>src/commands/</code> 为准。主路径命令为 <code>/hx-doc → /hx-plan → /hx-run → /hx-qa → /hx-mr</code>。</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -76,6 +77,7 @@
             </thead>
             <tbody>
               <tr class="grp-install"><td><span class="command-name">hx setup</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>手动重跑安装，修复 ~/.hx/ 与各 agent 的 skill 入口</td></tr>
+              <tr class="grp-install"><td><span class="command-name">hx migrate</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>迁移老版本安装产物并重跑 setup</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx version</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>输出 CLI 版本</td></tr>
               <tr class="grp-init"><td><span class="command-name">/hx-init</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>分析项目结构，写入 .hx/config.yaml，注入 CLAUDE.md 标记块</td></tr>
               <tr class="grp-install"><td><span class="command-name">/hx-upgrade</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>升级框架并同步安装产物</td></tr>
@@ -114,6 +116,17 @@
               <p>首次无配置时会直接列出 agent 清单让用户选择；同一套 workflow skill 会安装到所选 agent 的 <code>skills</code> 目录，例如 <code>~/.claude/skills/</code>、<code>~/.codex/skills/</code>、<code>~/.cursor/skills/</code>。</p>
               <p><code>~/.hx/settings.yaml</code> 不存在时创建，写入 frameworkRoot 和已选择的 agents；后续修复默认复用这份记录。</p>
               <p>安装后需要先手动运行一次 <code>hx setup</code>；后续则主要用于修复或补装。</p>
+            </div>
+          </article>
+          <article class="card command-card">
+            <div class="card-meta">Migrate</div>
+            <h3 class="card-title"><code class="command-name">hx migrate</code></h3>
+            <div class="command-syntax">hx migrate [--dry-run]</div>
+            <p class="card-body">迁移老版本安装产物到当前模型，再重跑 <code>hx setup</code>。</p>
+            <div class="note-list">
+              <p>优先读取 <code>~/.hx/settings.yaml</code> 中已有的 agents。</p>
+              <p>若旧配置包含已废弃 agent，会自动忽略并继续迁移。</p>
+              <p>若缺少 settings，会尝试根据现有安装痕迹推断 agents。</p>
             </div>
           </article>
           <article class="card command-card">

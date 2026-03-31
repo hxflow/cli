@@ -168,6 +168,7 @@ describe('command contracts', () => {
     const hxPlan = readFileSync(resolve(COMMANDS_DIR, 'hx-plan.md'), 'utf8')
     const hxMr = readFileSync(resolve(COMMANDS_DIR, 'hx-mr.md'), 'utf8')
     const hxUpgrade = readFileSync(resolve(COMMANDS_DIR, 'hx-upgrade.md'), 'utf8')
+    const readme = readFileSync(resolve(process.cwd(), 'README.md'), 'utf8')
 
     expect(hxDoc).not.toContain('--task <task-id>')
     expect(hxDoc).toContain('usage: hx-doc')
@@ -191,5 +192,6 @@ describe('command contracts', () => {
     expect(hxMr).toContain('不允许在 MR 阶段重算')
     expect(hxUpgrade).toContain('usage: hx-upgrade [--dry-run]')
     expect(hxUpgrade).not.toContain('--agent <')
+    expect(readme).toContain('hx migrate')
   })
 })

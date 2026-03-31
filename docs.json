@@ -7,6 +7,13 @@
   }
 ,
   {
+    "name": "CHANGELOG",
+    "path": "CHANGELOG.md",
+    "type": "md",
+    "category": "根目录"
+  }
+,
+  {
     "name": "CLAUDE",
     "path": "CLAUDE.md",
     "type": "md",
@@ -30,6 +37,13 @@
   {
     "name": "hx-extension-rule-pack",
     "path": "docs/design/hx-extension-rule-pack.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
+    "name": "hx-refactor-summary",
+    "path": "docs/design/hx-refactor-summary.md",
     "type": "md",
     "category": "docs/design"
   }

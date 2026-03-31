@@ -37,7 +37,7 @@ describe('docs consistency', () => {
     expect(readme).not.toContain('hx setup [--agent')
     expect(quickstart).toContain('src/commands/')
     expect(quickstart).toContain('~/.hx/settings.yaml')
-    expect(guide).toContain('2 个内置命令（setup / version）')
+    expect(guide).toContain('3 个内置命令（setup / migrate / version）')
     expect(configReference).toContain('~/.hx/settings.yaml')
     expect(configReference).toContain('.hx/config.yaml')
     expect(guide).toContain('~/.claude/skills/')

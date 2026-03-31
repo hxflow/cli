@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, wri
 import { basename, resolve } from 'path'
 
 export const SUPPORTED_AGENTS = ['claude', 'codex', 'cursor', 'gemini', 'kimi', 'windsurf']
-export const BUILTIN_CLI_COMMANDS = ['setup', 'version']
+export const BUILTIN_CLI_COMMANDS = ['setup', 'migrate', 'version']
 const TEMPLATE_CACHE = new Map()
 
 export function getAgentSkillDir(agent) {

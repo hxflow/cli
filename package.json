@@ -1,6 +1,6 @@
 {
   "name": "@hxflow/cli",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Project-rules-driven AI engineering workflow — zero-disruption installer for existing projects.",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,7 @@
     "src/hooks/**/*",
     "src/templates/**/*",
     "src/pipelines/**/*",
+    "src/scripts/hx-migrate.js",
     "src/scripts/hx-setup.js",
     "src/scripts/lib/config-utils.js",
     "src/scripts/lib/install-utils.js",

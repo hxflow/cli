@@ -218,7 +218,8 @@
   <a data-page="hx-deep-dive.html" href="hx-deep-dive.html"><span class="nav-num">02</span><span>运行机制</span></a>
   <a data-page="hx-command-index.html" href="hx-command-index.html"><span class="nav-num">03</span><span>命令索引</span></a>
   <a data-page="hx-config-reference.html" href="hx-config-reference.html"><span class="nav-num">04</span><span>配置参考</span></a>
-  <a data-page="hx-quickstart.html" href="hx-quickstart.html"><span class="nav-num">05</span><span>快速入门</span></a>
+  <a data-page="md-viewer.html" href="md-viewer.html?file=../CHANGELOG.md"><span class="nav-num">05</span><span>变更记录</span></a>
+  <a data-page="hx-quickstart.html" href="hx-quickstart.html"><span class="nav-num">06</span><span>快速入门</span></a>
   <div class="nav-group">本页目录</div>
   <a href="#memory"><span class="nav-num">T1</span><span>先记三句话</span></a>
   <a href="#repo"><span class="nav-num">T2</span><span>仓库地图</span></a>
@@ -285,7 +286,7 @@
           <article class="card">
             <div class="card-meta">2 / 真正入口</div>
             <h3 class="card-title">真正执行逻辑是 Markdown skill 契约</h3>
-            <p class="card-body"><code>bin/hx.js</code> 只处理 <code>setup / version</code>。像 <code>hx-init</code>、<code>hx-doc</code>、<code>hx-go</code> 以及维护类命令，本质上都是被 Agent 读取的 skill 契约文件。</p>
+            <p class="card-body"><code>bin/hx.js</code> 只处理 <code>setup / migrate / version</code>。像 <code>hx-init</code>、<code>hx-doc</code>、<code>hx-go</code> 以及维护类命令，本质上都是被 Agent 读取的 skill 契约文件。</p>
           </article>
           <article class="card">
             <div class="card-meta">3 / 扩展方式</div>
@@ -316,7 +317,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
           <article class="map-card">
             <div class="map-path">bin/hx.js</div>
             <h3>判断这是“维护 CLI”还是“业务工作流”</h3>
-            <p>这个文件会明确告诉你：内置 CLI 命令只有 <code>setup</code> 和 <code>version</code>。如果你输入 <code>hx-init</code>，CLI 会提示这是 agent contract，而不是直接执行的 Node 子命令。</p>
+            <p>这个文件会明确告诉你：内置 CLI 命令只有 <code>setup</code>、<code>migrate</code> 和 <code>version</code>。如果你输入 <code>hx-init</code>，CLI 会提示这是 agent contract，而不是直接执行的 Node 子命令。</p>
           </article>
           <article class="map-card">
             <div class="map-path">src/commands/</div>
