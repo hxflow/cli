@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.2.2 — 2026-04-02
+
+### 其他
+- 更新 release 命令加入 changelog 步骤
+
+
 ## 3.1.2 - 2026-04-01
 
 ### Changed
