@@ -18,17 +18,31 @@ Project-rules-driven AI engineering workflow framework for AI agents. Zero-disru
 
 ## 安装
 
-```bash
-npm install -g @hxflow/cli --registry https://npm.cdfsunrise.com/
+本包发布在 [GitHub Packages](https://github.com/yinone/hxflow/pkgs/npm/cli)，安装前需要完成一次性认证配置。
+
+**第一步：配置认证**
+
+在 `~/.npmrc` 中添加以下内容（`TOKEN` 替换为拥有 `read:packages` 权限的 [GitHub Personal Access Token](https://github.com/settings/tokens)）：
+
 ```
+//npm.pkg.github.com/:_authToken=TOKEN
+```
+
+**第二步：安装**
+
+```bash
+npm install -g @hxflow/cli
+```
+
+> 包内已包含 `.npmrc`，自动将 `@hxflow` scope 指向 GitHub Packages，无需额外添加 `--registry` 参数。
 
 安装后需要手动运行一次 `hx setup`。该命令会初始化 `~/.hx/`，并把同一套 workflow skill 安装到 `~/.claude/skills/` 与 `~/.agents/skills/`。
 
 ## 快速开始
 
 ```bash
-# 1. 安装包
-npm install -g @hxflow/cli --registry https://npm.cdfsunrise.com/
+# 1. 安装包（前提：已在 ~/.npmrc 配置 GitHub Packages 认证）
+npm install -g @hxflow/cli
 
 # 2. 手动执行一次 setup
 hx setup
