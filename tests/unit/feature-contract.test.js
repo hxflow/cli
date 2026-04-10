@@ -1,10 +1,11 @@
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'bun:test'
 
 const COMMANDS_DIR = resolve(process.cwd(), 'src', 'commands')
 const CONTRACTS_DIR = resolve(process.cwd(), 'src', 'contracts')
+const SCRIPTS_DIR = resolve(process.cwd(), 'src', 'scripts')
 const featureContract = readFileSync(resolve(CONTRACTS_DIR, 'feature-contract.md'), 'utf8')
 const ownershipContract = readFileSync(resolve(CONTRACTS_DIR, 'ownership-contract.md'), 'utf8')
 const hxDoc = readFileSync(resolve(COMMANDS_DIR, 'hx-doc.md'), 'utf8')
@@ -12,6 +13,11 @@ const hxPlan = readFileSync(resolve(COMMANDS_DIR, 'hx-plan.md'), 'utf8')
 const hxRun = readFileSync(resolve(COMMANDS_DIR, 'hx-run.md'), 'utf8')
 const hxMr = readFileSync(resolve(COMMANDS_DIR, 'hx-mr.md'), 'utf8')
 const hxGo = readFileSync(resolve(COMMANDS_DIR, 'hx-go.md'), 'utf8')
+// 代码驱动命令的编排脚本
+const hxPlanScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-plan.ts'), 'utf8')
+const hxRunScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-run.ts'), 'utf8')
+const hxMrScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-mr.ts'), 'utf8')
+const hxGoScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-go.ts'), 'utf8')
 
 describe('feature contract', () => {
   it('locks the single-demand scope and the display boundary', () => {
@@ -47,6 +53,7 @@ describe('feature contract', () => {
     expect(ownershipContract).toContain('不允许在 MR 阶段生成或重算 `feature`')
     expect(ownershipContract).toContain('不拥有 `feature` 的首次生成写权')
 
+    // hx-doc 是纯 AI 驱动命令，仍在 MD 中声明契约引用
     expect(hxDoc).toContain('src/contracts/feature-contract.md')
     expect(hxDoc).toContain('先复用已有 `feature`')
     expect(hxDoc).toContain('仅在无法复用时首次生成 `feature`')
@@ -55,19 +62,15 @@ describe('feature contract', () => {
     expect(hxDoc).toContain('Feature')
     expect(hxDoc).toContain('Source Fingerprint')
 
-    expect(hxPlan).toContain('src/contracts/feature-contract.md')
-    expect(hxPlan).toContain('从需求文档读取已有 `feature`')
-    expect(hxPlan).toContain('不允许在本阶段生成或修改')
+    // 代码驱动命令：feature 不变性约束在 MD 约束节和 JS 脚本中体现
+    expect(hxPlan).toContain('不允许重算')
+    expect(hxPlanScript).toContain('parseFeatureHeaderFile')
 
-    expect(hxRun).toContain('src/contracts/feature-contract.md')
-    expect(hxRun).toContain('不允许在执行阶段生成或修改')
-    expect(hxRun).toContain('不生成、不改写、不重算')
-
-    expect(hxMr).toContain('src/contracts/feature-contract.md')
     expect(hxMr).toContain('不允许在 MR 阶段生成或重算')
+    expect(hxMrScript).toContain('parseFeatureHeaderFile')
 
-    expect(hxGo).toContain('src/contracts/feature-contract.md')
-    expect(hxGo).toContain('自动续接规则和固定头部解析规则读取已有需求上下文')
+    // hx-go 不处理 feature 写权；其 MD 简化后只描述流水线行为
+    expect(hxGo).not.toContain('首次生成')
   })
 
   it('locks the requirement header metadata template', () => {
@@ -91,9 +94,11 @@ describe('feature contract', () => {
     expect(featureContract).toContain('重复字段、缺失字段、字段换序或未知头部字段')
     expect(featureContract).toContain('正文中的自然语言描述不能覆盖头部字段值')
 
-    expect(hxPlan).toContain('固定头部解析规则')
-    expect(hxRun).toContain('固定头部解析规则')
-    expect(hxMr).toContain('固定头部解析规则')
-    expect(hxGo).toContain('固定头部解析规则')
+    // 代码驱动命令：解析规则在 JS 脚本中固化
+    expect(hxPlanScript).toContain('parseFeatureHeaderFile')
+    expect(hxRunScript).toContain('resolveProgressFile')
+    expect(hxMrScript).toContain('parseFeatureHeaderFile')
+    // hx-go 不解析 feature 头部（调度各子命令，子命令各自解析）
+    expect(hxGoScript).toContain('PIPELINE_STEPS')
   })
 })

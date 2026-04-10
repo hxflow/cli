@@ -1,10 +1,11 @@
 import { readFileSync, readdirSync } from 'fs'
 import { resolve } from 'path'
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'bun:test'
 
 const COMMANDS_DIR = resolve(process.cwd(), 'src', 'commands')
 const CONTRACTS_DIR = resolve(process.cwd(), 'src', 'contracts')
+const SCRIPTS_DIR = resolve(process.cwd(), 'src', 'scripts')
 const commandFiles = readdirSync(COMMANDS_DIR)
   .filter((file) => file.startsWith('hx-') && file.endsWith('.md'))
   .sort()
@@ -27,6 +28,15 @@ const HOOKED_COMMANDS = [
 const FAILURE_HANDLING_COMMANDS = [
   'hx-cli',
 ]
+
+// 有对应 Node.js 编排脚本的命令（简化 MD 结构，编排逻辑在代码里）
+const CODE_BACKED_COMMANDS = new Set([
+  'hx-run',
+  'hx-plan',
+  'hx-go',
+  'hx-check',
+  'hx-mr',
+])
 
 const ALL_COMMANDS = [
   'hx-check',
@@ -91,6 +101,14 @@ describe('command contracts', () => {
       expect(typeof metadata.usage).toBe('string')
       expect(metadata.usage.length).toBeGreaterThan(0)
       expect(content).toContain('## 目标')
+
+      // 代码驱动命令（编排逻辑在 JS 脚本中）只需最小结构
+      if (CODE_BACKED_COMMANDS.has(commandName)) {
+        expect(content).toContain('## 约束')
+        continue
+      }
+
+      // 纯 AI 驱动命令要求完整的契约文档结构
       expect(content).toContain('## 何时使用')
       expect(content).toContain('## 输入')
       expect(content).toContain('## 执行步骤')
@@ -233,70 +251,84 @@ describe('command contracts', () => {
     const hxCli = readFileSync(resolve(COMMANDS_DIR, 'hx-cli.md'), 'utf8')
     const readme = readFileSync(resolve(process.cwd(), 'README.md'), 'utf8')
 
+    // ── hx-doc（纯 AI 驱动，保留完整契约断言）────────────────────
     expect(hxDoc).not.toContain('--task <task-id>')
     expect(hxDoc).toContain('usage: hx-doc')
     expect(hxDoc).not.toContain('[<title>]')
-    expect(hxGo).not.toContain('--task <task-id>')
-    expect(hxRun).toContain('--plan-task <task-id>')
-    expect(hxRun).not.toContain('--task <task-id>')
-    expect(hxGo).toContain('usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]')
     expect(hxDoc).toContain('src/contracts/feature-contract.md')
     expect(hxDoc).toContain('唯一的 feature 事实源')
     expect(hxDoc).toContain('先复用已有 `feature`')
     expect(hxDoc).toContain('displayName')
     expect(hxDoc).toContain('新开一个子 agent')
     expect(hxDoc).toContain('主 agent 必须根据子 agent 的评审结论修正后再输出')
+    expect(hxDoc).toContain('docs/requirement/{feature}.md')
+
     expect(featureContract).toContain('sourceFingerprint')
     expect(featureContract).toContain('displayName')
     expect(featureContract).toContain('先复用，后生成')
-    expect(hxDoc).toContain('docs/requirement/{feature}.md')
-    expect(hxPlan).toContain('src/contracts/feature-contract.md')
-    expect(hxPlan).toContain('src/contracts/progress-contract.md')
-    expect(hxPlan).toContain('src/templates/progress.json')
-    expect(hxPlan).toContain('validateProgressData(progressData)')
-    expect(hxPlan).toContain('task 依赖关系和并行约束')
-    expect(hxPlan).toContain('`planDoc` 中不得出现对应描述')
-    expect(hxPlan).toContain('新开一个子 agent')
+
+    // ── hx-plan（代码驱动）————————————————————————————————————
+    // 编排逻辑在 hx-plan.js；MD 只保留 AI 职责描述和约束
+    expect(hxPlan).toContain('hx progress validate')
+    expect(hxPlan).toContain('依赖关系和并行标记写入 progressFile，不写入 planDoc')
+    expect(hxPlan).toContain('新开子 agent 评审任务拆分质量')
     expect(hxPlan).toContain('planDoc')
     expect(hxPlan).toContain('progressFile')
-    expect(hxPlan).toContain('主 agent 必须根据评审结论修正')
+    expect(hxPlan).toContain('不允许重算')
+
+    // 确定性逻辑在 hx-plan.js 脚本中
+    const hxPlanScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-plan.ts'), 'utf8')
+    expect(hxPlanScript).toContain('parseFeatureHeaderFile')
+    expect(hxPlanScript).toContain('getProgressSchemaPaths')
+
+    // ── hx-check（代码驱动）————————————————————————————————————
     expect(hxCheck).toContain('usage: hx-check [--scope <review|qa|clean|all>]')
     expect(hxCheck).toContain('审查、质量门和工程卫生扫描')
     expect(hxCheck).toContain('review-checklist.md')
-    expect(hxCheck).toContain('gates.*')
-    expect(hxRun).toContain('src/contracts/feature-contract.md')
-    expect(hxRun).toContain('src/contracts/progress-contract.md')
-    expect(hxRun).toContain('调度规则')
-    expect(hxRun).toContain('回写规则')
-    expect(hxRun).toContain('可运行的 pending task')
-    expect(hxRun).toContain('recoverable')
-    expect(hxRun).toContain('不重复执行阶段一')
-    expect(hxRun).toContain('`lastRun` 与 task 状态必须保持一致')
-    expect(hxRun).toContain('在进入调度前调用')
-    expect(hxRun).toContain('不得在坏状态的 `progressFile` 上继续执行')
-    expect(hxRun).toContain('输入完整性校验是固定步骤')
-    expect(hxRun).toContain('校验 `requirementDoc`、`planDoc`、`progressFile`、规则文件和 `gates`')
-    expect(hxRun).toContain('validateProgressFile(progressFile)')
-    expect(hxRun).toContain('质量复查子 agent')
-    expect(hxRun).toContain('边界条件')
-    expect(hxRun).toContain('回归风险')
-    expect(hxRun).toContain('主 agent 必须根据复查结论补齐必要修正')
-    expect(hxPlan).toContain('不允许在本阶段生成或修改')
-    expect(hxRun).toContain('不生成、不改写、不重算')
-    expect(hxMr).toContain('不允许在 MR 阶段生成或重算')
-    expect(hxMr).toContain('src/contracts/feature-contract.md')
-    expect(hxGo).toContain('src/contracts/feature-contract.md')
+    // gates 逻辑在 hx-check.js 脚本中
+    const hxCheckScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-check.ts'), 'utf8')
+    expect(hxCheckScript).toContain("'lint'")
+    expect(hxCheckScript).toContain("'build'")
+    expect(hxCheckScript).toContain("'type'")
+    expect(hxCheckScript).toContain("'test'")
+
+    // ── hx-run（代码驱动）————————————————————————————————————
+    expect(hxRun).not.toContain('--task <task-id>')
+    expect(hxRun).toContain('--plan-task <task-id>')
+    expect(hxRun).toContain('hx progress start')
+    expect(hxRun).toContain('hx progress done')
+    expect(hxRun).toContain('hx progress fail')
+    // 调度逻辑在 hx-run.js 脚本中
+    const hxRunScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-run.ts'), 'utf8')
+    expect(hxRunScript).toContain('getScheduledBatch')
+    expect(hxRunScript).toContain('validateProgressFile')
+    expect(hxRunScript).toContain("mode === 'recover'")
+    expect(hxRunScript).toContain("mode === 'done'")
+
+    // ── hx-go（代码驱动）————————————————————————————————————
+    expect(hxGo).not.toContain('--task <task-id>')
+    expect(hxGo).toContain('usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]')
     expect(hxGo).toContain('--from <step-id>')
-    expect(hxGo).toContain('恢复起点')
     expect(hxGo).toContain('`doc`')
     expect(hxGo).toContain('`plan`')
     expect(hxGo).toContain('`run`')
-    expect(hxGo).toContain('`check`、`mr`')
     expect(hxGo).toContain('不得跳过最早未完成 step')
-    expect(hxGo).toContain('src/contracts/checkpoint-contract.md')
-    expect(hxGo).toContain('checkpoint.message')
-    expect(hxGo).toContain('context.checkpointFeedback')
-    expect(hxGo).toContain('连续 2 轮仍未通过')
+    // 流水线状态机在 hx-go.js 脚本中
+    const hxGoScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-go.ts'), 'utf8')
+    expect(hxGoScript).toContain("'doc', 'plan', 'run', 'check', 'mr'")
+    expect(hxGoScript).toContain('isDocDone')
+    expect(hxGoScript).toContain('isPlanDone')
+    expect(hxGoScript).toContain('isRunDone')
+
+    // ── hx-mr（代码驱动）————————————————————————————————————
+    expect(hxMr).toContain('hx archive')
+    expect(hxMr).toContain('不允许在 MR 阶段生成或重算')
+    expect(hxMr).toContain('不允许自定义')
+    // git 事实收集在 hx-mr.js 脚本中
+    const hxMrScript = readFileSync(resolve(SCRIPTS_DIR, 'hx-mr.ts'), 'utf8')
+    expect(hxMrScript).toContain('parseFeatureHeaderFile')
+    expect(hxMrScript).toContain('spawnSync')
+
     expect(hxCli).toContain('usage: hx-cli <doctor|issue> [options]')
     expect(hxCli).toContain('`<doctor|issue>`')
     expect(hxCli).toContain('`--title <title>`')

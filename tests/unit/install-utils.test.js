@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { resolve } from 'path'
 
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'bun:test'
 
 import {
   generateSkillFilesForAgent,
@@ -12,7 +12,7 @@ import {
   loadCommandSpecs,
   mergeCommandSpecs,
   resolveAgentTargets,
-} from '../../src/scripts/lib/install-utils.js'
+} from '../../src/scripts/lib/install-utils.ts'
 
 const tempDirs = []
 

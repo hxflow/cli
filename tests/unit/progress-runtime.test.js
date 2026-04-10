@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'bun:test'
 
 import {
   getProgressSchemaPaths,
@@ -7,7 +7,7 @@ import {
   readProgressTemplate,
   validateProgressData,
   validateProgressFile,
-} from '../../src/scripts/lib/progress-schema.js'
+} from '../../src/scripts/lib/progress-schema.ts'
 import { mkdtempSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'

@@ -22,19 +22,23 @@ export const USER_HX_DIR = resolve(homedir(), '.hx')
 
 /**
  * 安全获取当前工作目录。
- * 当进程启动后原 cwd 被删除时，process.cwd() 会抛 uv_cwd；这里降级到仍存在的目录。
+ * 当进程启动后原 cwd 被删除时，process.cwd() 可能抛出（Node）或返回过期路径（Bun）；
+ * 这里统一降级到仍存在的目录。
  */
 export function getSafeCwd(fallbackDir = homedir()) {
   try {
-    return process.cwd()
+    const cwd = process.cwd()
+    if (existsSync(cwd)) return cwd
   } catch {
-    const initCwd = process.env.INIT_CWD
-    if (initCwd && existsSync(initCwd)) {
-      return resolve(initCwd)
-    }
-
-    return resolve(fallbackDir)
+    // fall through
   }
+
+  const initCwd = process.env.INIT_CWD
+  if (initCwd && existsSync(initCwd)) {
+    return resolve(initCwd)
+  }
+
+  return resolve(fallbackDir)
 }
 
 /**

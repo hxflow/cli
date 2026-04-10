@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { FRAMEWORK_ROOT } from './resolve-context.js'
+import { FRAMEWORK_ROOT } from './resolve-context.ts'
 
 const PROGRESS_TEMPLATE_PATH = resolve(FRAMEWORK_ROOT, 'templates/progress.json')
 const PROGRESS_SCHEMA_PATH = resolve(FRAMEWORK_ROOT, 'templates/progress.schema.json')

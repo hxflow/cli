@@ -8,54 +8,25 @@ usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]
 
 ## 目标
 
-- 按 pipeline 自动串起主链路命令，完成从需求到交付的整段流程。
+自动检测流水线当前阶段，输出下一步需要执行的命令。
 
-## 何时使用
+## 使用方式
 
-- 适用场景：想走完整主路径，或在中断后从某个 step 继续推进。
-- 不适用场景：只想单独补文档、补计划或继续执行单个 feature 时，优先用 `hx-doc`、`hx-plan`、`hx-run`。
+```bash
+hx go <feature> [--from <step>]
+```
 
-## 输入
+`hx go` 会自动完成以下工作：
+- 检测 `doc` / `plan` / `run` 的完成状态（基于文件系统）
+- 确定恢复起点（或使用 `--from` 强制指定）
+- 输出下一步应执行的具体命令
 
-- 命令参数：`$ARGUMENTS`
-- 必选参数：无
-- 可选参数：`<feature>`、`--from <step-id>`、`--pipeline <name>`
-- 默认值：未传 `<feature>` 时按当前需求上下文自动续接；未传 `--pipeline` 时使用默认 pipeline；未传 `--from` 时自动判定恢复起点
-- 依赖输入：`src/contracts/feature-contract.md`、pipeline 定义、子命令 contract、耐久产物（`requirementDoc` / `planDoc` / `progressFile`）、`src/contracts/checkpoint-contract.md`（当 step 含 `checkpoint.message` 时）
+**流水线顺序:** `doc → plan → run → check → mr`
 
-## 执行步骤
-
-1. 解析 `<feature>`、`--from <step-id>`、`--pipeline <name>`。
-2. 读取 `src/contracts/feature-contract.md`，确定当前 feature。
-3. 按全局 pipeline 规则加载目标流水线，并解析各个 step 对应的命令实体。
-4. 确定恢复起点：若显式传入 `--from`，从该 step 开始；否则按耐久产物自动判断最早未完成 step。
-5. 自动恢复时，按固定规则判断 `doc`、`plan`、`run` 是否已完成；`check`、`mr` 视为必须重新执行的 step。
-6. 从恢复起点开始顺序调度子命令，直到 pipeline 结束或某一步失败。
-7. 当 step 含 `checkpoint.message` 时，新开子 agent 按 `src/contracts/checkpoint-contract.md` 执行评审：子 agent 基于 summary 和 message 判断是否通过；通过则继续下一步，需修改则注入 `context.checkpointFeedback` 后重新执行当前 step；同一 step 连续 2 轮仍未通过时，停止 pipeline 并要求人工介入。
-
-## 成功结果
-
-- 输出本次使用的 pipeline、恢复起点和实际执行的 step 列表。
-- 若整条 pipeline 跑完，给出进入提交流程的结论。
-
-## 失败边界
-
-- `--from <step-id>` 非法，或目标 step 不存在于 pipeline。
-- 目标 pipeline 不存在，或某个 step 无法解析到命令实体。
-- 子命令失败，或自动恢复无法唯一确定起点。
-- checkpoint 评审连续 2 轮仍未通过，或 checkpoint 子 agent 超时/异常。
-
-## 下一步
-
-- 未完成时，优先继续运行 `hx-go --from <failed-step>`。
-- 已完成时，进入最终提交或创建 MR 的流程。
+`check` 和 `mr` 总是重新执行（无持久化完成标记）。
 
 ## 约束
 
-- `hx-go` 自身不定义 command / hook / pipeline 的运行规则
-- `hx-go` 只负责调度子命令与遵守 pipeline 定义
-- 未显式传入 `<feature>` 时，只按 `src/contracts/feature-contract.md` 的自动续接规则和固定头部解析规则读取已有需求上下文
-- `--from <step-id>` 必须作为显式恢复锚点，且命中的 step 必须存在于目标 pipeline
-- 自动恢复时，不得跳过最早未完成 step
-- 没有耐久完成标记的 step 不得自动判定为已完成
-- checkpoint 的重跑与停止规则全部以 `src/contracts/checkpoint-contract.md` 为准
+- 自定义 pipeline（`--pipeline`）暂未支持，仅支持 `default`
+- 自动恢复不得跳过最早未完成 step
+- `--from <step>` 必须是有效 step 名称

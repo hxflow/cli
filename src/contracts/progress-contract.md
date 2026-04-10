@@ -8,7 +8,7 @@
 - 不允许出现未在本文档声明的额外字段
 - schema：`src/templates/progress.schema.json`
 - 模板：`src/templates/progress.json`
-- 运行时校验入口：`src/scripts/lib/progress-schema.js`
+- 运行时校验入口：`src/scripts/lib/progress-schema.ts`
 
 ## 目标
 
@@ -135,7 +135,15 @@ timeout
 
 ### hx-run 的两阶段写入要求
 
-执行每个 task 时，必须严格按以下顺序操作，不允许合并成一次写入。
+两阶段写入通过以下命令执行，不允许 AI 直接修改 progressFile：
+
+- 阶段一：`hx progress start <progressFile> <taskId>`
+- 阶段二成功：`hx progress done <progressFile> <taskId> --output "<摘要>"`
+- 阶段二失败：`hx progress fail <progressFile> <taskId> --exit <status> --reason "<原因>"`
+
+每次命令执行内部自动调用校验，失败时立即中止并返回错误。
+
+以下为两阶段的字段语义说明（由命令内部保证执行顺序和字段完整性）：
 
 阶段一：
 
@@ -155,6 +163,8 @@ timeout
 两阶段之间是实际执行任务的时间窗口。任何情况下都不允许在不经过阶段一的情况下直接写入阶段二的字段。
 
 ## 调度规则
+
+> **调度和写入操作均通过 `hx progress` 系列命令完成。AI 不自行推导调度逻辑，不直接修改 progressFile。**
 
 ### 可执行 task 判定
 

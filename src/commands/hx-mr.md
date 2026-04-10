@@ -11,47 +11,34 @@ hooks:
 
 ## 目标
 
-- 基于需求文档、进度状态和当前 git 变更生成可直接使用的 MR 标题与描述。
+基于需求文档、进度状态和 git 事实生成 MR 标题与描述。
 
-## 何时使用
+## 使用方式
 
-- 适用场景：需求实现和核心检查已经完成，准备创建或更新 Merge Request。
-- 不适用场景：需求尚未完成、`progressFile` 还不完整时，优先先完成 `hx-run` 或 `hx-check`。
+```bash
+hx mr <feature> [--target <branch>] [--project <group/repo>]
+```
 
-## 输入
+`hx mr` 会自动完成以下工作，并输出精确的生成指令：
+- 定位 requirementDoc / progressFile（活跃或归档）
+- 解析 feature 头部（固化解析）
+- 收集 git log 和 diff --stat 事实
+- 检测 target branch，输出所有事实供 AI 使用
 
-- 命令参数：`$ARGUMENTS`
-- 必选参数：无
-- 可选参数：`<feature>`、`--project <group/repo>`、`--target <branch>`
-- 默认值：未传 `<feature>` 时按当前需求上下文自动续接；未传 `--project` 与 `--target` 时按当前仓库和默认目标分支推导
-- 依赖输入：`src/contracts/feature-contract.md`、`.hx/config.yaml`、`~/.hx/settings.yaml`、`requirementDoc`、`progressFile`、当前 git diff 与提交历史
+## AI 职责：生成 MR 内容
 
-## 执行步骤
+收到 `hx mr` 的输出后：
 
-1. 解析参数，确定 `feature`、`--project` 和 `--target`。
-2. 按 `src/contracts/feature-contract.md` 续接已有 `feature`；若无法唯一定位，则停止并要求用户补充。
-3. 读取项目 `.hx/config.yaml`、`~/.hx/settings.yaml`、当前需求对应的 `requirementDoc` 与 `progressFile`。
-4. 收集事实来源：需求摘要、验收标准、任务完成状态、`git log <target>..HEAD --oneline` 和 `git diff <target>...HEAD --stat`。
-5. 生成 MR 标题和 Markdown 描述，覆盖需求背景、变更说明、AC 验收清单、任务完成情况和测试说明。
-6. 将 `docs/plans/{feature}.md` 和 `docs/plans/{feature}-progress.json` 移动到 `docs/archive/{feature}/`，完成归档。
-
-## 成功结果
-
-- 输出可直接使用的 MR 标题。
-- 输出可直接粘贴到平台中的 Markdown 描述。
-- `docs/plans/{feature}.md` 和 `docs/plans/{feature}-progress.json` 已归档至 `docs/archive/{feature}/`。
-
-## 失败边界
-
-- 无法定位 `feature`，或当前需求上下文不完整。
-- 需求文档、进度文件或 git 事实不足，无法生成可靠的 MR 内容。
-
-## 下一步
-
-- 创建或更新 Merge Request；若任务未全部完成，先补齐 `progressFile` 状态再重试。
+1. 读取 requirementDoc（背景、目标、验收标准）
+2. 读取 progressFile（任务完成状态与输出摘要）
+3. 结合 git 事实，生成：
+   - **MR 标题**（单行，清晰描述变更）
+   - **MR 描述**（Markdown）：需求背景、变更说明、AC 验收清单、任务完成情况、测试说明
+4. 输出 MR 标题和描述
+5. 调用归档：`hx archive <feature>`
 
 ## 约束
 
-- `feature` 只允许读取已有需求上下文，不允许在 MR 阶段生成或重算；读取需求文档头部须遵守固定头部解析规则
-- 归档目标路径固定为 `docs/archive/{feature}/`，不允许自定义
-- 归档前必须确认 `progressFile` 所有 task 均为 `done`，否则停止归档并返回原因
+- feature 只读取已有值，不允许在 MR 阶段生成或重算
+- 归档路径固定：`docs/archive/{feature}/`，不允许自定义
+- `hx archive` 会自动校验所有 task 均为 done，校验失败时返回未完成 task 列表

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 /**
  * hx — Harness Workflow CLI 入口
@@ -18,8 +18,8 @@ import {
   BUILTIN_CLI_COMMANDS,
   loadCommandSpecs,
   mergeCommandSpecs,
-} from '../src/scripts/lib/install-utils.js'
-import { USER_HX_DIR, findProjectRoot, getSafeCwd } from '../src/scripts/lib/resolve-context.js'
+} from '../src/scripts/lib/install-utils.ts'
+import { USER_HX_DIR, findProjectRoot, getSafeCwd } from '../src/scripts/lib/resolve-context.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCRIPTS_DIR = resolve(__dirname, '..', 'src', 'scripts')
@@ -30,6 +30,18 @@ const BUILTIN_SCRIPTS = {
   migrate: 'hx-migrate.js',
   upgrade: 'hx-upgrade.js',
   uninstall: 'hx-uninstall.js',
+  // 确定性工具命令（代码实现，供 AI agent 调用）
+  progress: 'hx-progress.ts',
+  feature: 'hx-feature.ts',
+  archive: 'hx-archive.ts',
+  restore: 'hx-restore.ts',
+  status: 'hx-status.ts',
+  // 编排命令（状态机，代码驱动，输出精确 AI 指令）
+  run: 'hx-run.ts',
+  plan: 'hx-plan.ts',
+  go: 'hx-go.ts',
+  check: 'hx-check.ts',
+  mr: 'hx-mr.ts',
 }
 const runtimeCwd = getSafeCwd()
 const projectRoot = findProjectRoot(runtimeCwd)
@@ -54,6 +66,13 @@ function printHelp() {
     upgrade   升级 @hxflow/cli 到最新版本并重跑 setup
     uninstall 移除 Harness Workflow 安装产物
     version   输出当前 CLI 版本
+
+  确定性工具命令（代码实现，供 AI agent 调用）:
+    progress  进度文件操作  next/start/done/fail/validate
+    feature   需求文档工具  parse
+    archive   归档 feature 产物到 docs/archive/
+    restore   从 docs/archive/ 还原 feature 产物
+    status    查看 feature 进度摘要
 
   框架工作流命令 contract:
 ${frameworkContractList}

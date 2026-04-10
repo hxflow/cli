@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'bun:test'
 
 import {
   parseArgs,
   readTopLevelYamlScalar,
   upsertTopLevelYamlScalar,
-} from '../../src/scripts/lib/config-utils.js'
+} from '../../src/scripts/lib/config-utils.ts'
 
 describe('config-utils', () => {
   it('parses positional args and option variants', () => {

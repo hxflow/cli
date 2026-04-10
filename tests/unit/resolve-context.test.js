@@ -2,9 +2,9 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { resolve } from 'path'
 
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'bun:test'
 
-import { findProjectRoot } from '../../src/scripts/lib/resolve-context.js'
+import { findProjectRoot } from '../../src/scripts/lib/resolve-context.ts'
 
 const tempDirs = []
 

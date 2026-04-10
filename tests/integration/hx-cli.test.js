@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { resolve } from 'path'
 
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'bun:test'
 
 const tempDirs = []
 
@@ -120,7 +120,9 @@ describe('hx cli integration', () => {
       await import(pathToFileURL(${JSON.stringify(entryPath)}).href)
     `
 
-    const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    const isBun = typeof Bun !== 'undefined'
+    const evalArgs = isBun ? ['--eval', script] : ['--input-type=module', '-e', script]
+    const result = spawnSync(process.execPath, evalArgs, {
       cwd: process.cwd(),
       encoding: 'utf8',
     })

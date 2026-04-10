@@ -21,6 +21,20 @@
   }
 ,
   {
+    "name": "bun-ts-migration-plan",
+    "path": "docs/design/bun-ts-migration-plan.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
+    "name": "code-first-workflow-architecture",
+    "path": "docs/design/code-first-workflow-architecture.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
     "name": "hx-command-slimming",
     "path": "docs/design/hx-command-slimming.md",
     "type": "md",

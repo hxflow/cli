@@ -23,6 +23,22 @@
 - 写权边界：`src/contracts/ownership-contract.md`
 - checkpoint 评审：`src/contracts/checkpoint-contract.md`
 
+## 确定性工具命令
+
+以下操作通过 CLI 命令完成，AI 不自行实现其内部逻辑：
+
+| 操作 | 命令 |
+|------|------|
+| 查询下一批可执行任务 | `hx progress next <progressFile>` |
+| 阶段一写入（set in-progress） | `hx progress start <progressFile> <taskId>` |
+| 阶段二成功写入（set done） | `hx progress done <progressFile> <taskId> --output <text>` |
+| 阶段二失败写入（keep in-progress） | `hx progress fail <progressFile> <taskId> --exit <status> --reason <text>` |
+| 校验进度文件 | `hx progress validate <progressFile>` |
+| 解析需求文档头部 | `hx feature parse <requirementDoc>` |
+| 归档 feature 产物 | `hx archive <feature>` |
+| 从归档还原 | `hx restore <feature>` |
+| 查看进度摘要 | `hx status [<feature>]` |
+
 ## 执行入口
 
 1. 先读取本文件。

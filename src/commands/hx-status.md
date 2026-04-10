@@ -26,10 +26,8 @@ protected: true
 
 ## 执行步骤
 
-1. 读取 `paths.progressFile`，默认使用 `docs/plans/{feature}-progress.json`。
-2. 只扫描 `docs/plans/`，不扫描 `docs/archive/`；若指定了 `feature`，则只读取对应文件。
-3. 输出总任务数、已完成数、待完成数；指定 feature 时列出所有任务的 id、名称、状态和 `completedAt`。
-4. 存在阻断或中断时高亮原因，全部完成时给出交付建议。
+1. 解析参数，确定目标 feature（positional 或 `--feature`）。
+2. 调用 `hx status [<feature>]`，输出进度摘要和下一步建议。
 
 ## 成功结果
 
