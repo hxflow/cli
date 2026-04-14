@@ -528,17 +528,17 @@ describe('hx archive + hx restore integration', () => {
   })
 })
 
-// ─── hx CLI entrypoint smoke tests ───────────────────────────────────────────
+// ─── bare script smoke tests ─────────────────────────────────────────────────
 
-describe('hx CLI entrypoint — workflow commands smoke test', () => {
-  it('routes hx progress through bin/hx.js', () => {
+describe('bare script — direct invocation smoke test', () => {
+  it('invokes hx-progress.ts directly', () => {
     const project = createTempProject()
     const data = baseProgress('TEST-001', [makeTask()])
     const filePath = writeProgress(project, 'TEST-001', data)
 
     const result = spawnSync(
       process.execPath,
-      [resolve(REPO_ROOT, 'bin', 'hx.js'), 'progress', 'validate', filePath],
+      [resolve(REPO_ROOT, 'src', 'scripts', 'hx-progress.ts'), 'validate', filePath],
       { cwd: project, encoding: 'utf8' },
     )
 
@@ -546,13 +546,13 @@ describe('hx CLI entrypoint — workflow commands smoke test', () => {
     expect(JSON.parse(result.stdout).valid).toBe(true)
   })
 
-  it('routes hx feature through bin/hx.js', () => {
+  it('invokes hx-feature.ts directly', () => {
     const project = createTempProject()
     const filePath = writeRequirementDoc(project, 'SMOKE-001')
 
     const result = spawnSync(
       process.execPath,
-      [resolve(REPO_ROOT, 'bin', 'hx.js'), 'feature', 'parse', filePath],
+      [resolve(REPO_ROOT, 'src', 'scripts', 'hx-feature.ts'), 'parse', filePath],
       { cwd: project, encoding: 'utf8' },
     )
 

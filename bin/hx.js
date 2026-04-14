@@ -6,13 +6,12 @@
  * 维护命令:
  *   hx setup [--dry-run]
  *   hx migrate [--dry-run]
+ *   hx upgrade [--dry-run]
+ *   hx uninstall [--force]
  *   hx version
  *
- * 本地可执行工作流命令:
- *   hx progress/feature/archive/restore/status
- *   hx plan/run/check/mr/go
- *
- * 其余命令仍通过 agent command contract 提供。
+ * 工作流命令和事实工具均为 agent skill，AI 通过裸脚本直接调用。
+ * 本 CLI 不路由 skill 脚本。
  */
 
 import { resolve, dirname } from 'path'
@@ -29,31 +28,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCRIPTS_DIR = resolve(__dirname, '..', 'src', 'scripts')
 const FRAMEWORK_COMMAND_DIR = resolve(__dirname, '..', 'src', 'commands')
 const PACKAGE_JSON_PATH = resolve(__dirname, '..', 'package.json')
-const BUILTIN_WORKFLOW_COMMANDS = ['progress', 'feature', 'archive', 'restore', 'status', 'plan', 'run', 'check', 'mr', 'go', 'task', 'git', 'pipeline']
 const BUILTIN_SCRIPTS = {
   setup: 'hx-setup.ts',
   migrate: 'hx-migrate.ts',
   upgrade: 'hx-upgrade.ts',
   uninstall: 'hx-uninstall.ts',
-  // 确定性事实工具（供 AI agent 调用获取事实）
-  progress: 'hx-progress.ts',
-  feature: 'hx-feature.ts',
-  archive: 'hx-archive.ts',
-  restore: 'hx-restore.ts',
-  status: 'hx-status.ts',
-  task: 'hx-task.ts',
-  git: 'hx-git.ts',
-  pipeline: 'hx-pipeline.ts',
-  // 编排命令（状态机，代码驱动，输出精确 AI 指令）
-  run: 'hx-run.ts',
-  plan: 'hx-plan.ts',
-  go: 'hx-go.ts',
-  check: 'hx-check.ts',
-  mr: 'hx-mr.ts',
-  doc: 'hx-doc.ts',
-  fix: 'hx-fix.ts',
-  rules: 'hx-rules.ts',
-  init: 'hx-init.ts',
 }
 const runtimeCwd = getSafeCwd()
 const projectRoot = findProjectRoot(runtimeCwd)
@@ -79,25 +58,7 @@ function printHelp() {
     uninstall 移除 Harness Workflow 安装产物
     version   输出当前 CLI 版本
 
-  确定性工具命令（代码实现，供 AI agent 调用）:
-    progress  进度文件操作  next/start/done/fail/validate
-    feature   需求文档工具  parse
-    archive   归档 feature 产物到 docs/archive/
-    restore   从 docs/archive/ 还原 feature 产物
-    status    查看 feature 进度摘要
-
-  本地工作流命令:
-    plan      生成执行计划与 progressFile
-    run       执行任务调度
-    check     执行质量检查
-    mr        生成 MR 内容并自动归档
-    go        串联 doc -> plan -> run -> check -> mr
-    doc       生成需求文档
-    fix       定向修复错误
-    rules     查看/更新项目规则 (view | update)
-    init      初始化项目 .hx/ 骨架
-
-  Agent command contract:
+  Agent skill（AI 通过裸脚本直接调用，不走 hx 路由）:
 ${frameworkContractList}
 ${customSections}
   全局选项:
@@ -153,11 +114,7 @@ if (command === 'version' || command === '--version' || command === '-v') {
 const script = BUILTIN_SCRIPTS[command]
 
 if (!script) {
-  if (installedCommandNames.has(command)) {
-    console.error(`  "${command}" 是 agent command contract。Claude 使用 "/${command}"，Codex 使用 "${command}"。`)
-  } else {
-    printUnknownCommand(command)
-  }
+  printUnknownCommand(command)
   process.exit(1)
 }
 
@@ -176,10 +133,15 @@ function formatCommandList(commands) {
 }
 
 function printUnknownCommand(commandName) {
-  console.error(`  未知命令: ${commandName}`)
-  console.error('  新增共享命令：在 ~/.hx/commands/hx-*.md 中编写 contract 后运行 hx setup 安装适配层')
-  console.error(`  项目级覆写：在 ${projectRoot}/.hx/commands/ 中放同名 hx-*.md`)
-  console.error(`  当前 CLI 可直接执行: ${[...BUILTIN_CLI_COMMANDS, ...BUILTIN_WORKFLOW_COMMANDS].join(', ')}`)
+  const isSkill = installedCommandNames.has(commandName) || installedCommandNames.has(`hx-${commandName}`)
+  if (isSkill) {
+    console.error(`  "${commandName}" 是 agent skill，AI 通过裸脚本直接调用，不走 hx 路由。`)
+  } else {
+    console.error(`  未知命令: ${commandName}`)
+    console.error('  新增共享命令：在 ~/.hx/commands/hx-*.md 中编写 contract 后运行 hx setup 安装适配层')
+    console.error(`  项目级覆写：在 ${projectRoot}/.hx/commands/ 中放同名 hx-*.md`)
+  }
+  console.error(`  当前 CLI 可直接执行: ${[...BUILTIN_CLI_COMMANDS].join(', ')}`)
 }
 
 const scriptPath = resolve(SCRIPTS_DIR, script)

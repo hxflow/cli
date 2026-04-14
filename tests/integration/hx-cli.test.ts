@@ -33,9 +33,8 @@ describe('hx cli integration', () => {
     expect(help).toContain('migrate')
     expect(help).toContain('upgrade')
     expect(help).toContain('uninstall')
-    expect(help).toContain('本地工作流命令')
-    expect(help).toContain('plan')
-    expect(help).toContain('go')
+    expect(help).toContain('Agent skill')
+    expect(help).not.toContain('本地工作流命令')
     expect(runNode(['bin/hx.js', 'version'])).toMatch(/hx v\d+\.\d+\.\d+/)
   })
 
@@ -135,33 +134,15 @@ describe('hx cli integration', () => {
     expect(result.stdout).toContain('Harness Workflow · setup (dry-run)')
   })
 
-  it('reports agent contract commands without executing local scripts', () => {
-    const result = spawnSync(process.execPath, ['bin/hx.js', 'hx-init'], {
-      cwd: process.cwd(),
-      encoding: 'utf8',
-    })
-
-    expect(result.status).toBe(1)
-    expect(result.stderr).toContain('"hx-init" 是 agent command contract')
-  })
-
-  it('runs local workflow commands through the CLI entrypoint', () => {
-    const projectRoot = createTempDir('hx-go-entry-')
-    const entryPath = resolve(process.cwd(), 'bin', 'hx.js')
-    const result = spawnSync(process.execPath, [entryPath, 'go', 'next', 'AUTH-001'], {
-      cwd: projectRoot,
-      encoding: 'utf8',
-    })
-
-    expect(result.status).toBe(0)
-    const parsed = JSON.parse(result.stdout)
-    expect(parsed).toMatchObject({
-      ok: true,
-      feature: 'AUTH-001',
-      nextStep: 'doc',
-    })
-    expect(parsed.command).toBeDefined()
-    expect(Array.isArray(parsed.state)).toBe(true)
+  it('reports skill commands as agent skill, not local execution', () => {
+    for (const cmd of ['go', 'doc', 'plan', 'run', 'mr', 'fix', 'check']) {
+      const result = spawnSync(process.execPath, ['bin/hx.js', cmd], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+      })
+      expect(result.status).toBe(1)
+      expect(result.stderr).toContain('agent skill')
+    }
   })
 
   it('reports unknown commands', () => {
@@ -172,6 +153,6 @@ describe('hx cli integration', () => {
 
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('未知命令: unknown-command')
-    expect(result.stderr).toContain('当前 CLI 可直接执行: setup, migrate, upgrade, uninstall, version, progress, feature, archive, restore, status, plan, run, check, mr, go')
+    expect(result.stderr).toContain('当前 CLI 可直接执行: setup, migrate, upgrade, uninstall')
   })
 })
