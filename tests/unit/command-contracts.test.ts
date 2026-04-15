@@ -10,9 +10,7 @@ const commandFiles = readdirSync(COMMANDS_DIR)
   .filter((file) => file.startsWith('hx-') && file.endsWith('.md'))
   .sort()
 
-const FAILURE_HANDLING_COMMANDS = [
-  'hx-cli',
-]
+const FAILURE_HANDLING_COMMANDS = []
 
 // 有对应 Node.js 编排脚本的命令（简化 MD 结构，编排逻辑在代码里）
 const CODE_BACKED_COMMANDS = new Set([
@@ -25,7 +23,6 @@ const CODE_BACKED_COMMANDS = new Set([
 
 const ALL_COMMANDS = [
   'hx-check',
-  'hx-cli',
   'hx-doc',
   'hx-fix',
   'hx-go',
@@ -177,8 +174,7 @@ describe('command contracts', () => {
     expect(runtimeContract).toContain('命令正文显式提到哪个 contract，就继续读取哪个 contract')
     expect(runtimeContract).toContain('不要一次性读取整个 `src/contracts/`')
     expect(runtimeContract).toContain('## 命令来源')
-    expect(runtimeContract).toContain('~/.claude/skills/*/SKILL.md')
-    expect(runtimeContract).toContain('~/.agents/skills/*/SKILL.md')
+    expect(runtimeContract).toContain('`SKILL.md` 是唯一入口')
     expect(featureContract).toContain('Feature Contract')
     expect(progressContract).toContain('Progress Contract')
     expect(hxGo).not.toContain('src/contracts/resolution-contract.md')
@@ -215,7 +211,6 @@ describe('command contracts', () => {
     const hxRun = readFileSync(resolve(COMMANDS_DIR, 'hx-run.md'), 'utf8')
     const hxPlan = readFileSync(resolve(COMMANDS_DIR, 'hx-plan.md'), 'utf8')
     const hxMr = readFileSync(resolve(COMMANDS_DIR, 'hx-mr.md'), 'utf8')
-    const hxCli = readFileSync(resolve(COMMANDS_DIR, 'hx-cli.md'), 'utf8')
     const readme = readFileSync(resolve(process.cwd(), 'README.md'), 'utf8')
 
     // ── hx-doc（纯 AI 驱动，保留完整契约断言）────────────────────
@@ -309,10 +304,6 @@ describe('command contracts', () => {
     expect(hxMrScript).toContain('spawnSync')
     expect(hxMrScript).toContain('archiveFeature')
 
-    expect(hxCli).toContain('usage: hx-cli <doctor|issue> [options]')
-    expect(hxCli).toContain('`<doctor|issue>`')
-    expect(hxCli).toContain('`--title <title>`')
-    expect(hxCli).not.toContain('--agent <')
-    expect(readme).toContain('hx migrate')
+    expect(readme).toContain('hx')
   })
 })

@@ -25,27 +25,19 @@ describe('docs consistency', () => {
     }
   })
 
-  it('documents current install/runtime boundaries', () => {
+  it('documents current skill architecture', () => {
     const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8')
     const quickstart = readFileSync(resolve(ROOT, 'docs/guide/hx-quickstart.html'), 'utf8')
-    const guide = readFileSync(resolve(ROOT, 'docs/guide/hx-guide.html'), 'utf8')
     const configReference = readFileSync(resolve(ROOT, 'docs/guide/hx-config-reference.html'), 'utf8')
-    const commandIndex = readFileSync(resolve(ROOT, 'docs/guide/hx-command-index.html'), 'utf8')
     const progressContract = readFileSync(resolve(ROOT, 'src/contracts/progress-contract.md'), 'utf8')
 
     expect(readme).not.toContain('.hx/commands/')
     expect(readme).not.toContain('.hx/skills/')
-    expect(readme).not.toContain('hx setup [--agent')
-    expect(quickstart).toContain('src/commands/')
-    expect(quickstart).toContain('~/.hx/settings.yaml')
-    expect(guide).toContain('3 个内置命令（setup / migrate / version）')
-    expect(configReference).toContain('~/.hx/settings.yaml')
-    expect(configReference).toContain('.hx/config.yaml')
+    expect(readme).not.toContain('hx setup')
+    expect(readme).toContain('SKILL.md')
     expect(readme).toContain('src/contracts/runtime-contract.md')
-    expect(guide).toContain('~/.claude/skills/')
-    expect(guide).toContain('~/.agents/skills/')
-    expect(guide).not.toContain('~/.claude/commands/')
-    expect(commandIndex).not.toContain('hx setup [--agent')
+    expect(quickstart).toContain('src/commands/')
+    expect(configReference).toContain('.hx/config.yaml')
     expect(progressContract).toContain('dependsOn')
     expect(progressContract).toContain('parallelizable')
     expect(progressContract).toContain('lastRun')

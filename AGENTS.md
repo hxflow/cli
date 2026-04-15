@@ -2,25 +2,25 @@
 
 ## 项目结构与模块组织
 
-这是一个 Node.js + ESM 的 CLI 仓库，核心目标是提供 `@hxflow/cli` 工作流框架。主要目录如下：
+这是一个 Agent Skill 仓库，核心目标是提供 `hx` 工作流框架。主要目录如下：
 
-- `bin/hx.js`：CLI 入口，只直接处理 `hx setup`、`hx version`。
-- `src/commands/`：`hx-*` 命令契约文档与解析规则。
-- `src/scripts/`：安装、setup、上下文解析等实际脚本实现。
-- `src/templates/`：规则模板、forwarder 模板与默认配置。
+- `SKILL.md`：Skill 入口，路由 `/hx <command>` 到对应命令。
+- `src/commands/`：`hx-*` 命令契约文档。
+- `src/tools/`：事实工具脚本，AI 调用获取结构化数据。
+- `src/contracts/`：共享契约（运行时、命令、feature、progress 等）。
+- `src/templates/`：规则模板与默认配置。
 - `src/hooks/`、`src/pipelines/`：Hook 与流水线内置定义。
+- `src/lib/`：共享工具库。
 - `tests/unit/`、`tests/integration/`：单元测试与集成测试。
 - `docs/`、`assets/`：设计文档、引导页与静态资源。
 
 ## 构建、测试与开发命令
 
-- `npm install`：安装依赖。
-- `node src/scripts/hx-setup.js`：手动执行 setup，初始化或修复全局安装产物。
-- `node bin/hx.js --help`：查看 CLI 当前行为与命令契约入口。
-- `npm run hx:test`：运行全量 Vitest 测试。
+- `bun install`：安装依赖。
+- `npm run hx:test`：运行全量测试。
 - `npm run hx:test:unit`：仅跑 `tests/unit`。
 - `npm run hx:test:integration`：仅跑 `tests/integration`。
-- `npm run pack:dry-run`：检查 npm 发包内容是否完整。
+- `npm run pack:dry-run`：检查发包内容是否完整。
 
 ## 编码风格与命名约定
 

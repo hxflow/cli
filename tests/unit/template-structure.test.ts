@@ -35,24 +35,6 @@ describe('template structure', () => {
     expect(progressSchema).toContain('"ranAt"')
   })
 
-  it('keeps skill entry template spec-compliant', () => {
-    const templatePath = resolve(ROOT, 'src/templates/skill.md')
-    const content = readFileSync(templatePath, 'utf8')
-
-    // Agent Skills spec required fields
-    expect(content).toContain('name: {{name}}')
-    expect(content).toContain('description:')
-    expect(content).toContain('{{description}}')
-    // Agent Skills spec optional fields
-    expect(content).toContain('compatibility:')
-    expect(content).toContain('metadata:')
-    expect(content).toContain('generator: hx-setup')
-    // Progressive disclosure: relative references
-    expect(content).toContain('references/runtime-contract.md')
-    expect(content).toContain('references/{{name}}.md')
-    expect(content).toContain('hx setup')
-  })
-
   it('keeps framework hook files present', () => {
     const hooksDir = resolve(ROOT, 'src/hooks')
     const files = readdirSync(hooksDir).sort()

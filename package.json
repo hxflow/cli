@@ -1,26 +1,18 @@
 {
   "name": "@hxflow/cli",
-  "version": "3.2.3",
-  "description": "Project-rules-driven AI engineering workflow — zero-disruption installer for existing projects.",
+  "version": "4.0.0",
+  "description": "Harness Workflow — Agent Skill for requirement-to-delivery pipeline.",
   "license": "MIT",
   "packageManager": "bun@1.3.11",
   "type": "module",
-  "bin": {
-    "hx": "bin/hx.js"
-  },
   "files": [
-    ".npmrc",
-    "bin/hx.js",
+    "SKILL.md",
     "README.md",
     "src/commands/**/*",
     "src/contracts/**/*",
     "src/hooks/**/*",
     "src/templates/**/*",
     "src/pipelines/**/*",
-    "src/scripts/hx-migrate.ts",
-    "src/scripts/hx-setup.ts",
-    "src/scripts/hx-upgrade.ts",
-    "src/scripts/hx-uninstall.ts",
     "src/tools/**/*",
     "src/lib/**/*"
   ],

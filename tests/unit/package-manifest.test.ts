@@ -1,25 +1,33 @@
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 
 import { describe, expect, it } from 'bun:test'
 
 const ROOT = process.cwd()
 const PACKAGE_JSON_PATH = resolve(ROOT, 'package.json')
-const CLI_ENTRY_PATH = resolve(ROOT, 'bin/hx.js')
 
 describe('package manifest', () => {
-  it('publishes every builtin CLI script referenced by the entrypoint', () => {
+  it('publishes SKILL.md and core source directories', () => {
     const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'))
-    const cliEntry = readFileSync(CLI_ENTRY_PATH, 'utf8')
 
-    expect(cliEntry).toContain("upgrade: 'hx-upgrade.ts'")
-    expect(cliEntry).toContain("uninstall: 'hx-uninstall.ts'")
+    expect(pkg.files).toContain('SKILL.md')
+    expect(pkg.files).toContain('src/commands/**/*')
     expect(pkg.files).toContain('src/contracts/**/*')
-    expect(pkg.files).toContain('src/scripts/hx-migrate.ts')
-    expect(pkg.files).toContain('src/scripts/hx-setup.ts')
-    expect(pkg.files).toContain('src/scripts/hx-upgrade.ts')
-    expect(pkg.files).toContain('src/scripts/hx-uninstall.ts')
     expect(pkg.files).toContain('src/tools/**/*')
     expect(pkg.files).toContain('src/lib/**/*')
+  })
+
+  it('does not expose CLI bin entry', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'))
+
+    expect(pkg.bin).toBeUndefined()
+    expect(existsSync(resolve(ROOT, 'bin/hx.js'))).toBe(false)
+  })
+
+  it('has root SKILL.md as skill entry point', () => {
+    expect(existsSync(resolve(ROOT, 'SKILL.md'))).toBe(true)
+    const content = readFileSync(resolve(ROOT, 'SKILL.md'), 'utf8')
+    expect(content).toContain('name: hx')
+    expect(content).toContain('src/contracts/runtime-contract.md')
   })
 })

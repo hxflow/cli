@@ -44,8 +44,8 @@
 
 ## 命令来源
 
-- 所有 `hx-*` 命令实体文件统一位于框架层 `src/commands/`，不支持覆盖。
-- Skill 入口（`~/.claude/skills/*/SKILL.md`、`~/.agents/skills/*/SKILL.md`）直接指向框架层文件。
+- 所有 `hx-*` 命令定义位于 `src/commands/`，不支持覆盖。
+- 根目录 `SKILL.md` 是唯一入口，路由到对应命令文件。
 
 ## 执行入口
 
