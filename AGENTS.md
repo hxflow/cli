@@ -4,13 +4,11 @@
 
 这是一个 Agent Skill 仓库，核心目标是提供 `hx` 工作流框架。主要目录如下：
 
-- `SKILL.md`：Skill 入口，路由 `/hx <command>` 到对应命令。
-- `src/commands/`：`hx-*` 命令契约文档。
-- `src/tools/`：事实工具脚本，AI 调用获取结构化数据。
-- `src/contracts/`：共享契约（运行时、命令、feature、progress 等）。
-- `src/templates/`：规则模板与默认配置。
-- `src/hooks/`、`src/pipelines/`：Hook 与流水线内置定义。
-- `src/lib/`：共享工具库。
+- `hxflow/SKILL.md`：Skill 入口，路由 `/hx <command>` 到对应命令。
+- `hxflow/commands/`：`hx-*` 命令契约文档。
+- `hxflow/scripts/tools/`：事实工具脚本，AI 调用获取结构化数据。
+- `hxflow/templates/`：规则模板与默认配置。
+- `hxflow/scripts/lib/`：共享工具库。
 - `tests/unit/`、`tests/integration/`：单元测试与集成测试。
 - `docs/`、`assets/`：设计文档、引导页与静态资源。
 
@@ -59,8 +57,8 @@
 ## HX Self-Hosting Constraints
 
 - 先区分两层：`src/*` 是框架定义，`.hx/*` 是当前仓库作为使用者的落地结果。
-- 改命令行为、运行时规则、默认骨架时，优先修改 `src/commands/*`、`src/contracts/*`、`src/templates/*`、`src/pipelines/*`，不要把 `.hx/*` 当成事实源。
-- `.hx/config.yaml`、`.hx/rules/*`、`.hx/pipelines/*` 只用于验证 `hx-init` / `hx-rules` 的落地效果；若要调整默认值或模板，回到框架层修改。
+- 改命令行为、运行时规则、默认骨架时，优先修改 `hxflow/commands/*`、`hxflow/scripts/*`、`hxflow/templates/*`，不要把 `.hx/*` 当成事实源。
+- `.hx/config.yaml`、`.hx/rules/*`、`.hx/pipelines/*` 只用于验证 `hx-init` 的落地效果；若要调整默认值或模板，回到框架层修改。
 - 任何影响 `hx-init`、规则模板、pipeline 或命令契约的改动，都必须同时检查当前仓库 `.hx/*` 的生成结果是否仍与设计一致。
 - 文档、命令契约、模板三者必须同步收口；不能只改其中一层而让 self-hosting 结果漂移。
 - 将当前仓库视为 `hxflow` 的第一验收用例：如果新流程不能在本仓库顺畅运行，优先视为框架设计未收口。

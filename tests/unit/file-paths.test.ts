@@ -10,9 +10,9 @@ import {
   archiveFeature,
   restoreFeature,
   resolveProgressFile,
-} from '../../src/lib/file-paths.ts'
+} from '../../hxflow/scripts/lib/file-paths.ts'
 
-let tmpDir
+let tmpDir: string
 
 beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'hxflow-file-paths-'))
@@ -49,7 +49,7 @@ describe('path getters', () => {
 // ── archiveFeature ────────────────────────────────────────────────────────────
 
 describe('archiveFeature', () => {
-  function setupActiveFiles(feature) {
+  function setupActiveFiles(feature: string) {
     const plansDir = join(tmpDir, 'docs', 'plans')
     mkdirSync(plansDir, { recursive: true })
     writeFileSync(join(plansDir, `${feature}.md`), '# plan', 'utf8')
@@ -94,7 +94,7 @@ describe('archiveFeature', () => {
 // ── restoreFeature ────────────────────────────────────────────────────────────
 
 describe('restoreFeature', () => {
-  function setupArchived(feature) {
+  function setupArchived(feature: string) {
     const archiveDir = join(tmpDir, 'docs', 'archive', feature)
     mkdirSync(archiveDir, { recursive: true })
     writeFileSync(join(archiveDir, `${feature}.md`), '# plan', 'utf8')

@@ -3,7 +3,8 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-import { buildTaskContext } from '../../src/lib/task-context.ts'
+import { buildTaskContext } from '../../hxflow/scripts/lib/task-context.ts'
+import type { ProgressData } from '../../hxflow/scripts/lib/types.ts'
 
 const tempDirs: string[] = []
 
@@ -58,7 +59,7 @@ describe('buildTaskContext', () => {
       'utf8',
     )
 
-    const progressData = {
+    const progressData: ProgressData = {
       feature: 'AUTH-001',
       requirementDoc: 'docs/requirement/AUTH-001.md',
       planDoc: 'docs/plans/AUTH-001.md',

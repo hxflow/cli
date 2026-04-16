@@ -7,12 +7,13 @@
     "strict": true,
     "noEmit": true,
     "allowJs": false,
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "esModuleInterop": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["bun-types"]
   },
-  "include": [],
+  "include": ["hxflow/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

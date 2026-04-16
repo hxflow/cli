@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
-const SCRIPT_PATH = resolve(process.cwd(), 'src/tools/mr.ts')
+const SCRIPT_PATH = resolve(process.cwd(), 'hxflow', 'scripts', 'tools', 'mr.ts')
 const tempDirs: string[] = []
 
 function normalizeTmpPath(value: string) {
@@ -76,28 +76,6 @@ function createProject(taskStatus: 'done' | 'pending') {
 }
 
 describe('hx-mr script', () => {
-  it('context subcommand outputs flat MR facts when all tasks done', () => {
-    const projectRoot = createProject('done')
-    const result = spawnSync('bun', [SCRIPT_PATH, 'context', 'AUTH-001'], {
-      cwd: projectRoot,
-      encoding: 'utf8',
-    })
-
-    expect(result.status).toBe(0)
-    const summary = JSON.parse(result.stdout)
-    expect(summary.ok).toBe(true)
-    expect(summary.feature).toBe('AUTH-001')
-    expect(summary.displayName).toBe('用户登录')
-    expect(summary.sourceId).toBe('TS-1')
-    expect(summary.allDone).toBe(true)
-    expect(summary.pendingIds).toEqual([])
-    expect(summary.progress.doneCount).toBe(1)
-    expect(summary.progress.totalCount).toBe(1)
-    expect(summary.git).toBeDefined()
-    expect(summary.git.targetBranch).toBeDefined()
-    expect(summary.git.currentBranch).toBeDefined()
-  })
-
   it('archive subcommand moves active artifacts to archive dir', () => {
     const projectRoot = createProject('done')
     const result = spawnSync('bun', [SCRIPT_PATH, 'archive', 'AUTH-001'], {
@@ -121,9 +99,13 @@ describe('hx-mr script', () => {
     expect(existsSync(join(projectRoot, 'docs', 'archive', 'AUTH-001', 'AUTH-001.md'))).toBe(true)
   })
 
-  it('context subcommand reports pending tasks when progress has unfinished work', () => {
+  it('archive subcommand returns already archived when progress has been moved away', () => {
     const projectRoot = createProject('pending')
-    const result = spawnSync('bun', [SCRIPT_PATH, 'context', 'AUTH-001'], {
+    mkdirSync(join(projectRoot, 'docs', 'archive', 'AUTH-001'), { recursive: true })
+    rmSync(join(projectRoot, 'docs', 'plans', 'AUTH-001-progress.json'), { force: true })
+    writeFileSync(join(projectRoot, 'docs', 'archive', 'AUTH-001', 'AUTH-001-progress.json'), '{}', 'utf8')
+
+    const result = spawnSync('bun', [SCRIPT_PATH, 'archive', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -132,12 +114,7 @@ describe('hx-mr script', () => {
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(true)
     expect(summary.feature).toBe('AUTH-001')
-    expect(summary.allDone).toBe(false)
-    expect(summary.pendingIds).toEqual(['TASK-1'])
-    expect(summary.progress.doneCount).toBe(0)
-    expect(summary.progress.totalCount).toBe(1)
-    expect(normalizeTmpPath(summary.progressFile)).toBe(
-      normalizeTmpPath(join(projectRoot, 'docs', 'plans', 'AUTH-001-progress.json')),
-    )
+    expect(summary.performed).toBe(false)
+    expect(summary.reason).toBe('已归档')
   })
 })

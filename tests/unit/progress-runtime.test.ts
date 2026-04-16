@@ -1,18 +1,20 @@
 import { describe, expect, it } from 'bun:test'
 
 import {
-  getProgressSchemaPaths,
-  readProgressSchema,
+  PROGRESS_LAST_RUN_KEYS,
+  PROGRESS_SCHEMA,
+  PROGRESS_TASK_KEYS,
+  PROGRESS_TOP_LEVEL_KEYS,
   readProgressFile,
-  readProgressTemplate,
   validateProgressData,
   validateProgressFile,
-} from '../../src/lib/progress-schema.ts'
+} from '../../hxflow/scripts/lib/progress-schema.ts'
+import type { ProgressData } from '../../hxflow/scripts/lib/types.ts'
 import { mkdtempSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
-function buildValidProgress() {
+function buildValidProgress(): ProgressData {
   return {
     feature: 'user-login',
     requirementDoc: 'docs/requirement/user-login.md',
@@ -56,20 +58,37 @@ function buildValidProgress() {
 }
 
 describe('progress runtime validation', () => {
-  it('exposes stable schema and template paths', () => {
-    const paths = getProgressSchemaPaths()
-
-    expect(paths.schemaPath.endsWith('src/templates/progress.schema.json')).toBe(true)
-    expect(paths.templatePath.endsWith('src/templates/progress.json')).toBe(true)
-  })
-
-  it('reads the fixed schema and template assets', () => {
-    const schema = readProgressSchema()
-    const template = readProgressTemplate()
-
-    expect(schema.$id).toContain('progress.schema.json')
-    expect(template.lastRun).toBe(null)
-    expect(template.tasks[0].parallelizable).toBe(false)
+  it('reads the fixed schema object and exported field sets', () => {
+    expect(PROGRESS_SCHEMA.$id).toContain('progress.schema.json')
+    expect(PROGRESS_TOP_LEVEL_KEYS).toEqual([
+      'feature',
+      'requirementDoc',
+      'planDoc',
+      'createdAt',
+      'updatedAt',
+      'completedAt',
+      'lastRun',
+      'tasks',
+    ])
+    expect(PROGRESS_TASK_KEYS).toEqual([
+      'id',
+      'name',
+      'status',
+      'dependsOn',
+      'parallelizable',
+      'output',
+      'startedAt',
+      'completedAt',
+      'durationSeconds',
+    ])
+    expect(PROGRESS_LAST_RUN_KEYS).toEqual([
+      'taskId',
+      'taskName',
+      'status',
+      'exitStatus',
+      'exitReason',
+      'ranAt',
+    ])
   })
 
   it('reads a progress file from disk', () => {
@@ -106,14 +125,14 @@ describe('progress runtime validation', () => {
 
   it('rejects extra fields and malformed lastRun', () => {
     const progress = buildValidProgress()
-    progress.extra = true
+    ;(progress as any).extra = true
     progress.lastRun = {
       taskId: 'TASK-BE-01',
       status: 'done',
       exitStatus: 'failed',
       exitReason: '',
       ranAt: '2026-04-01T10:30:00+08:00',
-    }
+    } as any
 
     const result = validateProgressData(progress)
 
@@ -125,7 +144,7 @@ describe('progress runtime validation', () => {
 
   it('rejects dependency cycles and invalid task state combinations', () => {
     const progress = buildValidProgress()
-    progress.lastRun = null
+    progress.lastRun = null as any
     progress.tasks[0].dependsOn = ['TASK-FE-01']
     progress.tasks[1].status = 'in-progress'
     progress.tasks[1].startedAt = null
@@ -146,7 +165,7 @@ describe('progress runtime validation', () => {
     progress.lastRun = {
       taskId: 'TASK-BE-01',
       taskName: '错误任务名',
-      status: 'pending',
+      status: 'pending' as any,
       exitStatus: 'failed',
       exitReason: '测试失败',
       ranAt: '2026-04-01T10:05:00+08:00',
@@ -257,7 +276,7 @@ describe('progress runtime validation', () => {
 
   it('rejects completedAt when feature is not fully done', () => {
     const progress = buildValidProgress()
-    progress.completedAt = '2026-04-01T11:00:00+08:00'
+    progress.completedAt = '2026-04-01T11:00:00+08:00' as any
 
     const result = validateProgressData(progress)
 

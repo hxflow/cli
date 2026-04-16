@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
 import { mkdirSync, writeFileSync, rmSync } from 'fs'
 import { resolve } from 'path'
 import { tmpdir } from 'os'
@@ -9,7 +9,7 @@ import {
   commandToToolScript,
   getPipelineFullState,
   resolveStartStep,
-} from '../../src/lib/pipeline-runner.ts'
+} from '../../hxflow/scripts/lib/pipeline-runner.ts'
 
 const TEST_ROOT = resolve(tmpdir(), `hx-pipeline-test-${Date.now()}`)
 const PROJECT_ROOT = resolve(TEST_ROOT, 'project')
@@ -23,9 +23,34 @@ function writeFile(path: string, content: string) {
   writeFileSync(path, content, 'utf8')
 }
 
+function writeRuntimeConfig(projectRoot: string, content: string) {
+  writeFile(resolve(projectRoot, '.hx', 'config.yaml'), content)
+}
+
 describe('pipeline-runner', () => {
   beforeEach(() => {
     ensureDir(PROJECT_ROOT)
+    writeRuntimeConfig(PROJECT_ROOT, `runtime:
+  hooks:
+    hx-doc:
+      pre:
+        - .hx/hooks/pre_doc.md
+  pipelines:
+    default: .hx/pipelines/default.yaml
+`)
+    writeFile(resolve(PROJECT_ROOT, '.hx', 'pipelines', 'default.yaml'), `name: Default
+steps:
+  - id: doc
+    phase: Phase 01
+    name: 需求文档
+    command: hx-doc
+  - id: plan
+    name: 执行计划
+    command: hx-plan
+  - id: run
+    name: 执行需求
+    command: hx-run
+`)
   })
 
   afterEach(() => {
@@ -93,28 +118,28 @@ steps:
   })
 
   describe('commandToToolScript', () => {
-    it('should map hx-doc to src/tools/doc.ts', () => {
-      expect(commandToToolScript('hx-doc')).toBe('src/tools/doc.ts')
+    it('should map hx-doc to scripts/tools/doc.ts', () => {
+      expect(commandToToolScript('hx-doc')).toBe('scripts/tools/doc.ts')
     })
 
-    it('should map hx-plan to src/tools/plan.ts', () => {
-      expect(commandToToolScript('hx-plan')).toBe('src/tools/plan.ts')
+    it('should map hx-plan to scripts/tools/plan.ts', () => {
+      expect(commandToToolScript('hx-plan')).toBe('scripts/tools/plan.ts')
     })
 
     it('should handle "hx run" format', () => {
-      expect(commandToToolScript('hx run')).toBe('src/tools/run.ts')
+      expect(commandToToolScript('hx run')).toBe('scripts/tools/run.ts')
     })
   })
 
   describe('loadPipeline', () => {
-    it('should load default pipeline from framework', () => {
+    it('should load default pipeline from runtime config', () => {
       const pipeline = loadPipeline('default', PROJECT_ROOT)
       expect(pipeline).not.toBeNull()
-      expect(pipeline!.layer).toBe('framework')
+      expect(pipeline!.layer).toBe('project')
       expect(pipeline!.steps.length).toBeGreaterThan(0)
     })
 
-    it('should load project pipeline over framework', () => {
+    it('should load registered project pipeline', () => {
       const yaml = `name: Custom
 steps:
   - id: custom
@@ -143,7 +168,8 @@ steps:
 
       // 第一步应该是 pending（没有 doc 文件）
       expect(state!.steps[0].status).toBe('pending')
-      expect(state!.steps[0].toolScript).toBe('src/tools/doc.ts')
+      expect(state!.steps[0].toolScript).toBe('scripts/tools/doc.ts')
+      expect(state!.steps[0].preHooks).toEqual(['.hx/hooks/pre_doc.md'])
       expect(state!.nextStep).toBe('doc')
     })
 
@@ -164,13 +190,15 @@ steps:
     it('should start from doc when nothing is done', () => {
       const result = resolveStartStep(PROJECT_ROOT, 'TEST-001')
       expect(result.stepId).toBe('doc')
-      expect(result.toolScript).toBe('src/tools/doc.ts')
+      expect(result.toolScript).toBe('scripts/tools/doc.ts')
+      expect(result.preHooks).toEqual(['.hx/hooks/pre_doc.md'])
     })
 
     it('should respect --from parameter', () => {
       const result = resolveStartStep(PROJECT_ROOT, 'TEST-001', 'plan')
       expect(result.stepId).toBe('plan')
-      expect(result.toolScript).toBe('src/tools/plan.ts')
+      expect(result.toolScript).toBe('scripts/tools/plan.ts')
+      expect(result.preHooks).toEqual([])
     })
 
     it('should throw for invalid --from step', () => {

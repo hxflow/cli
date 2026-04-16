@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
-const SCRIPT_PATH = resolve(process.cwd(), 'src/tools/check.ts')
+const SCRIPT_PATH = resolve(process.cwd(), 'hxflow', 'scripts', 'tools', 'check.ts')
 const tempDirs: string[] = []
 
 afterEach(() => {
@@ -27,8 +27,6 @@ gates:
 `,
     'utf8',
   )
-  writeFileSync(join(projectRoot, '.hx', 'rules', 'review-checklist.md'), '# Review Checklist\n', 'utf8')
-  writeFileSync(join(projectRoot, '.hx', 'rules', 'golden-rules.md'), '# Golden Rules\n', 'utf8')
 
   return projectRoot
 }

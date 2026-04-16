@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'bun:test'
-import { getRunnableTasks, getRecoverableTasks, getScheduledBatch } from '../../src/lib/task-scheduler.ts'
+import { getRunnableTasks, getRecoverableTasks, getScheduledBatch } from '../../hxflow/scripts/lib/task-scheduler.ts'
+import type { ProgressData, ProgressTask } from '../../hxflow/scripts/lib/types.ts'
 
-function makeTask(overrides) {
+function makeTask(overrides: Partial<ProgressTask>) {
   return {
     id: 'TASK-1',
     name: '任务',
@@ -25,7 +26,7 @@ describe('getRunnableTasks', () => {
         makeTask({ id: 'C', status: 'pending', dependsOn: ['B'] }),
       ],
     }
-    const runnable = getRunnableTasks(data)
+    const runnable = getRunnableTasks(data as ProgressData)
     expect(runnable.map((t) => t.id)).toEqual(['B'])
   })
 
@@ -37,7 +38,7 @@ describe('getRunnableTasks', () => {
         makeTask({ id: 'C', status: 'pending', dependsOn: ['A'], parallelizable: true }),
       ],
     }
-    const runnable = getRunnableTasks(data)
+    const runnable = getRunnableTasks(data as ProgressData)
     expect(runnable.map((t) => t.id)).toEqual(['B', 'C'])
   })
 
@@ -47,7 +48,7 @@ describe('getRunnableTasks', () => {
         makeTask({ id: 'A', status: 'in-progress', startedAt: '2024-01-01T00:00:00Z' }),
       ],
     }
-    expect(getRunnableTasks(data)).toHaveLength(0)
+    expect(getRunnableTasks(data as ProgressData)).toHaveLength(0)
   })
 
   it('excludes done tasks', () => {
@@ -56,14 +57,14 @@ describe('getRunnableTasks', () => {
         makeTask({ id: 'A', status: 'done', output: 'ok', startedAt: '2024-01-01T00:00:00Z', completedAt: '2024-01-01T00:01:00Z', durationSeconds: 60 }),
       ],
     }
-    expect(getRunnableTasks(data)).toHaveLength(0)
+    expect(getRunnableTasks(data as ProgressData)).toHaveLength(0)
   })
 
   it('returns pending task with no deps', () => {
     const data = {
       tasks: [makeTask({ id: 'A' })],
     }
-    expect(getRunnableTasks(data).map((t) => t.id)).toEqual(['A'])
+    expect(getRunnableTasks(data as ProgressData).map((t) => t.id)).toEqual(['A'])
   })
 })
 
@@ -75,7 +76,7 @@ describe('getRecoverableTasks', () => {
         makeTask({ id: 'B', status: 'in-progress', dependsOn: ['A'], startedAt: '2024-01-01T00:02:00Z' }),
       ],
     }
-    expect(getRecoverableTasks(data).map((t) => t.id)).toEqual(['B'])
+    expect(getRecoverableTasks(data as ProgressData).map((t) => t.id)).toEqual(['B'])
   })
 
   it('excludes in-progress tasks with null startedAt', () => {
@@ -84,7 +85,7 @@ describe('getRecoverableTasks', () => {
         makeTask({ id: 'A', status: 'in-progress', startedAt: null }),
       ],
     }
-    expect(getRecoverableTasks(data)).toHaveLength(0)
+    expect(getRecoverableTasks(data as ProgressData)).toHaveLength(0)
   })
 
   it('excludes in-progress tasks with pending deps', () => {
@@ -94,7 +95,7 @@ describe('getRecoverableTasks', () => {
         makeTask({ id: 'B', status: 'in-progress', dependsOn: ['A'], startedAt: '2024-01-01T00:00:00Z' }),
       ],
     }
-    expect(getRecoverableTasks(data)).toHaveLength(0)
+    expect(getRecoverableTasks(data as ProgressData)).toHaveLength(0)
   })
 
   it('excludes in-progress tasks with non-null completedAt', () => {
@@ -103,7 +104,7 @@ describe('getRecoverableTasks', () => {
         makeTask({ id: 'A', status: 'in-progress', startedAt: '2024-01-01T00:00:00Z', completedAt: '2024-01-01T00:01:00Z' }),
       ],
     }
-    expect(getRecoverableTasks(data)).toHaveLength(0)
+    expect(getRecoverableTasks(data as ProgressData)).toHaveLength(0)
   })
 })
 
@@ -114,7 +115,7 @@ describe('getScheduledBatch', () => {
         makeTask({ id: 'A', status: 'done', output: 'ok', startedAt: '2024-01-01T00:00:00Z', completedAt: '2024-01-01T00:01:00Z', durationSeconds: 60 }),
       ],
     }
-    expect(getScheduledBatch(data)).toEqual({ tasks: [], parallel: false, mode: 'done' })
+    expect(getScheduledBatch(data as ProgressData)).toEqual({ tasks: [], parallel: false, mode: 'done' })
   })
 
   it('prioritizes recover over run', () => {
@@ -124,7 +125,7 @@ describe('getScheduledBatch', () => {
         makeTask({ id: 'B', status: 'pending' }),
       ],
     }
-    const batch = getScheduledBatch(data)
+    const batch = getScheduledBatch(data as ProgressData)
     expect(batch.mode).toBe('recover')
     expect(batch.tasks.map((t) => t.id)).toEqual(['A'])
   })
@@ -136,7 +137,7 @@ describe('getScheduledBatch', () => {
         makeTask({ id: 'B' }),
       ],
     }
-    const batch = getScheduledBatch(data)
+    const batch = getScheduledBatch(data as ProgressData)
     expect(batch.mode).toBe('run')
     expect(batch.tasks).toHaveLength(2)
   })
@@ -148,7 +149,7 @@ describe('getScheduledBatch', () => {
         makeTask({ id: 'B', parallelizable: true }),
       ],
     }
-    expect(getScheduledBatch(data).parallel).toBe(true)
+    expect(getScheduledBatch(data as ProgressData).parallel).toBe(true)
   })
 
   it('sets parallel=false when any task is not parallelizable', () => {
@@ -158,14 +159,14 @@ describe('getScheduledBatch', () => {
         makeTask({ id: 'B', parallelizable: false }),
       ],
     }
-    expect(getScheduledBatch(data).parallel).toBe(false)
+    expect(getScheduledBatch(data as ProgressData).parallel).toBe(false)
   })
 
   it('sets parallel=false for single task regardless of flag', () => {
     const data = {
       tasks: [makeTask({ id: 'A', parallelizable: true })],
     }
-    expect(getScheduledBatch(data).parallel).toBe(false)
+    expect(getScheduledBatch(data as ProgressData).parallel).toBe(false)
   })
 
   it('returns mode=done when no runnable or recoverable tasks exist but not all done', () => {
@@ -177,7 +178,7 @@ describe('getScheduledBatch', () => {
       ],
     }
     // A is runnable
-    const batch = getScheduledBatch(data)
+    const batch = getScheduledBatch(data as ProgressData)
     expect(batch.mode).toBe('run')
     expect(batch.tasks.map((t) => t.id)).toEqual(['A'])
   })

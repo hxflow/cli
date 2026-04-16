@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
-const SCRIPT_PATH = resolve(process.cwd(), 'src/tools/go.ts')
+const SCRIPT_PATH = resolve(process.cwd(), 'hxflow', 'scripts', 'tools', 'go.ts')
 const tempDirs: string[] = []
 
 afterEach(() => {
@@ -21,18 +21,45 @@ function createProject() {
   mkdirSync(join(projectRoot, 'docs', 'requirement'), { recursive: true })
   mkdirSync(join(projectRoot, 'docs', 'plans'), { recursive: true })
 
-  writeFileSync(
-    join(projectRoot, '.hx', 'config.yaml'),
-    `paths:
+    writeFileSync(
+      join(projectRoot, '.hx', 'config.yaml'),
+      `paths:
   src: src
 gates:
   test: echo qa-pass
+runtime:
+  hooks:
+    hx-doc:
+      pre:
+        - .hx/hooks/pre_doc.md
+  pipelines:
+    default: .hx/pipelines/default.yaml
 `,
-    'utf8',
-  )
-  writeFileSync(join(projectRoot, '.hx', 'rules', 'review-checklist.md'), '# Review Checklist\n', 'utf8')
-  writeFileSync(join(projectRoot, '.hx', 'rules', 'golden-rules.md'), '# Golden Rules\n', 'utf8')
-
+      'utf8',
+    )
+    mkdirSync(join(projectRoot, '.hx', 'pipelines'), { recursive: true })
+    writeFileSync(
+      join(projectRoot, '.hx', 'pipelines', 'default.yaml'),
+      `name: Default
+steps:
+  - id: doc
+    name: 需求文档
+    command: hx-doc
+  - id: plan
+    name: 执行计划
+    command: hx-plan
+  - id: run
+    name: 执行需求
+    command: hx-run
+  - id: check
+    name: 核心检查
+    command: hx-check
+  - id: mr
+    name: MR 描述
+    command: hx-mr
+`,
+      'utf8',
+    )
   return projectRoot
 }
 
@@ -67,9 +94,10 @@ describe('hx-go script', () => {
     expect(parsed.ok).toBe(true)
     expect(parsed.feature).toBe('AUTH-001')
     expect(parsed.nextStep).toBe('doc')
-    expect(parsed.toolScript).toBe('src/tools/doc.ts')
+    expect(parsed.toolScript).toBe('scripts/tools/doc.ts')
+    expect(parsed.preHooks).toEqual(['.hx/hooks/pre_doc.md'])
     expect(Array.isArray(parsed.steps)).toBe(true)
-    expect(parsed.steps[0]).toMatchObject({ id: 'doc', status: 'pending' })
+    expect(parsed.steps[0]).toMatchObject({ id: 'doc', status: 'pending', preHooks: ['.hx/hooks/pre_doc.md'] })
   })
 
   it('next subcommand with --from plan returns check step when doc/plan/run are done', () => {
@@ -119,7 +147,8 @@ describe('hx-go script', () => {
     expect(summary.feature).toBe('AUTH-001')
     // --from plan forces start at plan step
     expect(summary.nextStep).toBe('plan')
-    expect(summary.toolScript).toBe('src/tools/plan.ts')
+    expect(summary.toolScript).toBe('scripts/tools/plan.ts')
+    expect(summary.preHooks).toEqual([])
 
     // steps reflects doc/plan/run done, check/mr rerun
     const stateMap = Object.fromEntries(
@@ -149,7 +178,7 @@ describe('hx-go script', () => {
     expect(summary.nextStep).toBe('plan')
     expect(Array.isArray(summary.steps)).toBe(true)
     expect(summary.steps).toHaveLength(5)
-    expect(summary.steps[0]).toMatchObject({ id: 'doc', status: 'done' })
-    expect(summary.steps[1]).toMatchObject({ id: 'plan', status: 'pending' })
+    expect(summary.steps[0]).toMatchObject({ id: 'doc', status: 'done', preHooks: ['.hx/hooks/pre_doc.md'] })
+    expect(summary.steps[1]).toMatchObject({ id: 'plan', status: 'pending', preHooks: [] })
   })
 })

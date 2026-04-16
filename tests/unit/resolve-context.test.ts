@@ -4,11 +4,11 @@ import { resolve } from 'path'
 
 import { afterEach, describe, expect, it } from 'bun:test'
 
-import { findProjectRoot } from '../../src/lib/resolve-context.ts'
+import { findProjectRoot } from '../../hxflow/scripts/lib/resolve-context.ts'
 
-const tempDirs = []
+const tempDirs: string[] = []
 
-function createTempDir(prefix) {
+function createTempDir(prefix: string) {
   const dir = mkdtempSync(resolve(tmpdir(), prefix))
   tempDirs.push(dir)
   return dir
@@ -16,7 +16,7 @@ function createTempDir(prefix) {
 
 afterEach(() => {
   while (tempDirs.length > 0) {
-    rmSync(tempDirs.pop(), { recursive: true, force: true })
+    rmSync(tempDirs.pop()!, { recursive: true, force: true })
   }
 })
 

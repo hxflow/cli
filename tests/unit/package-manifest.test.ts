@@ -7,14 +7,11 @@ const ROOT = process.cwd()
 const PACKAGE_JSON_PATH = resolve(ROOT, 'package.json')
 
 describe('package manifest', () => {
-  it('publishes SKILL.md and core source directories', () => {
+  it('publishes hxflow directory as the skill root', () => {
     const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'))
 
-    expect(pkg.files).toContain('SKILL.md')
-    expect(pkg.files).toContain('src/commands/**/*')
-    expect(pkg.files).toContain('src/contracts/**/*')
-    expect(pkg.files).toContain('src/tools/**/*')
-    expect(pkg.files).toContain('src/lib/**/*')
+    expect(pkg.files).toContain('hxflow/**/*')
+    expect(pkg.files).not.toContain('SKILL.md')
   })
 
   it('does not expose CLI bin entry', () => {
@@ -24,10 +21,10 @@ describe('package manifest', () => {
     expect(existsSync(resolve(ROOT, 'bin/hx.js'))).toBe(false)
   })
 
-  it('has root SKILL.md as skill entry point', () => {
-    expect(existsSync(resolve(ROOT, 'SKILL.md'))).toBe(true)
-    const content = readFileSync(resolve(ROOT, 'SKILL.md'), 'utf8')
+  it('has hxflow/SKILL.md as skill entry point', () => {
+    expect(existsSync(resolve(ROOT, 'hxflow', 'SKILL.md'))).toBe(true)
+    const content = readFileSync(resolve(ROOT, 'hxflow', 'SKILL.md'), 'utf8')
     expect(content).toContain('name: hx')
-    expect(content).toContain('src/contracts/runtime-contract.md')
+    expect(content).toContain('bun scripts/lib/hook.ts resolve <command>')
   })
 })

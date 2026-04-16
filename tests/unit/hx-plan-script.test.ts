@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
-const SCRIPT_PATH = resolve(process.cwd(), 'src/tools/plan.ts')
+const SCRIPT_PATH = resolve(process.cwd(), 'hxflow', 'scripts', 'tools', 'plan.ts')
 const tempDirs: string[] = []
 
 function normalizeTmpPath(value: string) {
@@ -21,8 +21,24 @@ function createProject() {
   const projectRoot = mkdtempSync(join(tmpdir(), 'hx-plan-script-'))
   tempDirs.push(projectRoot)
 
+  mkdirSync(join(projectRoot, '.hx', 'rules'), { recursive: true })
   mkdirSync(join(projectRoot, 'docs', 'requirement'), { recursive: true })
   mkdirSync(join(projectRoot, 'docs', 'plans'), { recursive: true })
+  writeFileSync(
+    join(projectRoot, '.hx', 'config.yaml'),
+    `rules:
+  templates:
+    requirement: .hx/rules/requirement-template.md
+    plan: .hx/rules/plan-template.md
+    bugfixRequirement: .hx/rules/bugfix-requirement-template.md
+    bugfixPlan: .hx/rules/bugfix-plan-template.md
+`,
+    'utf8',
+  )
+  writeFileSync(join(projectRoot, '.hx', 'rules', 'plan-template.md'), '# Custom Plan Template\n', 'utf8')
+  writeFileSync(join(projectRoot, '.hx', 'rules', 'bugfix-plan-template.md'), '# Custom Bugfix Plan Template\n', 'utf8')
+  writeFileSync(join(projectRoot, '.hx', 'rules', 'requirement-template.md'), '# Requirement Template\n', 'utf8')
+  writeFileSync(join(projectRoot, '.hx', 'rules', 'bugfix-requirement-template.md'), '# Bugfix Requirement Template\n', 'utf8')
 
   writeFileSync(
     join(projectRoot, 'docs', 'requirement', 'AUTH-001.md'),
@@ -62,7 +78,7 @@ describe('hx-plan script', () => {
       normalizeTmpPath(join(projectRoot, 'docs', 'plans', 'AUTH-001-progress.json')),
     )
     expect(summary.requirementContent).toContain('AUTH-001')
-    expect(summary.planTemplate).toBeTruthy()
+    expect(summary.planTemplate).toBe('# Custom Plan Template\n')
   })
 
   it('validates progressFile and reports tasks when plan and progress exist (phase 2)', () => {

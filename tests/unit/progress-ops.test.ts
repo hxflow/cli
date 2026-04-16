@@ -2,11 +2,12 @@ import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
 import { writeFileSync, mkdtempSync, rmSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
-import { startTask, completeTask, failTask } from '../../src/lib/progress-ops.ts'
+import { startTask, completeTask, failTask } from '../../hxflow/scripts/lib/progress-ops.ts'
+import type { ProgressData } from '../../hxflow/scripts/lib/types.ts'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function makeProgressData(overrides = {}) {
+function makeProgressData(overrides: Partial<ProgressData> = {}): ProgressData {
   const now = '2024-01-01T00:00:00Z'
   return {
     feature: 'AUTH-001',
@@ -20,7 +21,7 @@ function makeProgressData(overrides = {}) {
       {
         id: 'TASK-1',
         name: '实现登录接口',
-        status: 'pending',
+        status: 'pending' as const,
         dependsOn: [],
         parallelizable: false,
         output: '',
@@ -33,8 +34,8 @@ function makeProgressData(overrides = {}) {
   }
 }
 
-let tmpDir
-let progressFile
+let tmpDir: string
+let progressFile: string
 
 beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'hxflow-progress-ops-'))
@@ -45,7 +46,7 @@ afterEach(() => {
   rmSync(tmpDir, { recursive: true })
 })
 
-function writeProgress(data) {
+function writeProgress(data: ProgressData) {
   writeFileSync(progressFile, JSON.stringify(data, null, 2) + '\n', 'utf8')
 }
 

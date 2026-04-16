@@ -6,7 +6,8 @@ import { resolve } from 'path'
 import { afterEach, describe, expect, it } from 'bun:test'
 
 const REPO_ROOT = resolve(import.meta.dir, '..', '..')
-const TOOLS_DIR = resolve(REPO_ROOT, 'src', 'tools')
+const TOOLS_DIR = resolve(REPO_ROOT, 'hxflow', 'scripts', 'tools')
+const LIB_DIR = resolve(REPO_ROOT, 'hxflow', 'scripts', 'lib')
 
 const tempDirs: string[] = []
 
@@ -25,7 +26,8 @@ afterEach(() => {
 })
 
 function run(script: string, args: string[], cwd: string) {
-  return spawnSync(process.execPath, [resolve(TOOLS_DIR, script), ...args], {
+  const baseDir = script === 'progress.ts' ? LIB_DIR : TOOLS_DIR
+  return spawnSync(process.execPath, [resolve(baseDir, script), ...args], {
     cwd,
     encoding: 'utf8',
   })
@@ -81,30 +83,6 @@ function baseProgress(feature: string, tasks: object[], extra: Record<string, un
 function writeProgress(projectRoot: string, feature: string, data: object): string {
   const filePath = resolve(projectRoot, 'docs', 'plans', `${feature.toLowerCase()}-progress.json`)
   writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8')
-  return filePath
-}
-
-function writePlanDoc(projectRoot: string, feature: string): string {
-  const filePath = resolve(projectRoot, 'docs', 'plans', `${feature.toLowerCase()}.md`)
-  writeFileSync(filePath, `# Plan: ${feature}\n\nPlan content.\n`, 'utf8')
-  return filePath
-}
-
-function writeRequirementDoc(projectRoot: string, feature: string): string {
-  const filePath = resolve(projectRoot, 'docs', 'requirement', `${feature.toLowerCase()}.md`)
-  const content = [
-    `# Requirement`,
-    ``,
-    `> Feature: ${feature}`,
-    `> Display Name: Test Feature`,
-    `> Source ID: TSK-001`,
-    `> Source Fingerprint: abc123`,
-    ``,
-    `## Overview`,
-    ``,
-    `Some requirement text.`,
-  ].join('\n')
-  writeFileSync(filePath, content, 'utf8')
   return filePath
 }
 
@@ -361,45 +339,6 @@ describe('hx progress integration', () => {
   })
 })
 
-// ─── hx feature ──────────────────────────────────────────────────────────────
-
-describe('hx feature integration', () => {
-  it('parses a valid requirement doc header', () => {
-    const project = createTempProject()
-    const filePath = writeRequirementDoc(project, 'TEST-001')
-
-    const result = run('feature.ts', ['parse', filePath], project)
-
-    expect(result.status).toBe(0)
-    const out = JSON.parse(result.stdout)
-    expect(out.ok).toBe(true)
-    expect(out.feature).toBe('TEST-001')
-    expect(out.displayName).toBe('Test Feature')
-    expect(out.sourceId).toBe('TSK-001')
-    expect(out.sourceFingerprint).toBe('abc123')
-  })
-
-  it('exits 1 for a non-existent file', () => {
-    const project = createTempProject()
-
-    const result = run('feature.ts', ['parse', '/nonexistent/file.md'], project)
-
-    expect(result.status).toBe(1)
-    expect(JSON.parse(result.stderr).ok).toBe(false)
-  })
-
-  it('exits 1 for a doc with missing header fields', () => {
-    const project = createTempProject()
-    const filePath = resolve(project, 'docs', 'requirement', 'bad.md')
-    writeFileSync(filePath, '# Requirement\n\nNo header here.\n', 'utf8')
-
-    const result = run('feature.ts', ['parse', filePath], project)
-
-    expect(result.status).toBe(1)
-    expect(JSON.parse(result.stderr).ok).toBe(false)
-  })
-})
-
 // ─── hx status ───────────────────────────────────────────────────────────────
 
 describe('hx status integration', () => {
@@ -458,76 +397,6 @@ describe('hx status integration', () => {
   })
 })
 
-// ─── hx archive + hx restore ─────────────────────────────────────────────────
-
-describe('hx archive + hx restore integration', () => {
-  it('archives a feature when all tasks are done', () => {
-    const project = createTempProject()
-    const data = baseProgress('TEST-001', [makeDoneTask('t1', 'Task 1')], {
-      completedAt: LATER,
-      lastRun: {
-        taskId: 't1',
-        taskName: 'Task 1',
-        status: 'done',
-        exitStatus: 'succeeded',
-        exitReason: '',
-        ranAt: LATER,
-      },
-    })
-    writeProgress(project, 'TEST-001', data)
-    writePlanDoc(project, 'TEST-001')
-
-    const result = run('archive.ts', ['TEST-001'], project)
-
-    expect(result.status).toBe(0)
-    const out = JSON.parse(result.stdout)
-    expect(out.ok).toBe(true)
-    expect(out.feature).toBe('TEST-001')
-    expect(existsSync(resolve(project, 'docs', 'plans', 'test-001-progress.json'))).toBe(false)
-    expect(existsSync(resolve(project, 'docs', 'archive', 'TEST-001', 'test-001-progress.json'))).toBe(true)
-  })
-
-  it('rejects archive when tasks are not done', () => {
-    const project = createTempProject()
-    const data = baseProgress('TEST-001', [makeTask({ id: 't1', name: 'Task 1' })])
-    writeProgress(project, 'TEST-001', data)
-    writePlanDoc(project, 'TEST-001')
-
-    const result = run('archive.ts', ['TEST-001'], project)
-
-    expect(result.status).toBe(1)
-    expect(JSON.parse(result.stderr).ok).toBe(false)
-  })
-
-  it('restores archived feature back to plans/', () => {
-    const project = createTempProject()
-    const data = baseProgress('TEST-001', [makeDoneTask('t1', 'Task 1')], {
-      completedAt: LATER,
-      lastRun: {
-        taskId: 't1',
-        taskName: 'Task 1',
-        status: 'done',
-        exitStatus: 'succeeded',
-        exitReason: '',
-        ranAt: LATER,
-      },
-    })
-    writeProgress(project, 'TEST-001', data)
-    writePlanDoc(project, 'TEST-001')
-
-    run('archive.ts', ['TEST-001'], project)
-
-    expect(existsSync(resolve(project, 'docs', 'plans', 'test-001-progress.json'))).toBe(false)
-
-    const restoreResult = run('restore.ts', ['TEST-001'], project)
-
-    expect(restoreResult.status).toBe(0)
-    const out = JSON.parse(restoreResult.stdout)
-    expect(out.ok).toBe(true)
-    expect(existsSync(resolve(project, 'docs', 'plans', 'test-001-progress.json'))).toBe(true)
-  })
-})
-
 // ─── bare script smoke tests ─────────────────────────────────────────────────
 
 describe('bare script — direct invocation smoke test', () => {
@@ -536,9 +405,9 @@ describe('bare script — direct invocation smoke test', () => {
     const data = baseProgress('TEST-001', [makeTask()])
     const filePath = writeProgress(project, 'TEST-001', data)
 
-    const result = spawnSync(
-      process.execPath,
-      [resolve(REPO_ROOT, 'src', 'tools', 'progress.ts'), 'validate', filePath],
+      const result = spawnSync(
+        process.execPath,
+      [resolve(REPO_ROOT, 'hxflow', 'scripts', 'lib', 'progress.ts'), 'validate', filePath],
       { cwd: project, encoding: 'utf8' },
     )
 
@@ -546,17 +415,4 @@ describe('bare script — direct invocation smoke test', () => {
     expect(JSON.parse(result.stdout).valid).toBe(true)
   })
 
-  it('invokes feature.ts directly', () => {
-    const project = createTempProject()
-    const filePath = writeRequirementDoc(project, 'SMOKE-001')
-
-    const result = spawnSync(
-      process.execPath,
-      [resolve(REPO_ROOT, 'src', 'tools', 'feature.ts'), 'parse', filePath],
-      { cwd: project, encoding: 'utf8' },
-    )
-
-    expect(result.status).toBe(0)
-    expect(JSON.parse(result.stdout).feature).toBe('SMOKE-001')
-  })
 })

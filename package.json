@@ -6,15 +6,9 @@
   "packageManager": "bun@1.3.11",
   "type": "module",
   "files": [
-    "SKILL.md",
+    "hxflow/**/*",
     "README.md",
-    "src/commands/**/*",
-    "src/contracts/**/*",
-    "src/hooks/**/*",
-    "src/templates/**/*",
-    "src/pipelines/**/*",
-    "src/tools/**/*",
-    "src/lib/**/*"
+    "AGENTS.md"
   ],
   "scripts": {
     "pack:dry-run": "bun pm pack --dry-run",
