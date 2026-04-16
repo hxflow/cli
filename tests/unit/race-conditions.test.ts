@@ -85,9 +85,9 @@ describe('concurrent task starts', () => {
 
     // 并发启动三个任务
     const starts = await Promise.allSettled([
-      Promise.resolve(startTask(progressFile, 'TASK-A')),
-      Promise.resolve(startTask(progressFile, 'TASK-B')),
-      Promise.resolve(startTask(progressFile, 'TASK-C')),
+      startTask(progressFile, 'TASK-A'),
+      startTask(progressFile, 'TASK-B'),
+      startTask(progressFile, 'TASK-C'),
     ])
 
     // 所有启动都应该成功
@@ -106,9 +106,9 @@ describe('concurrent task starts', () => {
 
     // 尝试并发启动同一个任务（竞态条件）
     const starts = await Promise.allSettled([
-      Promise.resolve(startTask(progressFile, 'TASK-1')),
-      Promise.resolve(startTask(progressFile, 'TASK-1')),
-      Promise.resolve(startTask(progressFile, 'TASK-1')),
+      startTask(progressFile, 'TASK-1'),
+      startTask(progressFile, 'TASK-1'),
+      startTask(progressFile, 'TASK-1'),
     ])
 
     // 由于文件锁，只有第一个会真正启动，后续的会看到已启动状态并保持 startedAt
@@ -141,7 +141,7 @@ describe('concurrent task starts', () => {
     try {
       startTask(progressFile, 'TASK-B')
       // 如果没抛异常，测试失败
-      expect(true).toBe(false) // Force fail
+      throw new Error('Expected startTask to throw but it did not')
     } catch (error) {
       expect(error instanceof Error && error.message).toMatch(/未完成依赖/)
     }
@@ -189,9 +189,9 @@ describe('parallel task completion with file writes', () => {
 
     // 并发完成三个任务
     const completions = await Promise.allSettled([
-      Promise.resolve(completeTask(progressFile, 'TASK-A', 'A完成')),
-      Promise.resolve(completeTask(progressFile, 'TASK-B', 'B完成')),
-      Promise.resolve(completeTask(progressFile, 'TASK-C', 'C完成')),
+      completeTask(progressFile, 'TASK-A', 'A完成'),
+      completeTask(progressFile, 'TASK-B', 'B完成'),
+      completeTask(progressFile, 'TASK-C', 'C完成'),
     ])
 
     // 所有完成都应该成功
@@ -477,7 +477,7 @@ describe('high-load concurrent scenarios', () => {
 
     // 并发启动 10 个任务
     const starts = await Promise.allSettled(
-      tasks.map((t) => Promise.resolve(startTask(progressFile, t.id)))
+      tasks.map((t) => startTask(progressFile, t.id))
     )
 
     expect(starts.every((r) => r.status === 'fulfilled')).toBe(true)
@@ -501,7 +501,7 @@ describe('high-load concurrent scenarios', () => {
 
     // 并发完成 10 个任务
     const completions = await Promise.allSettled(
-      tasks.map((t) => Promise.resolve(completeTask(progressFile, t.id, `${t.name}完成`)))
+      tasks.map((t) => completeTask(progressFile, t.id, `${t.name}完成`))
     )
 
     expect(completions.every((r) => r.status === 'fulfilled')).toBe(true)
@@ -536,10 +536,10 @@ describe('high-load concurrent scenarios', () => {
 
     // 混合并发操作：启动和完成
     const operations = await Promise.allSettled([
-      Promise.resolve(startTask(progressFile, 'START-1')),
-      Promise.resolve(startTask(progressFile, 'START-2')),
-      Promise.resolve(completeTask(progressFile, 'COMPLETE-1', '完成1输出')),
-      Promise.resolve(completeTask(progressFile, 'COMPLETE-2', '完成2输出')),
+      startTask(progressFile, 'START-1'),
+      startTask(progressFile, 'START-2'),
+      completeTask(progressFile, 'COMPLETE-1', '完成1输出'),
+      completeTask(progressFile, 'COMPLETE-2', '完成2输出'),
     ])
 
     expect(operations.every((r) => r.status === 'fulfilled')).toBe(true)
