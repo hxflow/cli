@@ -26,5 +26,6 @@ describe('package manifest', () => {
     const content = readFileSync(resolve(ROOT, 'hxflow', 'SKILL.md'), 'utf8')
     expect(content).toContain('name: hx')
     expect(content).toContain('bun scripts/lib/hook.ts resolve <command>')
+    expect(content).toContain('npx tsx scripts/lib/hook.ts resolve <command>')
   })
 })

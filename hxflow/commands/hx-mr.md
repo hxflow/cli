@@ -4,7 +4,7 @@
 
 1. 直接基于当前上下文、需求文档、计划/进度和 git 变更生成 MR 标题与描述。
 2. 自行核对未完成 task、目标分支和变更摘要，不依赖额外事实脚本。
-3. 需要归档时执行 `bun scripts/tools/mr.ts archive <feature>`。
+3. 需要归档时执行 `bun scripts/tools/mr.ts archive <feature>`；若无 bun 则执行 `npx tsx scripts/tools/mr.ts archive <feature>`。
 
 ## 下一步
 

@@ -27,6 +27,7 @@ describe('docs consistency', () => {
     expect(readme).toContain('.hx/config.yaml')
     expect(readme).not.toContain('contracts/runtime-contract.md')
     expect(skill).toContain('bun scripts/lib/hook.ts resolve <command>')
+    expect(skill).toContain('npx tsx scripts/lib/hook.ts resolve <command>')
   })
 
   it('removes task-id driven wording from the main workflow docs', () => {

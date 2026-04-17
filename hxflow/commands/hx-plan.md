@@ -2,7 +2,7 @@
 
 ## 执行步骤
 
-1. 执行 `bun scripts/tools/plan.ts context <feature>`，读取需求文档、计划模板和进度文件对应的事实。
+1. 执行 `bun scripts/tools/plan.ts context <feature>`；若无 bun 则执行 `npx tsx scripts/tools/plan.ts context <feature>`，读取需求文档、计划模板和进度文件对应的事实。
 2. 生成或续接 `planDoc`，并让运行时初始化或校验 `progressFile`。
 3. 只根据脚本返回的任务事实组织计划，不自行扩展固定结构。
 

@@ -2,8 +2,8 @@
 
 ## 执行步骤
 
-1. 执行 `bun scripts/tools/run.ts next <feature>`，读取当前批次任务、依赖关系和运行态事实。
-2. 只实现当前批次或显式指定的 task，完成后通过 `bun scripts/lib/progress.ts` 回写状态。
+1. 执行 `bun scripts/tools/run.ts next <feature>`；若无 bun 则执行 `npx tsx scripts/tools/run.ts next <feature>`，读取当前批次任务、依赖关系和运行态事实。
+2. 只实现当前批次或显式指定的 task，完成后通过 `bun scripts/lib/progress.ts` 回写状态；若无 bun 则使用 `npx tsx scripts/lib/progress.ts`。
 3. 根据脚本返回的下一批任务决定继续执行、恢复中断任务，或结束当前阶段。
 
 ## 下一步

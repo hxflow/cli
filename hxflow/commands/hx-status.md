@@ -2,6 +2,5 @@
 
 ## 执行步骤
 
-1. 执行 `bun scripts/tools/status.ts [<feature>]`，读取指定或全部 feature 的进度摘要事实。
+1. 执行 `bun scripts/tools/status.ts [<feature>]`；若无 bun 则执行 `npx tsx scripts/tools/status.ts [<feature>]`，读取指定或全部 feature 的进度摘要事实。
 2. 根据脚本返回的状态展示当前阶段、剩余任务和推荐动作。
-

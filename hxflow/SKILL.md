@@ -1,7 +1,7 @@
 ---
 name: hx
 description: "Harness Workflow — 需求到交付的全自动流水线框架。当用户说 /hx、hx doc、hx plan、hx run、hx go 等触发词时使用。支持需求获取、计划生成、任务执行、质量检查、MR 创建的完整工作流。"
-compatibility: "Requires bun runtime"
+compatibility: "Prefers bun runtime; falls back to Node.js via npx tsx"
 metadata:
   generator: hxflow
   version: "4.0.0"
@@ -11,7 +11,7 @@ metadata:
 
 ## 路由
 
-根据 `$ARGUMENTS` 的第一个词匹配命令。匹配后先执行 `bun scripts/lib/hook.ts resolve <command>`；若返回了 `preHooks`，先读取这些 hook 文件，再读取对应命令文件执行（剩余参数原样透传）：
+根据 `$ARGUMENTS` 的第一个词匹配命令。匹配后先执行 `bun scripts/lib/hook.ts resolve <command>`；若无 bun 则执行 `npx tsx scripts/lib/hook.ts resolve <command>`。若返回了 `preHooks`，先读取这些 hook 文件，再读取对应命令文件执行（剩余参数原样透传）：
 
 | 命令 | 文件 | 说明 |
 |------|------|------|

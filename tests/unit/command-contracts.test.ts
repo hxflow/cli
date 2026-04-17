@@ -51,6 +51,7 @@ describe('command contracts', () => {
       const content = readFileSync(resolve(COMMANDS_DIR, file), 'utf8')
       expect(content).toContain('hx ')
       expect(content).toContain('bun scripts/tools/')
+      expect(content).toContain('npx tsx scripts/tools/')
       expect(content).toMatch(/## 下一步\s+[-*] `hx [^`]+`/m)
       expect(content).not.toContain('Option A：')
       expect(content).not.toContain('Option B：')
@@ -80,11 +81,13 @@ describe('command contracts', () => {
 
     expect(hxDoc).not.toContain('--task <task-id>')
     expect(hxDoc).toContain('bun scripts/tools/doc.ts context <feature>')
+    expect(hxDoc).toContain('npx tsx scripts/tools/doc.ts context <feature>')
     expect(hxDoc).toContain('先复用后生成')
     expect(hxDoc).toContain('displayName')
     expect(hxDoc).toContain('新开一个子 agent')
 
     expect(hxPlan).toContain('bun scripts/tools/plan.ts context <feature>')
+    expect(hxPlan).toContain('npx tsx scripts/tools/plan.ts context <feature>')
     expect(hxPlan).toContain('不重算')
     expect(hxPlan).toContain('每个 task 保持独立可实现、可验证')
     const hxPlanScript = readFileSync(resolve(TOOLS_DIR, 'plan.ts'), 'utf8')
@@ -94,6 +97,7 @@ describe('command contracts', () => {
     expect(hxPlanScript).not.toContain('progressTemplate')
 
     expect(hxCheck).toContain('bun scripts/tools/check.ts')
+    expect(hxCheck).toContain('npx tsx scripts/tools/check.ts')
     expect(hxCheck).toContain('qa')
     expect(hxCheck).not.toContain('review-checklist.md')
     expect(hxCheck).not.toContain('hx fix')
@@ -105,7 +109,9 @@ describe('command contracts', () => {
 
     expect(hxRun).not.toContain('--task <task-id>')
     expect(hxRun).toContain('bun scripts/tools/run.ts next <feature>')
+    expect(hxRun).toContain('npx tsx scripts/tools/run.ts next <feature>')
     expect(hxRun).toContain('bun scripts/lib/progress.ts')
+    expect(hxRun).toContain('npx tsx scripts/lib/progress.ts')
     expect(hxRun).toContain('显式指定的 task')
     expect(hxRun).not.toContain('golden-rules.md')
     const hxRunScript = readFileSync(resolve(TOOLS_DIR, 'run.ts'), 'utf8')
@@ -118,6 +124,7 @@ describe('command contracts', () => {
 
     expect(hxGo).not.toContain('--task <task-id>')
     expect(hxGo).toContain('bun scripts/tools/go.ts next <feature>')
+    expect(hxGo).toContain('npx tsx scripts/tools/go.ts next <feature>')
     expect(hxGo).toContain('不得跳过最早未完成 step')
     expect(hxGo).toContain('`.hx/config.yaml`')
     expect(hxGo).toContain('`default`')
@@ -129,6 +136,7 @@ describe('command contracts', () => {
     expect(hxGoScript).toContain("case 'state'")
 
     expect(hxInit).toContain('bun scripts/tools/init.ts')
+    expect(hxInit).toContain('npx tsx scripts/tools/init.ts')
     expect(hxInit).toContain('直接完成当前初始化阶段')
     expect((hxInit.match(/\n1\./g) ?? []).length).toBe(1)
     expect(hxInit).not.toContain('\n2.')
@@ -138,6 +146,7 @@ describe('command contracts', () => {
     expect(hxMr).toContain('未完成 task 存在时直接失败')
     expect(hxMr).toContain('直接基于当前上下文')
     expect(hxMr).toContain('bun scripts/tools/mr.ts archive <feature>')
+    expect(hxMr).toContain('npx tsx scripts/tools/mr.ts archive <feature>')
     const hxMrScript = readFileSync(resolve(TOOLS_DIR, 'mr.ts'), 'utf8')
     expect(hxMrScript).toContain('archiveFeature')
     expect(hxMrScript).not.toContain("case 'context'")

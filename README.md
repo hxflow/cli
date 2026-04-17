@@ -77,7 +77,8 @@ hxflow/
 
 ## 环境要求
 
-- Bun >= 1.0.0
+- Bun >= 1.0.0（优先）
+- Node.js（无 Bun 时使用 `npx tsx` 运行 `hxflow/scripts/**/*.ts`）
 
 ## 测试
 

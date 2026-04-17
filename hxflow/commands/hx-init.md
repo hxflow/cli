@@ -2,7 +2,7 @@
 
 ## 执行步骤
 
-1. 执行 `bun scripts/tools/init.ts`，直接完成当前初始化阶段。
+1. 执行 `bun scripts/tools/init.ts`；若无 bun 则执行 `npx tsx scripts/tools/init.ts`，直接完成当前初始化阶段。
 
 ## 下一步
 

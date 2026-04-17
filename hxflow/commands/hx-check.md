@@ -2,7 +2,7 @@
 
 ## 执行步骤
 
-1. 执行 `bun scripts/tools/check.ts [<feature>] [--scope <scope>]`，读取检查范围、质量门结果和审查输入事实。
+1. 执行 `bun scripts/tools/check.ts [<feature>] [--scope <scope>]`；若无 bun 则执行 `npx tsx scripts/tools/check.ts [<feature>] [--scope <scope>]`，读取检查范围、质量门结果和审查输入事实。
 2. `review` / `clean` 只报告问题；`qa` 只看 gate 结果。
 3. gate 失败时停止并输出问题；通过后进入后续交付阶段。
 
