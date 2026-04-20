@@ -1,7 +1,7 @@
 ---
 name: hx
 description: "Harness Workflow — 需求到交付的全自动流水线框架。当用户说 /hx、hx doc、hx plan、hx run、hx go 等触发词时使用。支持需求获取、计划生成、任务执行、质量检查、MR 创建的完整工作流。"
-compatibility: "Requires bun runtime"
+compatibility: "Requires Bun, or Node.js with npx tsx fallback"
 metadata:
   generator: hxflow
   version: "4.0.0"
@@ -25,3 +25,8 @@ metadata:
 | status | [commands/hx-status.md](commands/hx-status.md) | 查看任务进度 |
 
 无参数时默认执行 `go`。未匹配到命令时提示可用命令列表。
+
+## 全局规则
+
+- 命令契约中的 `bun scripts/...` 统一表示运行时脚本入口；若环境未安装 bun，则全局改用 `npx tsx scripts/...`
+- 这条运行时回退规则只在 Skill 入口维护，各 `hx-*.md` 不重复展开同一约束

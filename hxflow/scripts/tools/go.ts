@@ -4,6 +4,7 @@
  * 用法：
  *   bun scripts/tools/go.ts next <feature> [--from <step>]    返回下一步、裸脚本及 preHooks
  *   bun scripts/tools/go.ts state <feature>                   返回流水线完整状态
+ *   未安装 bun 时可改用 npx tsx scripts/tools/go.ts ...
  *
  * AI 读取结果后自行调用对应裸脚本。
  */
@@ -17,7 +18,7 @@ const [feature] = positional
 
 switch (sub) {
   case 'next': {
-    if (!feature) err('用法：bun scripts/tools/go.ts next <feature> [--from <step>]')
+    if (!feature) err('用法：bun scripts/tools/go.ts next <feature> [--from <step>]（未安装 bun 时用：npx tsx scripts/tools/go.ts next <feature> [--from <step>]）')
 
     const fromStep = (options.from as string) ?? null
 
@@ -49,7 +50,7 @@ switch (sub) {
   }
 
   case 'state': {
-    if (!feature) err('用法：bun scripts/tools/go.ts state <feature>')
+    if (!feature) err('用法：bun scripts/tools/go.ts state <feature>（未安装 bun 时用：npx tsx scripts/tools/go.ts state <feature>）')
 
     const state = getPipelineFullState(projectRoot, feature)
     if (!state) err('Pipeline "default" 未找到')

@@ -10,7 +10,7 @@ switch (sub) {
   case 'resolve': {
     const [command] = positional
     if (!command) {
-      err('用法：bun scripts/lib/hook.ts resolve <command>')
+      err('用法：bun scripts/lib/hook.ts resolve <command>（未安装 bun 时用：npx tsx scripts/lib/hook.ts resolve <command>）')
     }
 
     try {

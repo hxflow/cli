@@ -72,18 +72,19 @@ hxflow/
 
 `hx-init` 会把这些规则模板直接落到 `.hx/rules/`，并在 `.hx/config.yaml` 的 `rules.templates` 中显式注册；运行时只认配置。
 
-运行时入口、hook 解析和脚本路由直接在 `hxflow/SKILL.md` 中定义，不再单独维护 `runtime-contract.md`。
+运行时入口、hook 解析、脚本路由与全局回退规则直接在 `hxflow/SKILL.md` 中定义，不再单独维护 `runtime-contract.md`。
 命令级 hook 与 pipeline 都只从 `.hx/config.yaml` 的 `runtime.hooks`、`runtime.pipelines` 显式注册，不再提供框架默认值。
 
 ## 环境要求
 
-- Bun >= 1.0.0
+- Bun >= 1.0.0；若未安装 Bun，也可使用 Node.js 运行并通过 `npx tsx` 执行 `hxflow/scripts/**/*.ts`
 
 ## 测试
 
 - 全量回归：`bun run hx:test`
 - 单测：`bun run hx:test:unit`
 - 集成：`bun run hx:test:integration`
+- 运行时脚本：命令契约中的 `bun scripts/...` 统一表示脚本入口；若未安装 Bun，则按 `hxflow/SKILL.md` 的全局规则改用 `npx tsx scripts/...`
 
 ## License
 
