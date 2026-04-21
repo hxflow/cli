@@ -46,6 +46,8 @@ describe('package manifest', () => {
       type: 'git',
       url: 'https://github.com/hxflow/cli.git',
     })
-    expect(pkg.publishConfig).toBeUndefined()
+    expect(pkg.publishConfig).toEqual({
+      registry: 'https://npm.pkg.github.com',
+    })
   })
 })

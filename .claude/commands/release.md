@@ -10,13 +10,7 @@
 - `--dry-run`：全程只打印命令，不实际执行
 - `--skip-tests`：跳过测试步骤
 
-### 1. 运行 scan-docs.sh
-
-```bash
-bash scan-docs.sh
-```
-
-### 2. 提交未提交的改动
+### 1. 提交未提交的改动
 
 ```bash
 git status --short
@@ -46,7 +40,7 @@ git commit -m "<type>: <描述>"
 
 若无改动，跳过此步骤直接进入发布流程。
 
-### 3. 前置检查
+### 2. 前置检查
 
 ```bash
 git rev-parse --git-dir
@@ -54,17 +48,17 @@ git status --porcelain
 git branch --show-current
 ```
 
-确认工作区干净、package.json 存在，记录当前版本号（`OLD_VERSION`）和 `publishConfig.registry`。
+确认工作区干净、package.json 存在，记录当前版本号（`OLD_VERSION`）、当前分支、`origin` 远端地址和 `publishConfig.registry`。
 
-### 4. 运行测试（除非 --skip-tests）
+### 3. 运行测试（除非 --skip-tests）
 
 ```bash
-npx vitest run
+npm run hx:test
 ```
 
 测试失败立即停止，输出失败详情。
 
-### 5. Bump 版本号
+### 4. Bump 版本号
 
 ```bash
 npm version <bump-type> --no-git-tag-version
@@ -72,7 +66,7 @@ npm version <bump-type> --no-git-tag-version
 
 记新版本号为 `NEW_VERSION`。
 
-### 6. 更新 CHANGELOG.md
+### 5. 更新 CHANGELOG.md
 
 收集自上一个 tag 以来的所有 commit：
 
@@ -110,20 +104,20 @@ git log --pretty=format:"%s" --no-merges
 git add CHANGELOG.md
 ```
 
-### 7. Commit 版本变更与 Changelog
+### 6. Commit 版本变更与 Changelog
 
 ```bash
 git add package.json CHANGELOG.md
 git commit -m "chore: release v<NEW_VERSION>"
 ```
 
-### 8. 打 Git Tag
+### 7. 打 Git Tag
 
 ```bash
 git tag v<NEW_VERSION>
 ```
 
-### 9. 发布到 npm 仓库
+### 8. 发布到 GitHub Packages
 
 ```bash
 npm publish
@@ -134,26 +128,28 @@ npm publish
 - 回滚 commit：`git reset --soft HEAD~1`
 - 报告错误原因，停止
 
-### 10. 推送到 GitLab
+### 9. 推送到 GitHub
 
 ```bash
-git push
+git push origin <branch>
 git push origin v<NEW_VERSION>
 ```
 
-推送失败时报告错误，tag 和 commit 已在本地，提示用户手动 push。
+推送失败时：
+- 不再回滚本地 commit 和 tag
+- 明确说明“本地已完成发布，但远端未同步”
 
-### 11. 输出发布报告
+### 10. 输出发布报告
 
 ```
 ── 发布完成 ─────────────────────────────
 ✓ 版本   <OLD_VERSION> → <NEW_VERSION>
 ✓ 包名   <name>
-✓ 仓库   <publishConfig.registry 或 默认>
+✓ 仓库   <publishConfig.registry>
 ✓ Tag    v<NEW_VERSION>
-✓ 推送   <remote>/<branch>
+✓ 推送   origin/<branch>
 
-运行 npm install @<scope>/<name>@<NEW_VERSION> 验证安装
+运行 npm install <name>@<NEW_VERSION> 验证安装
 ```
 
 ## --dry-run 模式
@@ -162,6 +158,8 @@ git push origin v<NEW_VERSION>
 
 ## 说明
 
-- `.npmrc` 中须提前配置私有仓库认证 token，否则 `npm publish` 报 401
-- `publishConfig.registry` 决定发布目标，本项目指向 `https://npm.cdfsunrise.com/`
+- 不需要运行 `scan-docs.sh`
+- `publishConfig.registry` 应指向 `https://npm.pkg.github.com`
+- 发布前先确认 `NODE_AUTH_TOKEN` 可用，且具有 GitHub Packages 发布权限
+- `origin` 应指向 GitHub 仓库；当前项目使用 `https://github.com/hxflow/cli`
 - CHANGELOG.md 不存在时自动创建
