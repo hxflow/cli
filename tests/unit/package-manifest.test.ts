@@ -37,4 +37,15 @@ describe('package manifest', () => {
     expect(pkg.scripts['hx:evals:report']).toBe('bun hxflow/scripts/lib/evals.ts report')
     expect(pkg.scripts['hx:evals:ci']).toBeUndefined()
   })
+
+  it('keeps GitHub repository metadata aligned', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'))
+
+    expect(pkg.name).toBe('@hxflow/cli')
+    expect(pkg.repository).toEqual({
+      type: 'git',
+      url: 'https://github.com/hxflow/cli.git',
+    })
+    expect(pkg.publishConfig).toBeUndefined()
+  })
 })

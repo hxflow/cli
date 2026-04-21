@@ -94,9 +94,9 @@ hxflow/
 
 - Bun >= 1.0.0；若未安装 Bun，也可使用 Node.js 运行并通过 `npx tsx` 执行 `hxflow/scripts/**/*.ts`
 
-## 发布参考
+## 发布
 
-- GitHub Packages npm registry: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry
+- 当前发布仓库：`https://github.com/hxflow/cli`
 
 ## 测试
 
