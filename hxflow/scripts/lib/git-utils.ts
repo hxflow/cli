@@ -42,11 +42,30 @@ export interface BranchCheckResult {
   reason: string | null
 }
 
+function detectCurrentBranch(cwd: string): string | null {
+  const revParseBranch = runGit(cwd, 'rev-parse', '--abbrev-ref', 'HEAD')
+  if (revParseBranch && revParseBranch !== 'HEAD') {
+    return revParseBranch
+  }
+
+  const symbolicBranch = runGit(cwd, 'symbolic-ref', '--quiet', '--short', 'HEAD')
+  if (symbolicBranch) {
+    return symbolicBranch
+  }
+
+  const showCurrentBranch = runGit(cwd, 'branch', '--show-current')
+  if (showCurrentBranch) {
+    return showCurrentBranch
+  }
+
+  return null
+}
+
 /**
  * 检查当前分支名是否符合 `<type>/<scope>` 规范。
  */
 export function checkBranchName(cwd: string): BranchCheckResult {
-  const branch = runGit(cwd, 'rev-parse', '--abbrev-ref', 'HEAD')
+  const branch = detectCurrentBranch(cwd)
   if (!branch) {
     return { ok: true, branch: '(unknown)', reason: null }
   }
