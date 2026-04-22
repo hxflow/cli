@@ -42,6 +42,12 @@ export interface BranchCheckResult {
   reason: string | null
 }
 
+/**
+ * 获取当前分支名，按顺序尝试：
+ * 1) rev-parse --abbrev-ref HEAD
+ * 2) symbolic-ref --quiet --short HEAD
+ * 3) branch --show-current
+ */
 function detectCurrentBranch(cwd: string): string | null {
   const revParseBranch = runGit(cwd, 'rev-parse', '--abbrev-ref', 'HEAD')
   if (revParseBranch && revParseBranch !== 'HEAD') {

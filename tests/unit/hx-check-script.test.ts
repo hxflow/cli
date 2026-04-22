@@ -31,6 +31,15 @@ gates:
   return projectRoot
 }
 
+function writeHxConfig(projectRoot: string, testGateCommand: string) {
+  mkdirSync(join(projectRoot, '.hx', 'rules'), { recursive: true })
+  writeFileSync(
+    join(projectRoot, '.hx', 'config.yaml'),
+    `paths:\n  src: src\ngates:\n  test: ${testGateCommand}\n`,
+    'utf8',
+  )
+}
+
 
 function setupGitProject(branch: string, testGateCommand = 'echo qa-pass') {
   const projectRoot = mkdtempSync(join(tmpdir(), 'hx-check-branch-'))
@@ -42,12 +51,7 @@ function setupGitProject(branch: string, testGateCommand = 'echo qa-pass') {
   spawnSync('git', ['config', 'user.email', 'test@example.com'], { cwd: projectRoot })
   spawnSync('git', ['commit', '--allow-empty', '-m', 'init'], { cwd: projectRoot })
 
-  mkdirSync(join(projectRoot, '.hx', 'rules'), { recursive: true })
-  writeFileSync(
-    join(projectRoot, '.hx', 'config.yaml'),
-    `paths:\n  src: src\ngates:\n  test: ${testGateCommand}\n`,
-    'utf8',
-  )
+  writeHxConfig(projectRoot, testGateCommand)
 
   return projectRoot
 }
@@ -58,12 +62,7 @@ function setupUnbornGitProject(branch: string, testGateCommand = 'echo qa-pass')
 
   spawnSync('git', ['init', '-b', branch], { cwd: projectRoot })
 
-  mkdirSync(join(projectRoot, '.hx', 'rules'), { recursive: true })
-  writeFileSync(
-    join(projectRoot, '.hx', 'config.yaml'),
-    `paths:\n  src: src\ngates:\n  test: ${testGateCommand}\n`,
-    'utf8',
-  )
+  writeHxConfig(projectRoot, testGateCommand)
 
   return projectRoot
 }
