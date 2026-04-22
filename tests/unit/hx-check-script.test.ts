@@ -37,8 +37,10 @@ function setupGitProject(branch: string, testGateCommand = 'echo qa-pass') {
   tempDirs.push(projectRoot)
 
   // init a real git repo on the desired branch
-  spawnSync('git', ['init', '-b', branch], { cwd: projectRoot })
-  spawnSync('git', ['commit', '--allow-empty', '-m', 'init'], { cwd: projectRoot })
+  spawnSync('git', ['init', '-b', branch], { cwd: projectRoot, encoding: 'utf8' })
+  spawnSync('git', ['config', 'user.name', 'hx-check-test'], { cwd: projectRoot, encoding: 'utf8' })
+  spawnSync('git', ['config', 'user.email', 'hx-check-test@example.com'], { cwd: projectRoot, encoding: 'utf8' })
+  spawnSync('git', ['commit', '--allow-empty', '-m', 'init'], { cwd: projectRoot, encoding: 'utf8' })
 
   mkdirSync(join(projectRoot, '.hx', 'rules'), { recursive: true })
   writeFileSync(
