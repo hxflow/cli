@@ -1,4 +1,4 @@
-# @hxflow/cli
+# @hxflow/workflow
 
 Harness Workflow — Agent Skill for requirement-to-delivery pipeline.
 
