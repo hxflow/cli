@@ -1,1 +1,1 @@
-{"id":"init.only-initialization","input":"请清理 init 脚本中的无用逻辑。","expected":{"mustInclude":["只做初始化"],"mustNotInclude":["hooks/pipelines 骨架","运行时默认 pipeline"]},"tags":["edge","scope-boundary"],"notes":"init 只生成 .hx/config.yaml 与 .hx/rules，不再生成 hooks/pipelines 骨架。"}
+{"id":"init.only-initialization","input":"hx-init 的职责边界是什么？它应该生成哪些文件，不应该生成哪些内容？","expected":{"mustInclude":["只做初始化"],"mustNotInclude":["hooks/pipelines 骨架","运行时默认 pipeline"]},"tags":["edge","scope-boundary"],"notes":"init 只生成 .hx/config.yaml 与 .hx/rules，不再生成 hooks/pipelines 骨架；改为问答式以兼容无工具评测模式。"}

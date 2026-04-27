@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/eleven/hx-harness-workflow && npm run hx:evals:validate 2>&1 | tail -5",
+            "statusMessage": "验证 evals 数据集..."
+          }
+        ]
+      }
+    ]
+  }
+}

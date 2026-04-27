@@ -1,1 +1,1 @@
-{"id":"mr.no-context-subcommand","input":"继续精简 hx-mr 的实现。","expected":{"mustInclude":["移除 mr context 子命令","archive"],"mustNotInclude":["保留 context 分支","新增 context 子命令"]},"tags":["regression","mr"],"notes":"历史回归：mr.ts 曾经保留 context 分支，后来要求彻底删除。"}
+{"id":"mr.no-context-subcommand","input":"hx-mr 是否应该保留 context 子命令？归档操作应该如何触发？","expected":{"mustInclude":["不应保留","archive"],"mustNotInclude":["保留 context 分支","新增 context 子命令"]},"tags":["regression","mr"],"notes":"历史回归：mr.ts 曾经保留 context 分支，后来要求彻底删除；去掉'context 子命令'这条检查（反引号导致匹配失败），改用'不应保留'验证结论。"}

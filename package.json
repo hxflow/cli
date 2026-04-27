@@ -19,6 +19,9 @@
     "release:pack": "bun pm pack",
     "hx:evals:validate": "bun hxflow/scripts/lib/evals.ts validate",
     "hx:evals:report": "bun hxflow/scripts/lib/evals.ts report",
+    "hx:evals:run": "bun hxflow/evals/run-evals.ts",
+    "hx:evals:run:record": "bun hxflow/evals/run-evals.ts --record",
+    "hx:evals:run:ci": "bun hxflow/evals/run-evals.ts --record --assert-thresholds",
     "hx:test:unit": "bun test tests/unit",
     "hx:test:integration": "bun test tests/integration",
     "hx:test": "bun test"
