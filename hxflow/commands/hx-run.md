@@ -4,8 +4,7 @@
 
 1. 执行 `bun scripts/tools/run.ts next <feature>`，读取当前批次任务。
 2. 实现当前批次任务：
-   - 无依赖的 task 并行执行
-   - 有依赖的 task 按依赖顺序依次执行
+   - 脚本按依赖图计算批次，返回 `parallel: true` 时并行实现批次内所有 task，`parallel: false` 时顺序实现
 3. 完成后通过 `bun scripts/lib/progress.ts` 回写状态，继续读取下一批并执行。
 4. 重复直到 plan 中所有 task 全部完成。
 
