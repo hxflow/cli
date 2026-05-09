@@ -70,7 +70,7 @@ export default defineCommand({
     const port = args.port ?? "7878"
     const host = args.host ?? "0.0.0.0"
 
-    // Find hx-ui binary or fallback to workspace path
+    // Find hx-console binary or fallback to workspace path
     const uiServerPath = join(import.meta.dir, "../../../ui/server/index.ts")
 
     mkdirSync(uiDir(), { recursive: true })
@@ -91,7 +91,7 @@ export default defineCommand({
     await new Promise((r) => setTimeout(r, 800))
 
     const url = serverUrl()
-    console.log(chalk.green(`hx-ui started`) + chalk.dim(`  pid=${proc.pid}`))
+    console.log(chalk.green(`hx-console started`) + chalk.dim(`  pid=${proc.pid}`))
     console.log(url)
     if (!args["no-open"]) Bun.spawn(["open", url], { stdio: ["ignore", "ignore", "ignore"] })
   },
