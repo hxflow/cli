@@ -9,16 +9,16 @@
   },
   "scripts": {
     "start": "bun bin/hx.ts",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "build": "bun scripts/build.ts"
   },
   "dependencies": {
-    "@hxflow/shared": "file:../shared",
-    "@hxflow/workflow": "file:../workflow",
+    "@hxflow/shared": "workspace:*",
+    "@hxflow/workflow": "workspace:*",
     "chalk": "^5.4.1",
     "citty": "^0.1.6",
     "dockerode": "3.3.5",
-    "open": "^10.1.0",
     "yaml": "^2.8.0"
   },
   "devDependencies": {

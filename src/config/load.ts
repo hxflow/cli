@@ -6,19 +6,14 @@ import { parse } from "yaml"
 export interface HxConfig {
   backend: "docker" | "podman" | "k8s"
   image: string
-  profile: string
+  environment: string
   workspaceBase?: string
-  ui?: {
-    port: number
-    host: string
-  }
 }
 
 const DEFAULTS: HxConfig = {
   backend: "podman",
   image: "localhost/hxflow-agent:dev",
-  profile: "default",
-  ui: { port: 7878, host: "0.0.0.0" },
+  environment: "default",
 }
 
 export function hxDir(): string {

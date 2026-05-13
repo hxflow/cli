@@ -5,7 +5,6 @@ import runList from "../src/commands/run-list.ts"
 import runGet from "../src/commands/run-get.ts"
 import runCancel from "../src/commands/run-cancel.ts"
 import login from "../src/commands/login.ts"
-import ui from "../src/commands/ui.ts"
 
 const agentCmd = defineCommand({
   meta: { description: "Agent management" },
@@ -33,7 +32,6 @@ const main = defineCommand({
     agent: agentCmd,
     run: runCmd,
     login,
-    ui,
   },
 })
 

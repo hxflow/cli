@@ -14,12 +14,12 @@ export default defineCommand({
       return
     }
     for (const m of runs) {
-      const result = readResult(m.runId)
-      const status = result?.status ?? "running"
-      const cost = result?.usage?.costUsd != null ? `$${result.usage.costUsd.toFixed(4)}` : "—"
-      const dur = result?.durationSec != null ? `${result.durationSec.toFixed(0)}s` : "—"
+      const envelope = readResult(m.runId)
+      const data = envelope?.data as any
+      const status = data?.status ?? (envelope?.err === 0 ? "succeeded" : envelope ? "failed" : "running")
+      const dur = typeof data?.durationSec === "number" ? `${data.durationSec.toFixed(0)}s` : "—"
       const color = status === "succeeded" ? chalk.green : status === "running" ? chalk.yellow : chalk.red
-      console.log(`${color(status.padEnd(16))} ${m.runId}  ${cost.padStart(9)}  ${dur.padStart(6)}  ${m.invocation.cwd}`)
+      console.log(`${color(status.padEnd(16))} ${m.runId}  ${dur.padStart(6)}  ${m.invocation.cwd}`)
     }
   },
 })

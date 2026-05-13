@@ -1,10 +1,8 @@
-import { createReadStream, existsSync, mkdirSync, readFileSync, statSync } from "node:fs"
-import { homedir } from "node:os"
-import { join } from "node:path"
-import { createInterface } from "node:readline"
+import type { RunEvent, RunSpec } from "@hxflow/shared/types"
 import Dockerode from "dockerode"
-import type { RunSpec, RunEvent, RunResult } from "@hxflow/shared/types"
+import { existsSync, mkdirSync } from "node:fs"
 import type { Backend, RunHandle } from "./types.ts"
+import { tailRun } from "./tail.ts"
 
 function detectSocket(): { socketPath?: string; host?: string; port?: number } {
   if (process.env.DOCKER_HOST) {
@@ -47,10 +45,12 @@ export class DockerBackend implements Backend {
     if (!spec.mounts.workspace.startsWith("skip:")) {
       binds.push(`${spec.mounts.workspace}:/workspace:rw`)
     }
-    if (spec.auth.mode === "host-pi") {
-      binds.push(`${(spec.auth as any).authJsonPath}:/root/.pi/agent/auth.json:rw`)
+    if (spec.mounts.authJson) {
+      binds.push(`${spec.mounts.authJson}:/root/.pi/agent/auth.json:rw`)
     }
-
+    if (spec.mounts.secrets) {
+      binds.push(`${spec.mounts.secrets}:/run/secrets:ro`)
+    }
     const container = await this.docker.createContainer({
       Image: spec.image,
       name: spec.name ? `hx-${spec.runId.slice(-8)}` : undefined,
@@ -72,97 +72,9 @@ export class DockerBackend implements Backend {
   }
 
   async *follow(handle: RunHandle, signal: AbortSignal): AsyncIterable<RunEvent> {
-    const id = handle.native as string
-    const container = this.docker.getContainer(id)
-
-    // Stream logs
-    const logStream = await container.logs({
-      follow: true,
-      stdout: true,
-      stderr: true,
-      timestamps: false,
-    })
-
-    // Demux Docker multiplexed stream
-    const logQueue: RunEvent[] = []
-    let logDone = false
-
-    ;(async () => {
-      for await (const chunk of logStream as AsyncIterable<Buffer>) {
-        if (signal.aborted) break
-        // Docker log frames: [stream_type(1), 0,0,0(3), size(4), data]
-        let offset = 0
-        while (offset < chunk.length) {
-          if (chunk.length - offset < 8) break
-          const streamType = chunk[offset] // 1=stdout, 2=stderr
-          const size = chunk.readUInt32BE(offset + 4)
-          const data = chunk.slice(offset + 8, offset + 8 + size).toString("utf8")
-          offset += 8 + size
-          const type = streamType === 2 ? "stderr" : "stdout"
-          logQueue.push({ type, ts: new Date().toISOString(), data } as RunEvent)
-        }
-      }
-      logDone = true
-    })()
-
-    // Tail trace.jsonl via polling (simple, no fs.watch needed)
-    // The trace.jsonl is in the output dir which is bind-mounted
-    const traceQueue: RunEvent[] = []
     const runDir = handle.runId ? `${process.env.HOME}/.hx/runs/${handle.runId}` : ""
-    const tracePath = `${runDir}/trace.jsonl`
-    let traceOffset = 0
-    let traceDone = false
-
-    if (runDir) {
-      ;(async () => {
-        while (!signal.aborted) {
-          try {
-            if (existsSync(tracePath)) {
-              const size = statSync(tracePath).size
-              if (size > traceOffset) {
-                const buf = Buffer.alloc(size - traceOffset)
-                const fd = await Bun.file(tracePath).arrayBuffer()
-                const text = Buffer.from(fd).slice(traceOffset, size).toString("utf8")
-                traceOffset = size
-                for (const line of text.split("\n").filter(Boolean)) {
-                  try {
-                    const entry = JSON.parse(line)
-                    traceQueue.push({ type: "trace", ts: entry.ts ?? new Date().toISOString(), data: entry } as RunEvent)
-                  } catch {}
-                }
-              }
-            }
-          } catch {}
-          await new Promise((r) => setTimeout(r, 200))
-        }
-        traceDone = true
-      })()
-    }
-
-    // Yield events as they arrive
-    while (!signal.aborted) {
-      while (logQueue.length > 0) yield logQueue.shift()!
-      while (traceQueue.length > 0) yield traceQueue.shift()!
-
-      if (logDone) {
-        // Drain remaining trace
-        await new Promise((r) => setTimeout(r, 300))
-        while (traceQueue.length > 0) yield traceQueue.shift()!
-        break
-      }
-      await new Promise((r) => setTimeout(r, 50))
-    }
-
-    traceDone = true
-
-    // Emit result event
-    const resultPath = `${runDir}/result.json`
-    if (existsSync(resultPath)) {
-      try {
-        const result = JSON.parse(readFileSync(resultPath, "utf8")) as RunResult
-        yield { type: "result", ts: new Date().toISOString(), data: result }
-      } catch {}
-    }
+    if (!runDir) return
+    yield* tailRun(runDir, signal)
   }
 
   async wait(handle: RunHandle): Promise<number> {

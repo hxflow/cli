@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs"
-import { spawn } from "node:child_process"
-import type { RunSpec, RunEvent, RunResult } from "@hxflow/shared/types"
+import { mkdirSync } from "node:fs"
+import type { RunSpec, RunEvent } from "@hxflow/shared/types"
 import type { Backend, RunHandle } from "./types.ts"
+import { tailRun } from "./tail.ts"
 
 function runPodman(args: string[]): string {
   const result = Bun.spawnSync(["podman", ...args], {
@@ -40,8 +40,11 @@ export class PodmanBackend implements Backend {
     if (!spec.mounts.workspace.startsWith("skip:")) {
       args.push("-v", `${spec.mounts.workspace}:/workspace:rw`)
     }
-    if (spec.auth.mode === "host-pi") {
-      args.push("-v", `${(spec.auth as any).authJsonPath}:/root/.pi/agent/auth.json:rw`)
+    if (spec.mounts.authJson) {
+      args.push("-v", `${spec.mounts.authJson}:/root/.pi/agent/auth.json:rw`)
+    }
+    if (spec.mounts.secrets) {
+      args.push("-v", `${spec.mounts.secrets}:/run/secrets:ro`)
     }
     for (const [key, value] of Object.entries(spec.env)) {
       args.push("-e", `${key}=${value}`)
@@ -53,71 +56,9 @@ export class PodmanBackend implements Backend {
   }
 
   async *follow(handle: RunHandle, signal: AbortSignal): AsyncIterable<RunEvent> {
-    const id = handle.native as string
-    const child = spawn("podman", ["logs", "-f", id], { stdio: ["ignore", "pipe", "pipe"] })
-    const queue: RunEvent[] = []
-    let logsDone = false
-
-    child.stdout.on("data", (chunk) => {
-      queue.push({ type: "stdout", ts: new Date().toISOString(), data: chunk.toString("utf8") })
-    })
-    child.stderr.on("data", (chunk) => {
-      queue.push({ type: "stderr", ts: new Date().toISOString(), data: chunk.toString("utf8") })
-    })
-    child.on("close", () => {
-      logsDone = true
-    })
-
-    signal.addEventListener("abort", () => {
-      child.kill("SIGTERM")
-    }, { once: true })
-
-    const traceQueue: RunEvent[] = []
     const runDir = handle.runId ? `${process.env.HOME}/.hx/runs/${handle.runId}` : ""
-    const tracePath = `${runDir}/trace.jsonl`
-    let traceOffset = 0
-
-    if (runDir) {
-      ;(async () => {
-        while (!signal.aborted && !logsDone) {
-          try {
-            if (existsSync(tracePath)) {
-              const size = statSync(tracePath).size
-              if (size > traceOffset) {
-                const text = Buffer.from(await Bun.file(tracePath).arrayBuffer()).slice(traceOffset, size).toString("utf8")
-                traceOffset = size
-                for (const line of text.split("\n").filter(Boolean)) {
-                  try {
-                    const entry = JSON.parse(line)
-                    traceQueue.push({ type: "trace", ts: entry.ts ?? new Date().toISOString(), data: entry } as RunEvent)
-                  } catch {}
-                }
-              }
-            }
-          } catch {}
-          await new Promise((resolve) => setTimeout(resolve, 200))
-        }
-      })()
-    }
-
-    while (!signal.aborted) {
-      while (queue.length > 0) yield queue.shift()!
-      while (traceQueue.length > 0) yield traceQueue.shift()!
-      if (logsDone) {
-        await new Promise((resolve) => setTimeout(resolve, 300))
-        while (traceQueue.length > 0) yield traceQueue.shift()!
-        break
-      }
-      await new Promise((resolve) => setTimeout(resolve, 50))
-    }
-
-    const resultPath = `${runDir}/result.json`
-    if (existsSync(resultPath)) {
-      try {
-        const result = JSON.parse(readFileSync(resultPath, "utf8")) as RunResult
-        yield { type: "result", ts: new Date().toISOString(), data: result }
-      } catch {}
-    }
+    if (!runDir) return
+    yield* tailRun(runDir, signal)
   }
 
   async wait(handle: RunHandle): Promise<number> {

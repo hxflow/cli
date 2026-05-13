@@ -1,15 +1,15 @@
 import { mkdirSync, readFileSync, existsSync } from "node:fs"
-import { resolve } from "node:path"
+import { homedir } from "node:os"
+import { join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 import chalk from "chalk"
-import type { RunSpec, RunManifest } from "@hxflow/shared/types"
+import type { RunSpec, RunManifest, Artifact } from "@hxflow/shared/types"
 import { selectBackend } from "./backend/index.ts"
 import { loadConfig } from "./config/load.ts"
-import { loadProfile } from "./profile/load.ts"
+import { loadEnvironment } from "./environment/load.ts"
 import { newRunId } from "./runs/id.ts"
 import { outputDir, workspaceDir, writeManifest, writeHandle } from "./runs/store.ts"
-import { authJsonPath, detectAuthMode } from "./auth/pi-bridge.ts"
-import { readHxProvider, getCodexCredential, isCodexTokenExpired } from "./auth/codex-bridge.ts"
+import { renderTraceEntry } from "./render/trace.ts"
 
 export interface AgentRunOptions {
   prompt?: string
@@ -17,20 +17,20 @@ export interface AgentRunOptions {
   cwd?: string
   repo?: string
   name?: string
-  profile?: string
+  environment?: string
   model?: string
-  budget?: number
   timeout?: number
   backend?: "docker" | "podman" | "k8s"
   detach?: boolean
   image?: string
+  showThinking?: boolean
 }
 
 export async function runAgentRun(opts: AgentRunOptions): Promise<number> {
   const config = loadConfig()
   const backendName = opts.backend ?? config.backend as "docker" | "podman" | "k8s"
-  const profileName = opts.profile ?? config.profile
-  const profile = loadProfile(profileName)
+  const environmentName = opts.environment ?? config.environment
+  const environment = loadEnvironment(environmentName)
 
   // Resolve requirement
   let requirement: string
@@ -62,43 +62,61 @@ export async function runAgentRun(opts: AgentRunOptions): Promise<number> {
     wsDir = resolve(process.cwd())
   }
 
-  // Build RunSpec
-  const hxProvider = readHxProvider()
-  const authMode = detectAuthMode()
+  // Build container env: environment.env (already resolved) + a few CLI-derived fields.
+  const image = opts.image ?? environment.image ?? config.image
   const env: Record<string, string> = {
     REQUIREMENT: requirement,
     HX_RUN_ID: runId,
-    HX_BUDGET_USD: String(opts.budget ?? 5),
-    HX_TIMEOUT_SEC: String(opts.timeout ?? profile.limits.timeoutSec),
+    HX_TIMEOUT_SEC: String(opts.timeout ?? environment.limits.timeoutSec),
     HX_OUTPUT_DIR: "/output",
     HX_WORKSPACE_DIR: "/workspace",
-    ...(profile.env ?? {}),
+    HX_ENVIRONMENT_NAME: environmentName,
+    HX_IMAGE: image,
+    HX_SOURCE: env_source(),
+    HX_EXECUTION_LOCATION: backendName === "k8s" ? "remote" : "local",
+    ...(environment.env ?? {}),
   }
-  if (opts.model) env.HX_MODEL = opts.model
+  if (opts.model ?? environment.model) env.HX_MODEL = (opts.model ?? environment.model)!
+  if (environment.auth?.provider) env.HX_PROVIDER = environment.auth.provider
 
-  if (hxProvider === "codex") {
-    // pi auth.json 里已有 openai-codex OAuth 凭证，SDK 会用 openai-codex-responses WebSocket provider
-    // 不注入 OPENAI_API_KEY，让 AuthStorage 从挂载的 auth.json 读取
-    if (isCodexTokenExpired()) {
-      console.log(chalk.yellow("Warning: codex token appears expired. Run `hx login --provider codex` to refresh."))
+  // LLM auth: three paths, all forwarded to pi which picks env > auth.json in its priority order.
+  //   A) environment.auth.apiKeyEnv → forward host env var of that name into container (convenience)
+  //   B) environment.env entries (explicit) — already merged above via `...environment.env`
+  //   C) environment.auth.authJsonPath → bind-mount host pi auth.json into container at
+  //      /root/.pi/agent/auth.json:rw. pi's AuthStorage reads OAuth credentials and refreshes natively.
+  if (environment.auth?.apiKeyEnv) {
+    const name = environment.auth.apiKeyEnv
+    const value = process.env[name]
+    if (value) {
+      env[name] = value
+    } else if (!environment.auth.authJsonPath) {
+      console.log(chalk.yellow(`Warning: host ${name} is unset and no authJsonPath fallback declared.`))
     }
-  } else if (authMode === "env-only" && process.env.ANTHROPIC_API_KEY) {
-    env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
+  }
+  let authJsonMount: string | undefined
+  if (environment.auth?.authJsonPath) {
+    const expanded = expandHome(environment.auth.authJsonPath)
+    if (!existsSync(expanded)) {
+      console.log(chalk.yellow(
+        `Warning: authJsonPath "${environment.auth.authJsonPath}" does not exist (resolved: ${expanded}). ` +
+        `Run \`pi login\` to create it, or rely on env-based credentials instead.`,
+      ))
+    } else {
+      authJsonMount = expanded
+    }
   }
 
   const spec: RunSpec = {
     runId,
-    image: opts.image ?? config.image,
+    image,
     env,
-    mounts: { workspace: wsDir, output: outDir },
-    auth: authMode === "host-pi"
-      ? { mode: "host-pi", authJsonPath: authJsonPath() }
-      : { mode: "env-only" },
+    mounts: { workspace: wsDir, output: outDir, ...(authJsonMount ? { authJson: authJsonMount } : {}) },
+    auth: { mode: "env-only" },
     limits: {
-      ...profile.limits,
-      timeoutSec: (opts.timeout ?? profile.limits.timeoutSec) + 30, // 30s buffer
+      ...environment.limits,
+      timeoutSec: (opts.timeout ?? environment.limits.timeoutSec) + 30,
     },
-    network: profile.network,
+    network: environment.network,
     name: opts.name,
     detach: opts.detach ?? false,
   }
@@ -112,7 +130,7 @@ export async function runAgentRun(opts: AgentRunOptions): Promise<number> {
       hostname: (await import("node:os")).hostname(),
     },
     spec: { ...spec, env: Object.fromEntries(Object.keys(spec.env).map((k) => [k, k.includes("KEY") || k.includes("TOKEN") ? "<redacted>" : spec.env[k]])) },
-    profile: { name: profileName, source: "file" },
+    environment: { name: environmentName, source: "file" },
     backend: backendName,
     nativeHandle: null,
     createdAt: new Date().toISOString(),
@@ -135,7 +153,7 @@ export async function runAgentRun(opts: AgentRunOptions): Promise<number> {
     return 0
   }
 
-  // Follow logs + events
+  // Follow trace stream + final result envelope
   const ac = new AbortController()
   process.once("SIGINT", () => {
     console.log(chalk.yellow("\nCancelling..."))
@@ -144,22 +162,41 @@ export async function runAgentRun(opts: AgentRunOptions): Promise<number> {
   })
 
   for await (const event of backend.follow(handle, ac.signal)) {
-    if (event.type === "stdout") process.stdout.write(event.data)
-    else if (event.type === "stderr") process.stderr.write(chalk.dim(event.data))
-    else if (event.type === "result") {
-      const r = event.data as any
-      const ok = r.status === "succeeded"
-      console.log(ok ? chalk.green(`\n✓ ${r.status}`) : chalk.red(`\n✗ ${r.status}`))
-      console.log(chalk.dim(`  cost: $${r.usage?.costUsd?.toFixed(4) ?? "?"}`))
-      console.log(chalk.dim(`  duration: ${r.durationSec?.toFixed(1)}s`))
-      if (r.mrUrl) console.log(chalk.blue(`  MR: ${r.mrUrl}`))
+    if (event.type === "trace") {
+      renderTraceEntry(event.data, { showThinking: opts.showThinking })
+    } else if (event.type === "result") {
+      const r = event.data
+      const status = r.data?.status ?? (r.err === 0 ? "succeeded" : "failed")
+      const color = r.err === 0 ? chalk.green : chalk.red
+      console.log(color(`\n${r.err === 0 ? "✓" : "✗"} ${status}  (err=${r.err}, msg=${r.msg ?? ""})`))
+      if (typeof r.data?.durationSec === "number") {
+        console.log(chalk.dim(`  duration: ${r.data.durationSec.toFixed(1)}s`))
+      }
+      const mr = pickPrimaryArtifact(r.data?.artifacts)
+      if (mr) console.log(chalk.blue(`  ${mr.type.toUpperCase()}: ${mr.url}`))
     }
   }
 
   await backend.cleanup(handle)
 
-  // 优先从 result.json 读退出码（比 container.wait 更可靠，podman 兼容）
+  // Map envelope.err → process exit code (preserves agent's failure mode).
   const { readResult } = await import("./runs/store.ts")
   const result = readResult(runId)
-  return result?.exitCode ?? 0
+  return result?.err ?? 0
+}
+
+function pickPrimaryArtifact(artifacts: Artifact[] | undefined): Artifact | undefined {
+  if (!artifacts || artifacts.length === 0) return undefined
+  return artifacts.find((a) => a.type === "pr" || a.type === "mr") ?? artifacts[0]
+}
+
+function env_source(): string {
+  if (process.env.HX_SOURCE) return process.env.HX_SOURCE
+  return "hxflow-cli"
+}
+
+function expandHome(p: string): string {
+  if (p.startsWith("~/")) return join(homedir(), p.slice(2))
+  if (p === "~") return homedir()
+  return p
 }

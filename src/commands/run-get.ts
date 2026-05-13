@@ -16,8 +16,9 @@ export default defineCommand({
       console.error(`Run not found: ${runId}`)
       process.exit(1)
     }
-    const result = readResult(runId)
-    const status = result?.status ?? "running"
+    const envelope = readResult(runId)
+    const data = envelope?.data as any
+    const status = data?.status ?? (envelope?.err === 0 ? "succeeded" : envelope ? "failed" : "running")
     const color = status === "succeeded" ? chalk.green : status === "running" ? chalk.yellow : chalk.red
 
     console.log(`${color(status)}  ${runId}`)
@@ -26,12 +27,27 @@ export default defineCommand({
     console.log(chalk.dim(`  cwd:     ${manifest.invocation.cwd}`))
     console.log(chalk.dim(`  created: ${manifest.createdAt}`))
 
-    if (result) {
-      console.log(chalk.dim(`  cost:    $${result.usage.costUsd.toFixed(4)}`))
-      console.log(chalk.dim(`  tokens:  ${result.usage.totalTokens}`))
-      console.log(chalk.dim(`  duration: ${result.durationSec.toFixed(1)}s`))
-      if (result.mrUrl) console.log(chalk.blue(`  MR: ${result.mrUrl}`))
-      if (result.errorSummary) console.log(chalk.red(`  error: ${result.errorSummary}`))
+    if (envelope) {
+      if (typeof data?.durationSec === "number") {
+        console.log(chalk.dim(`  duration: ${data.durationSec.toFixed(1)}s`))
+      }
+      if (data?.model) console.log(chalk.dim(`  model:   ${data.model}`))
+      if (data?.usage?.totalTokens) {
+        console.log(chalk.dim(`  tokens:  ${data.usage.totalTokens} (in:${data.usage.inputTokens} out:${data.usage.outputTokens} cache_r:${data.usage.cacheReadTokens} cache_w:${data.usage.cacheWriteTokens})`))
+      }
+      if (data?.summary) {
+        console.log()
+        console.log(data.summary)
+      }
+      if (Array.isArray(data?.artifacts) && data.artifacts.length > 0) {
+        console.log()
+        for (const a of data.artifacts) {
+          console.log(chalk.blue(`  ${a.type}${a.label ? ` ${a.label}` : ""}: ${a.url}`))
+        }
+      }
+      if (envelope.err !== 0 && envelope.msg) {
+        console.log(chalk.red(`  error: ${envelope.msg}`))
+      }
     }
 
     if (args.trace) {
